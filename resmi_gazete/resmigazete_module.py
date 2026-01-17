@@ -43,7 +43,6 @@ class ResmiGazeteScraper:
         hyper_df.to_excel(filepath, index=False)
         print(f"Updated Excel file saved to {filepath}")
 
-    # Other methods...
 
 # Example usage:
 scraper = ResmiGazeteScraper(year=2022)
