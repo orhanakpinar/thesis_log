@@ -32,6 +32,5 @@ class ResmiGazeteScraper:
             except requests.RequestException as e:
                 print(f"Failed to retrieve content from {url}: {str(e)}")
 
-# Example usage
 scraper = ResmiGazeteScraper(year=2022)
 scraper.read_and_process_excel('resmigazete_links_2022.xlsx')
