@@ -1,4 +1,5 @@
 import pandas as pd
+import time
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -15,36 +16,22 @@ class ResmiGazeteScraper:
         self.data = []
         self.df = pd.DataFrame()  # Initialize an empty DataFrame
 
-    def update_hyperlinks(self, filepath, start_date, end_date):
-        # Load the DataFrame from the given Excel file
-        hyper_df = pd.read_excel(filepath)
-        hyper_df['Date'] = pd.to_datetime(hyper_df['Date'])  # Ensure Date column is in datetime format
-        
-        # Filter the DataFrame based on the provided date range
-        filtered_df = hyper_df[(hyper_df['Date'] >= pd.to_datetime(start_date)) & (hyper_df['Date'] <= pd.to_datetime(end_date))]
-        
-        # Process each row in the filtered DataFrame to extract hyperlinks
-        for index, row in filtered_df.iterrows():
-            url = row['Link']
+    def read_and_process_excel(self, filepath):
+        df = pd.read_excel(filepath)
+        htm_links = df[df['Hyperlinks'].str.endswith(".htm", na=False)]
+
+        for index, row in htm_links.iterrows():
+            url = row['Hyperlinks']
             try:
                 response = requests.get(url)
+                time.sleep(1)  # Delay to avoid hammering the server
                 if response.status_code == 200:
-                    soup = BeautifulSoup(response.text, 'lxml')
-                    links = [urljoin(url, tag.get('href', '')) for tag in soup.find_all('a', href=True)]
-                    links_str = '; '.join(links)  # Join all links with a semicolon
-                    hyper_df.at[index, 'Hyperlinks'] = links_str  # Update the DataFrame
+                    with open(f"scraped_content_{index}.txt", "w", encoding='utf-8') as file:
+                        file.write(response.text)
+                        print(f"Saved content from {url} to scraped_content_{index}.txt")
             except requests.RequestException as e:
-                print(f"Failed to retrieve {url}: {str(e)}")
+                print(f"Failed to retrieve content from {url}: {str(e)}")
 
-        # Convert Date column back to string format without time component
-        hyper_df['Date'] = hyper_df['Date'].dt.strftime('%Y-%m-%d')
-        
-        # Save the updated DataFrame back to the same Excel file
-        hyper_df.to_excel(filepath, index=False)
-        print(f"Updated Excel file saved to {filepath}")
-
-    # Other methods...
-
-# Example usage:
+# Example usage
 scraper = ResmiGazeteScraper(year=2022)
-scraper.update_hyperlinks('path_to_your_excel_file.xlsx', '2022-01-01', '2022-12-31')
+scraper.read_and_process_excel('resmigazete_links_2022.xlsx')
