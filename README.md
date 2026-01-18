@@ -1,5 +1,5 @@
 # thesis_log
-Advisor: 
+Advisor: Ali Hürriyetoğlu, PhD
  
 
 
@@ -31,7 +31,7 @@ This is an homemade project.
 
 End
 
-_Orhan Akpınar_
+_Can Orhan Akpınar_
 
 ------
 
