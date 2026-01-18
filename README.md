@@ -31,7 +31,7 @@ This is an homemade project.
 
 End
 
-_Can Orhan Akpınar_
+_Orhan Akpınar_
 
 ------
 
