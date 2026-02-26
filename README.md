@@ -6,6 +6,7 @@ Advisor: Ali Hürriyetoğlu, PhD
 The work for my thesis at Koç University Computational Social Sciences MA program.
 
 For Open Science
+
 I will consider ethical principles for respect for persons, beneficence, justice and assess risks and opportunities, after each minor step data acquisition. 
 
 
@@ -37,6 +38,7 @@ _Orhan Akpınar_
 "Thank you for reading my research so far. Have a nice day." 
 
 Best wishes,
+
 
 
 
