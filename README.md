@@ -19,7 +19,6 @@ Case: Türkiye, 2012 Büyükşehir Yasası (Metropolitan Law), 6360 Sayılı Kan
 
 Research Methods: Turkiye Official Gazette policy analysis with natural language processing, econometric analysis with Turkstat national agricultural data. 
 
-I will consider ethical principles for respect for persons, beneficence, justice and assess risks and opportunities, after each minor step data acquisition. 
  __Edit__: Using completely open source government data in this project.
 
 
@@ -38,6 +37,7 @@ _Orhan Akpınar_
 "Thank you for reading my research so far. Have a nice day." 
 
 Best wishes,
+
 
 
 
