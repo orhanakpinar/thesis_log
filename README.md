@@ -5,9 +5,9 @@ Advisor: Ali Hürriyetoğlu, PhD
 
 The work for my thesis at Koç University Computational Social Sciences MA program.
 
-for Open Science
 
-Academic Work in Progress
+
+
 
 This research is an experiment, the original plan can be found in writing drafts.
 
@@ -38,5 +38,6 @@ _Orhan Akpınar_
 "Thank you for reading my research so far. Have a nice day." 
 
 Best wishes,
+
 
 
