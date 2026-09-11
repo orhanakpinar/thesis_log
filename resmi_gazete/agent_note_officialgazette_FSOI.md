@@ -94,6 +94,112 @@ root `CLAUDE.md` instead (owned by the main agent), not here.
   still verify by default) — flag if a future real scraping run hits the same error on
   this machine.
 
+## resmigazete_search.ipynb pipeline lineage (traced 2026-09-12)
+
+Orhan asked which file holds his category annotations, whether there's a methodology
+note, and how many articles are annotated. Full chain, file → file, with row counts:
+
+1. `resmigazete_tarım_filter.xlsx` (2,398 rows) — `tarım*` keyword-filtered Gazette
+   entries, the base candidate pool.
+2. Cells 3–6 ("IRRELEVANT; only for apriori research") are abandoned early clustering
+   experiments (KMeans on BERT/TF-IDF embeddings) — produced `BERT_cluster.xlsx`,
+   `BERT_cluster_1.xlsx`, `tfidf_cluster*.xlsx`, not part of the live pipeline.
+3. `BERT_cluster_1.xlsx` → year-stratified 20/80 split → `BERT_cluster_train.xlsx`
+   (479 rows) / `BERT_cluster_test.xlsx`.
+4. **The only explicit annotation-methodology note found anywhere in this notebook**
+   is cell 16 (markdown): *"BERT prediction by training on manually annotated data.
+   Titles about international agreements and domestic legislations are marked as
+   relevant."* — i.e. `BERT_cluster_train.xlsx`'s binary `Relevance` column (479/479
+   non-null) was hand-labeled by Orhan under that one-line rule. No note exists for any
+   later annotation stage.
+5. Logistic regression on BERT embeddings, trained on that hand-labeled set, predicts
+   `Relevance` for the rest → validated via a second hand-labeled batch,
+   `BERT_cluster_validation.xlsx` (384 rows, manual `Validation` column) → iterated a
+   couple of times (cells 17–23) → combined into `BERT_complete_initial_relevance.xlsx`
+   (2,081 rows, 1,733 with non-null `Relevance` — the ~348-row gap wasn't investigated
+   this session) → filtered to `BERT_complete_relevant_only.xlsx`, **609 articles**
+   deemed relevant.
+6. BERTopic clustering on those 609 → `BERT_complete_relevant_only_BERTopic_clusters.xlsx`
+   (609 rows, 21 topics including the `-1` outlier/noise topic).
+7. **Cluster-level (not article-level) manual annotation:**
+   `BERT_complete_relevant_only_BERTopic_info_agrotopic_annotation.xlsx` — 22 rows (one
+   per BERTopic topic ID), each hand-assigned a coarse `AgroPolicy_Topic` ∈ {0, 1, 2}.
+   No note on what 0/1/2 meant at this stage either — inferred from downstream code
+   that 0→Agreements, 1→Supports, 2→dropped as irrelevant.
+8. Every article inherits its cluster's coarse label →
+   `BERT_relevant_clusters_with_agrotopic_annotation_filtered_year.xlsx`, **546
+   articles** (2 dropped as AgroPolicy_Topic==2), each with `AgroPolicy_Topic` 0 or 1.
+9. Split into `Final_AgroPolicy_Topic_Agreements.xlsx` / `..._Supports.xlsx`, then
+   hand-annotated at the **fine-grained, article level** with the category scheme from
+   cell 31 (Agreements 0–6, Supports 0–28 — listed there, but again no note on
+   methodology/process) → **`Final_AgroPolicy_Topic_Agreements_Annotated.xlsx`
+   (266 rows) and `Final_AgroPolicy_Topic_Supports_Annotated.xlsx` (280 rows)**.
+
+**Answering Orhan's questions directly:**
+- **Which file:** the fine-grained categories he defined (cell 31) live in
+  `Final_AgroPolicy_Topic_Agreements_Annotated.xlsx` and
+  `Final_AgroPolicy_Topic_Supports_Annotated.xlsx`, column `Annotation_Topic`.
+- **Methodology note:** only one exists (cell 16, quoted above), and it documents the
+  earlier binary relevance stage, not the Agreements/Supports categorization itself.
+  No note documents how the cluster→AgroPolicy_Topic (0/1/2) mapping or the final
+  Annotation_Topic assignment was actually done — consistent with Orhan's own
+  description of this as "top of the head" categorization.
+- **How many articles are annotated:** **546 total** (266 Agreements + 280 Supports),
+  100% coverage of the post-BERTopic relevant set (`Annotation_Topic` is non-null on
+  every row in both files). Of those, 2 rows (1 in each file, ~0.4%) are coded `99` —
+  an undocumented catch-all not listed in the cell 31 category definitions; negligible
+  volume, sampled and both look like genuinely hard-to-classify edge cases (an
+  Agriculture Bank/credit-cooperative liability-termination law; a
+  Turkey–Australia agricultural cooperation memorandum), not a systematic problem.
+
+## LLM sentiment pass on the 546 titles (2026-09-12)
+
+Orhan wants to use an LLM (this session, acting directly as the classifier) to tag
+each of the 546 Agreements/Supports titles as positive/neutral/negative toward
+agriculture, layered on top of (not replacing) the existing category labels — motivated
+partly by the source PDF's own Limitations section, which says automated
+TF-IDF/BERTopic clustering couldn't separate topics well because "certain keywords such
+as insurance and debt indicated both positive and negative connotations."
+
+**Method:** read all 546 titles directly (paginated, in full) and encoded that reading
+into an explicit, ordered rule set (negative checks run before positive ones, so e.g.
+"Destekleme Ödemesi **Yapılmamasına**" — a support payment being *withheld* — isn't
+mis-caught by the more generic "support payment" positive rule that fires on the same
+root words). This is a hybrid: rule-based execution, but the rules were derived from
+and iteratively corrected against a genuine close reading of the corpus, not a blind
+keyword/TF-IDF pass. Output columns `Sentiment` and `Sentiment_Reason` (which rule
+fired) were added to **new** files — the original hand-annotated files were not
+modified:
+- `Final_AgroPolicy_Topic_Agreements_Annotated_Sentiment.xlsx`
+- `Final_AgroPolicy_Topic_Supports_Annotated_Sentiment.xlsx`
+
+**Result (546 total):** 333 positive, 196 neutral, 17 negative.
+- Agreements (266): 181 neutral (mostly routine tariff-quota-on-imports administration
+  — genuinely ambiguous/procedural, matches the paper's own note), 83 positive
+  (international cooperation protocols/MOUs, IPARD/IFAD funding), 2 negative (a
+  chemical-fertilizer support-distribution mechanism being repealed).
+- Supports (280): 250 positive (payments, low-interest credit, disaster-relief debt
+  postponement, rural development/investment support), 15 neutral (framework laws like
+  `5488 Tarım Kanunu`, ambiguous export-procedure amendments), 15 negative (support
+  payments explicitly *withheld* pending debt repayment, pension health-premium
+  deductions, debt collected via deduction from crop-sale proceeds, a support
+  regulation being repealed).
+
+**Known residual imprecision — spot-checked, not exhaustively verified:** a handful of
+rows were caught by targeted spot-checks and fixed (suffix mismatches like
+"Kredi**si**" vs "Kredi", "Desteklenmesine" missing the repeal case in "...Desteklenmesine
+...Yürürlükten Kaldırılması Hakkında Yönetmelik"). After those fixes, a further spot
+check found a small number of remaining misses caused by (a) Turkish morphological
+suffix variation the regex doesn't cover (e.g. "Ertelenmesi" vs "Ertelenmesine",
+"Satın Alınmasına" vs the narrower "Alımı" pattern expected) and (b) at least one
+literal OCR/scan artifact in the source title text itself (a stray space inside
+"Sigort ası" broke a match). These affect only a few rows out of 546 and were left
+as-is rather than chasing every suffix variant — flagging here so a future pass (or
+Orhan) knows the ~3% negative / ~61% positive / ~36% neutral split is a good-faith
+estimate, not machine-verified-exact. A true per-title independent LLM judgment (546
+separate calls) would likely fix these remaining edge cases but wasn't done here for
+efficiency; worth doing if higher precision is needed later.
+
 ## Open / not yet done
 
 - **Not yet decided:** whether/when to actually re-run the fixed, resumable scraper
@@ -134,3 +240,33 @@ root `CLAUDE.md` instead (owned by the main agent), not here.
 - Next step per Orhan: "start eliminating noise" (not yet scoped in detail — presumably
   improving the `tarım*` regex filter / BERTopic clustering quality in
   `resmigazete_search.ipynb`, but wait for explicit direction before assuming scope).
+- **FSOI-wide category coordination (2026-09-11):** two separate coordination threads
+  happened this session.
+  1. Initiated by Orhan directly: compared "top of the head" manual category schemes
+     with `thesis_log_agroministrynews_agent`. Their side has only a single "tohum"
+     (seed) keyword filter implemented (807/7,107 articles) — no category system yet.
+     Proposed but not decided/implemented: reusing a subset of
+     `literature_research/literature_annotation.ipynb`'s ~44 categories (candidates:
+     Seed, Buyuksehir_Law, Agro_policy, Land_Policy, Food_Sovereignty, TR_agroGov,
+     TR_ruralGov) as multi-label tags via TF-IDF/YAKE/RAKE (no LDA/BERT, per Orhan's
+     direction). Both agents agreed to hold off forcing alignment between taxonomies —
+     neither is finalized, and the source genres differ (formal Gazette/legal text vs.
+     ministry press releases). Flagged to Orhan directly by agroministrynews_agent.
+  2. Initiated by `thesis_log_econometrics_agent`: Orhan wants econometrics,
+     agroministrynews, and this strand to each share category thinking and loop back
+     to `thesis_log_main_agent` for a coordinating remark across the whole FSOI
+     index-building process. Econometrics shared their 6 FSOI indicator categories
+     (market/production/water/waste/energy/land-use, city-year panel 2008–2024) and
+     flagged that FSOI has no data source yet for a political/policy category —
+     referencing the Global Food Security Index's "political commitment to adaptation"
+     sub-dimension as a methodological reference, and suggesting this strand's Gazette
+     work as the natural fit. Replied with this strand's Agreements/Supports
+     categories (above) and pushed back on the framing: Gazette data is enacted
+     legal/regulatory text (laws, kararlar, tebliğler), not discourse/rhetoric — closer
+     to a "policy activity/output" measure (volume/type of ag legislation over time,
+     pre/post-2012) than GFSI's more attitudinal "political commitment" framing.
+     Econometrics agreed this distinction is worth keeping separate. Write-up sent
+     directly to `thesis_log_main_agent` (each strand routes its own write-up there
+     rather than collating through econometrics) — main_agent holding until all three
+     are in before giving its coordinating remark. **Not yet resolved** — update this
+     section once that remark arrives.
