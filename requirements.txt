@@ -1,0 +1,13 @@
+pandas
+numpy
+scipy
+openpyxl
+matplotlib
+beautifulsoup4
+requests
+scikit-learn
+nltk
+bertopic
+sentence-transformers
+transformers
+torch
