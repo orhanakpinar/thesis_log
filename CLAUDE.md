@@ -128,15 +128,15 @@ scope — it applies to every session, current and future.
 - Strand agents — each scoped to one folder: full read/write there, read-only everywhere
   else in the repo, and never edit `CLAUDE.md`:
   - `thesis_log_econometrics_agent` — `econometric_models_and_vars/`
-  - `thesis_log_officialgazette_agent` — `resmi_gazete/` (planned, not yet running as of
-    2026-09-11)
+  - `thesis_log_officialgazette_agent` — `resmi_gazete/` (running as of 2026-09-11)
   - `thesis_log_agroministrynews_agent` — `agro_ministry_news/` (running as of 2026-09-11;
     renamed twice already — was anticipated as `thesis_log_ministrynews_agent`, briefly
     `thesis_log_agroministry_agent`, this is the current correct one — always confirm via
     `ListAgents` rather than trusting a name recorded here, per the note under
     Communication protocol)
-  - `literature_research/` and `writing_drafts/` have no dedicated strand agent yet — until
-    one exists, don't assume either folder is claimed.
+  - `thesis_log_writingdrafts_agent` — `writing_drafts/` (running as of 2026-09-11)
+  - `literature_research/` has no dedicated strand agent yet — until one exists, don't
+    assume it's claimed.
 
 **Working-note convention:** an AI-authored working note that a strand agent wants to leave
 for future sessions in its own folder should be named `agent_note_<topic>.md`, kept
