@@ -287,17 +287,33 @@ your results. If it isn't, that instability is itself worth reporting — it wou
 verdict on a city depends on whether you frame resource use as capacity or as burden, which is
 exactly the kind of thing a sovereignty-vs-security framing debate should surface.
 
-### Cross-strand note — political category, for thesis planning (not in this session's scope)
+### Cross-strand note — political category (updated 2026-09-11, both peer strands now running)
 
 GFSI's "political commitment to adaptation" pillar and the lit review's own "Policies" category
 (`variables_agrolife_econometrics.md`: "Financial support, social security, rural
-administration status") both point to a category FSOI currently has no data source for: a
-**political/policy-commitment dimension**. The natural fit is the Resmi Gazete (Official
-Gazette) NLP strand — its stated goal is exactly "detects agricultural/rural policy activity
-over time." This is a note for thesis planning and for whoever runs the (not-yet-running)
-`thesis_log_officialgazette_agent`, not something for this session to act on — `resmi_gazete/`
-is out of this session's scope. Surfacing it here so it isn't lost before Orhan writes this into
-the main thesis plan.
+administration status") point to a category FSOI has no data source for. Both
+`thesis_log_officialgazette_agent` and `thesis_log_agroministrynews_agent` are now running and
+were contacted directly (2026-09-11) with FSOI's category structure; both reported back with
+important caveats that revise the original "natural fit" assumption below — **neither is a
+drop-in city-level political category as-is**:
+
+- **agroministrynews_agent**: keyword/multi-label tagging of ministry press releases, but
+  **national-level only** — Orhan explicitly declined city-tagging via NER, so this strand's
+  output can't join the per-city panel without that (unapproved) step. Would work as a
+  national-level covariate/control, not a category within the city-level index itself.
+- **officialgazette_agent**: manual labels (Agreements: 7 categories; Supports: 29 categories
+  rolled into 7 buckets — generalLaw, farmerSupport, investment, financial, negative, logistics,
+  damageLoss) on top of BERTopic clustering of Gazette entries — but this is **legal/regulatory
+  text (laws, kararlar, tebliğler)**, i.e. what policy was actually enacted, not discourse or
+  attitude. Its own agent flagged this is closer to a "policy activity/output" category than
+  GFSI's "political commitment" (attitudinal) — worth keeping that distinction rather than
+  treating the two as interchangeable.
+
+All three strands (this one, officialgazette, agroministrynews) sent category write-ups to
+`thesis_log_main_agent`, which is holding a coordinating remark until all three are in — check
+with it for the outcome rather than assuming this note is current for long. This is still
+fundamentally a thesis-planning / cross-strand-scope question, not something to act on
+unilaterally in this session.
 
 ## Subagent note — coordination and scope
 
