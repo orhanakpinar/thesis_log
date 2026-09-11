@@ -4,6 +4,31 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
+## Status & Forward Steps (2026-09-11) — read this first
+
+**Done:** main/extended dataframe split; `Treated` 4-category categorical + labels; correlation/
+redundancy groundwork on both dataframes (one near-duplicate pair resolved and dropped);
+methodology grounded in Yilmaz (2025, Entropy-TOPSIS) and GFSI (2022) — decided simple-mean
+sub-indices over PCA, pooled+per-year winsorized min-max over z-score; FSOI positioned as a
+critical comparative index to GFSI; cross-strand categorical question resolved — **FSOI stays
+at 6 categories** (market, production, water, waste, energy, land-use), no political category.
+
+**Blocking everything below:** benefit/cost direction for water, waste, energy, and land-use
+fallow — see "Open item" further down for the per-category table and recommendation. Waiting
+on Orhan; not yet decided as of 2026-09-11.
+
+**Forward plan once unblocked** (full detail in "Synthesized pipeline plan" below):
+1. Normalize the 4 leftover columns in main (plan agreed, not yet coded).
+2. Build simple-mean sub-indices for the remaining collapse candidates.
+3. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
+4. Aggregate into the 6 category sub-indices, documented inline.
+5. Compare equal-weighted sum vs. TOPSIS, and benefit/cost sensitivity, at category level.
+6. Produce the FSOI composite + top/bottom example cities — the "durable result" that triggers
+   reporting back to `thesis_log_main_agent` for its CLAUDE.md Results-status update.
+
+Not this session's work: Gazette/Ministry-news become a national-level companion analysis, not
+a composite input (see "Cross-strand note" below).
+
 # FSOI Working Dataframes: Variable Split
 
 `fsoi_indicator_selection.ipynb` builds two separate city-year panels rather than one. This
@@ -309,11 +334,24 @@ drop-in city-level political category as-is**:
   GFSI's "political commitment" (attitudinal) — worth keeping that distinction rather than
   treating the two as interchangeable.
 
-All three strands (this one, officialgazette, agroministrynews) sent category write-ups to
-`thesis_log_main_agent`, which is holding a coordinating remark until all three are in — check
-with it for the outcome rather than assuming this note is current for long. This is still
-fundamentally a thesis-planning / cross-strand-scope question, not something to act on
-unilaterally in this session.
+**Resolved by `thesis_log_main_agent` (2026-09-11): FSOI stays at 6 categories, no political
+category slot held open.** Two independent reasons, only one of which is fully confirmed:
+(1) both peer strands produce policy *activity/output*, not GFSI's attitudinal "political
+commitment" — a definitional mismatch, confirmed for both strands; (2) neither strand is
+city-disaggregated the way FSOI's 6 categories are (the basis for the PSM/DiD identification),
+so structurally neither could supply a comparable 7th category even setting the definitional
+question aside — **confirmed for agroministrynews_agent (Orhan declined NER city-tagging), but
+still pending for officialgazette_agent** (main agent asked directly, hadn't heard back as of
+2026-09-11 — this was an inference from the old thesis PDF description, not yet verified). Even
+if Gazette data turns out to be city-level after all, reason (1) alone is enough to keep it out
+of the composite as a "commitment" category — it just means Gazette output couldn't be ruled out
+as a *differently-framed* future addition (e.g. a "policy activity" category) on city-level
+grounds alone. Recommended treatment either way: Gazette/Ministry-news as a separate companion
+analysis (e.g. relating national policy-activity trends to the Türkiye-wide series already in
+this notebook), not a composite-index input.
+
+Category write-ups from all three strands are with `thesis_log_main_agent` — check with it for
+anything further rather than assuming this note stays current for long.
 
 ## Subagent note — coordination and scope
 
