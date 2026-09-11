@@ -26,21 +26,32 @@ Anything about result validity should live in the root `CLAUDE.md`, not here.
     non-200 response is silently skipped, no retry storm, nothing to fix here.
 - The contaminated 8-row pilot was deleted 2026-09-11 so the fixed scraper re-fetches those
   numbers cleanly as part of the full run.
-- Full scrape launched 2026-09-11 covering Number 153–7260 (7260 confirmed by Orhan as the
+- Full scrape launched 2026-09-11, covering Number 153–7260 (7260 confirmed by Orhan as the
   current latest article; the bare `/Haber/{number}` URL, no slug, verified to resolve
-  correctly for it) into `agroforestministry_news.csv`. Check progress via that CSV's row
-  count / last `Number`, or ask the running session.
-- Orhan is deleting `agroforest_ministry_news_seed.xlsx` and `agroforest_ministry_news.xlsx`
+  correctly for it) into `agroforestministry_news.csv`, **completed 2026-09-11**: 7,107 rows
+  (one Number in range got no row — a non-200 skip, expected/known non-issue per above), last
+  Number reached 7260. 615 of those rows have an empty `Paragraphs` field (no `itemBody` div
+  found, or scoped extraction found no non-empty `<p>` text) — not yet investigated why;
+  worth spot-checking a few of those URLs before assuming it's fine (could be a different
+  page template, e.g. a gallery/video-only post, or a genuine extraction miss).
+- Orhan deleted `agroforest_ministry_news_seed.xlsx` and `agroforest_ministry_news.xlsx`
   (2026-09-11) now that the full-text CSV supersedes the title/date-only scrape and its
   keyword-filtered subset — once full text is available, both should be regenerated from
-  `agroforestministry_news.csv` rather than treated as the current source.
+  `agroforestministry_news.csv` rather than treated as the current source. As of this
+  writing neither file exists in the folder; don't reference them as current.
 
 ## Scope of the "seed sovereignty" proxy (open question, updated 2026-09-11)
 
-- The (now superseded) `agroforest_ministry_news_seed.xlsx` (77 rows) was produced by a
-  **simple keyword search** — filtering titles containing "tohum" (seed) — not any text
-  analysis. Orhan confirmed (2026-09-11) this was just a first-pass keyword proxy, not a
-  finalized methodology.
+- The original `agroforest_ministry_news_seed.xlsx` (77 rows, title-only match) was deleted
+  by Orhan along with the title/date-only scrape it was derived from. It was regenerated as
+  `agroforestministry_news_seed.csv` (**807 rows**, final — regenerated once more after the
+  full scrape completed) from the full-text corpus, matching "tohum" in **either** `Title` or
+  `Paragraphs` (case-insensitive) — the ~10x jump in row count vs. the old title-only version
+  is expected and is exactly the "catches body mentions the headline misses" effect flagged
+  as a recommendation earlier in this file.
+- The original keyword search was a **simple keyword search**, not any text analysis. Orhan
+  confirmed (2026-09-11) this was just a first-pass keyword proxy, not a finalized
+  methodology.
 - Orhan spotted "**Ata Tohumu**" ("ancestral/heirloom seed") among the matched titles while
   reviewing that file. This is worth flagging explicitly: "Ata Tohumu" / "atalık tohum" /
   "yerel tohum" (heirloom, landrace, farmer-saved local seed) is conceptually close to
@@ -98,6 +109,117 @@ what to try first:
 - This is unresolved as of 2026-09-11 and needs discussion with Orhan before committing to
   any of the above; recorded here as the open question plus a recommended order to explore
   it in, not a decision.
+
+## NLP pipeline proposal, revised after discussion with Orhan (2026-09-11)
+
+An earlier version of this section proposed reusing all ~44 categories from
+`literature_research/literature_annotation.ipynb` (read-only reference, outside this
+strand's write scope) plus a ranked method list including sentence-embedding similarity and
+zero-shot transformer classification. Orhan reviewed it and pushed back / simplified; this
+section replaces that version. Keep both the decisions and the reasoning below — a future
+session should not silently re-propose the discarded options without knowing they were
+already considered.
+
+**On the literature categories:** using all 44 as-is is not adopted. Correction (Orhan,
+2026-09-11): the `TR_` prefix is **not** redundant — it deliberately separates
+Turkey-specific literature from global/international literature (e.g. `TR_agroEcon` =
+Turkey-focused agro-economics sources, `Agro_econ` = global agro-economics sources). Don't
+collapse `TR_*` and non-`TR_*` pairs as duplicates; they're an intentional scope split. (The
+per-category `.xlsx` exports like `annots_variables.xlsx` mentioned in that notebook are
+just Orhan's own viewing convention, unrelated to the `TR_` naming question.) Separately, (a)
+most of the 44 are literature-review meta-categories (`Gender`, `Health`, `Migration`,
+`History`, `Methodology`, `Variable`, `Survivorship_bias`, `Interdisciplinary`, etc.) that
+don't obviously apply to classifying national ministry press releases, so applying the full
+list here is likely overreach — a narrower, hand-picked subset (candidates: `Seed`,
+`Buyuksehir_Law`, `Agro_policy`, `Land_Policy`, `Food_Sovereignty`, plus their `TR_*`
+counterparts where relevant, e.g. `TR_agroGov`/`TR_ruralGov` — since this news corpus is
+entirely Turkey-focused, the `TR_*` variants are likely the more directly applicable half of
+each pair) makes more sense, but the exact subset is Orhan's call to make, not something to
+guess at. Also confirmed as *not a problem*:
+multi-label overlap (one sentence/article legitimately matching e.g. both an economy and a
+policy tag) is expected and fine — Orhan's own annotation methodology notes in that notebook
+already describe using 2-3 categories per annotation. Any classifier built on this taxonomy
+should be multi-label (assign zero or more tags per article), not force a single category.
+
+**Method decision, in order of what to actually try:**
+
+0. **Raw word-frequency bag ("keyword-bag") as a diagnostic, done first — empirically, not
+   assumed.** Orhan pushed back on an earlier draft of this note that *assumed* "bakan"
+   (minister) would be a common, low-signal word without checking. Correct instinct — don't
+   guess corpus statistics, count them. Ran a quick check 2026-09-11 (script:
+   `word_freq_check.py`, not checked into the repo — lowercase, Turkish stopwords removed via
+   `nltk.corpus.stopwords`, tokens <3 chars dropped) over ~7,000 scraped `Paragraphs` at that
+   point. Top results: `orman` (17,881), `tarım` (15,136), `milyon` (13,324), `bin` (13,047),
+   `türkiye` (12,789), `bakan` (10,714), then minister surnames `pakdemirli` (10,173),
+   `eroğlu` (8,614), `yumaklı` (6,908), `çelik` (3,673) — confirming "bakan" and minister
+   names genuinely are extremely recurrent, not an assumption. Also surfaced a concrete case
+   for lemmatization: fragments like `nin` (7,231) and `nın` (3,199) showed up as "words" —
+   these are Turkish genitive-case suffixes that split off because apostrophed possessives
+   like "Türkiye'nin" get tokenized on the apostrophe. That's exactly the kind of noise proper
+   lemmatization (not just naive regex tokenization) removes. A "keyword-bag" in this sense —
+   plain frequency counts, no weighting — is useful as a first empirical look before building
+   anything more structured, and confirmed Orhan's instinct to check rather than assume.
+1. **Lemmatization is necessary preprocessing, not optional** (Orhan, 2026-09-11, confirming
+   the point above). NLTK's `SnowballStemmer` (already available via `requirements.txt`)
+   does **not** support Turkish (checked its `.languages` list directly — Turkish isn't in
+   it), so it can't be used here. Candidate real options, not yet chosen: `zeyrek` (a Python
+   port of Zemberek's Turkish morphological analyzer — proper lemmatization, handles
+   agglutinative suffixes correctly, would need adding to `requirements.txt`) or the lighter
+   `TurkishStemmer` package (simpler affix-stripping, less accurate than `zeyrek` but no
+   heavier dependency). Recommend starting with `zeyrek` given how much suffix noise showed
+   up even in the crude frequency check above; needs Orhan's confirmation before adding a new
+   dependency, per repo convention.
+2. **TF-IDF and/or statistical keyword extraction — the near-term method, not embeddings or
+   any model.** Orhan asked directly what TF-IDF captures: it is pure word-frequency
+   statistics, not meaning. It weighs each literal word/token in a document by how often it
+   appears there vs. how common it is across the whole corpus — so yes, it can directly
+   capture and score words like "tohum" or "toprak" as explicit features per article, and it
+   automatically downweights words so common everywhere that they don't distinguish one
+   article from another (the keyword-bag check above is exactly how to find out which words
+   those actually are for this corpus, rather than guessing). What it gives back concretely:
+   a score per (article, word) pair usable to rank articles by how much they're "about" a
+   given word, or to compare articles by shared-word overlap. What it does *not* do:
+   understand synonyms, paraphrase, or meaning — and depends on lemmatization (step 1) first,
+   or "tohum"/"tohumu"/"tohumculuk" stay separate features and dilute the signal.
+3. **For automatic keyword extraction (not just scoring a pre-chosen word list): use an
+   unsupervised statistical method like YAKE or RAKE**, not TF-IDF alone and not
+   BERT-based extraction (KeyBERT etc. explicitly excluded per Orhan's "no BERT for now").
+   YAKE/RAKE surface candidate keywords/keyphrases per document from word co-occurrence
+   statistics alone — no training data, no embeddings, no black box — which fits Orhan's
+   request for "strong mathematical methods" over manual annotation or model-based
+   approaches. Neither is in `requirements.txt` yet; would need adding if adopted (both are
+   lightweight, no torch/transformers dependency).
+4. **Sentence-embedding similarity and zero-shot transformer classification are paused, not
+   ruled out.** Orhan flagged confusion about what "comparing embeddings" even means in
+   practice — reasonable, since it's the least transparent of the options (a vector-distance
+   comparison, not something you can point to a specific word for) and harder to defend/
+   explain by hand. Don't pursue either until TF-IDF/keyword-extraction has been tried on a
+   subset first and shown to need something richer.
+5. **LDA and BERT-based topic modeling: explicitly ruled out for now** (Orhan, 2026-09-11).
+   Consistent with the earlier reasoning that `resmi_gazete/`'s BERTopic/tf-idf clustering
+   didn't carry its own signal without manual annotation on top.
+
+**Subset-testing plan:** Orhan confirmed testing on a subset first. The "tohum"-matching
+subset was regenerated as `agroforestministry_news_seed.csv` (802 rows, title-or-body match
+— see seed-sovereignty section above) after the original 77-row title-only version was
+deleted; use that plus a comparable random sample as the test subset, rather than the full
+~7,100-article corpus. Since methods 2-3 above are automatic/statistical (no training labels
+needed), this doesn't
+require manual annotation the way a supervised classifier would — Orhan explicitly said he
+doesn't know how to manually annotate and would rather rely on mathematical methods, which
+TF-IDF + YAKE/RAKE satisfy without needing a labeled training set.
+
+**NER / entity extraction: discarded (Orhan, 2026-09-11).** An earlier version of this note
+proposed running NER over `Paragraphs` (location entities as a possible bridge to
+`econometric_models_and_vars/`'s city-level panel, person entities as an administration/
+minister-tenure marker, org entities for institutional actors). Orhan decided against it —
+concern that it adds noisy, wordy output at the wrong grain; this strand should stay at the
+subject/document level (what an article is about) rather than trying to pull out individual
+entities within it. Not to be re-proposed without Orhan raising it again.
+
+**Status:** nothing above is implemented yet. TF-IDF/keyword-extraction on a subset is the
+agreed next concrete step once Orhan confirms which literature categories (if any) to target
+first; embeddings/zero-shot remain paused, not planned.
 
 ## Coordination behavior: don't assume CLAUDE.md is unaffected
 
