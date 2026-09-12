@@ -21,8 +21,28 @@ class ResmiGazeteScraper:
         self.days = [f"{d:02d}" for d in range(1, 32)]
         self.rows = []
 
-        # Skip any word that starts with "ilan" (ilan, ilanlar, ilanları, ilanın, ilana, ...)
-        self.ilan_re = re.compile(r"\bilan\w*", flags=re.IGNORECASE)
+        # Skip the "İlanları görmek için tıklayınız" ("click to see announcements")
+        # boilerplate link to the day's classified-notices PDF - not a real gazette
+        # item. Narrowed from a blanket "\bilan\w*" (skip any word starting with
+        # "ilan") after full-year validation diffs against trusted output showed that
+        # blanket rule also dropped real titles that just contain "ilan" as a
+        # substring - e.g. "Basın-İlan Kurumu" (a real institution name) and "...İlan
+        # Edilmiş..."/"...İlanına Dair..." (the verb "to declare/announce" in
+        # substantive law titles). Observed variants (case, trailing ".", leading "- ")
+        # collected across 2000-2002's trusted files - see
+        # agent_note_officialgazete_FSOI.md.
+        self.ilan_re = re.compile(
+            r"^-?\s*ilanlar[ıi]\s+g[öo]rmek\s+i[çc]in\s+t[ıi]klay[ıi]n[ıi]z\.?$",
+            flags=re.IGNORECASE,
+        )
+
+        # Skip "Sayfa Başı" ("back to top") in-page nav links - a recurring boilerplate
+        # anchor (href like "...htm#T.C.r"), not a real gazette item. Only found in the
+        # 2001-2004 fragment-anchor era (one long combined page per day, so "back to
+        # top" links appear after every section); 2000/2005/2006 don't have it. Found
+        # via full-year validation diffs against trusted output - see
+        # agent_note_officialgazete_FSOI.md.
+        self.sayfa_basi_re = re.compile(r"^(?:sayfa\s*ba[şs][ıi]\s*)+$", flags=re.IGNORECASE)
 
         # cleanup map for common "weird" characters / cp1252 artifacts
         self.bad_char_map = {
@@ -83,8 +103,13 @@ class ResmiGazeteScraper:
         if "Æ" in text or "Å" in text:
             return True
 
-        # Omit ilan / ilanlar / ilanları / ilan... (any case)
+        # Omit the "İlanları görmek için tıklayınız" boilerplate link (any case,
+        # optional leading "-" / trailing ".")
         if self.ilan_re.search(text):
+            return True
+
+        # Omit "Sayfa Başı" back-to-top nav links (repeated one or more times)
+        if self.sayfa_basi_re.match(text):
             return True
 
         return False
@@ -119,6 +144,27 @@ class ResmiGazeteScraper:
             if not resolved:
                 continue
 
+            # href-level check for the "Sayfa Başı" (back-to-top) nav link, in addition
+            # to the text-based check below - defense in depth, since it doesn't depend
+            # on the visible text matching exactly. Every "Sayfa Başı" anchor observed
+            # (2001-2004 fragment-anchor era) points to the same in-page fragment,
+            # "#T.C.r" - the masthead/"T.C." header anchor every such link jumps back to,
+            # distinct from real item fragments like #1, #2, #3 which are unique per item.
+            if resolved.rsplit("#", 1)[-1] == "T.C.r":
+                continue
+
+            # Tried get_text("", strip=True) here to fix a rare kerning-span artifact
+            # (some titles wrap part of the text in <span style="letter-spacing:...">
+            # with no real space in the source, e.g. "T<span>oprak...", producing
+            # "T oprak" instead of "Toprak" with the " " separator). Reverted: the
+            # source markup is inconsistent about this - other, far more common tag
+            # boundaries (e.g. across "Değişiklik Yapılmasına Dair Kanun" boilerplate)
+            # rely on get_text's separator to supply a space that isn't literally in the
+            # source, so "" fixed the rare case but fused many common ones instead
+            # ("YapılmasınaDair"). No separator choice gets both right; " " is the safer
+            # default since a stray space is far less damaging than fused words for any
+            # downstream tokenization/keyword search. Affects <1% of 2006 titles - see
+            # agent_note_officialgazette_FSOI.md.
             text_raw = a.get_text(" ", strip=True)
             text = self._normalize_text_tr(text_raw)
 
@@ -152,8 +198,17 @@ class ResmiGazeteScraper:
 
         try:
             r = self.session.get(page_url, timeout=20)
-            if not r.encoding:
-                r.encoding = "utf-8"
+            # These archived pages never declare a charset, so requests falls back to
+            # ISO-8859-1 (per RFC default for text/*) even though the real encoding is
+            # usually Windows-1254 - the two only disagree on a handful of code points
+            # (ı, ş, ğ, İ, Ş, Ğ), so most Turkish text looks fine but those letters
+            # silently corrupt. Confirmed via www.resmigazete.gov.tr/eskiler/2006/07/
+            # 20060726.htm, whose raw bytes are Windows-1254 (chardet's apparent_encoding
+            # agreed) - decoding as ISO-8859-1 turned "Bakanlığına" into "Bakanl\xfd\xf0\xfdna".
+            # "if not r.encoding" (the old check here) never fires because requests'
+            # ISO-8859-1 fallback is always truthy - it was dead code.
+            if "charset" not in (r.headers.get("Content-Type") or "").lower():
+                r.encoding = r.apparent_encoding or r.encoding
         except requests.RequestException as e:
             print(f"failed to retrive page {page_url} ({type(e).__name__})")
             return None

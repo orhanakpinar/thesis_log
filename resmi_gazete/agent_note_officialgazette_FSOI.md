@@ -200,16 +200,191 @@ estimate, not machine-verified-exact. A true per-title independent LLM judgment 
 separate calls) would likely fix these remaining edge cases but wasn't done here for
 efficiency; worth doing if higher precision is needed later.
 
+## Full-year validation against trusted 2006 output (2026-09-12)
+
+CLAUDE.md flagged this as unconfirmed after the rebuild, so ran the fixed
+`ResumableResmiGazeteScraper` for the complete year 2006 live against the site
+(`resmigazete_all/titles_resmigazete_2006.csv`, 365 days, 0 fetch failures) and diffed
+it against the trusted `titles_resmigazete_2006.xlsx` by hyperlink.
+
+- **First run (anchor-merge fix only): only 56.4%** of matched links were text-identical
+  after normalizing whitespace/dashes. Investigated the 43.6% gap and found a second,
+  previously-unknown bug, unrelated to the anchor-merge fix:
+- **New bug found and fixed: wrong encoding fallback.** These archived pages never
+  declare a charset in `Content-Type`, so `requests` defaults to ISO-8859-1 (the RFC
+  fallback for undeclared `text/*`) — but the actual bytes are Windows-1254 on at least
+  some pages. The two encodings agree almost everywhere except a handful of code points
+  (ı, ş, ğ, İ, Ş, Ğ), so most Turkish text still looked fine at a glance while those
+  specific letters silently corrupted (confirmed via
+  `.../eskiler/2006/07/20060726.htm`: raw bytes are Windows-1254, and decoding as
+  ISO-8859-1 turned "Bakanlığına" into "Bakanl\xfd\xf0\xfdna"). The old code's
+  `if not r.encoding: r.encoding = "utf-8"` was dead code — `r.encoding` is never falsy
+  here, so that fallback never actually ran. Fixed in `_fetch_day` to use
+  `r.apparent_encoding` when the header has no explicit charset. **Result: match rate
+  jumped from 56.4% to 99.0%** after re-running the full year with the fix, with no
+  regression on already-correct pages.
+- **Explored and reverted a third fix attempt:** a small number of titles (<1%, ~32/3343
+  links) have a stray space mid-word (e.g. "T oprak" instead of "Toprak"), traced to
+  pages that wrap part of a title in a nested `<span style="letter-spacing:...">` for
+  kerning, with no real space in the source
+  (`<a>— T<span style="letter-spacing:-.25pt">oprak Mahsulleri...</span></a>`).
+  `get_text(" ", strip=True)` inserts a space at that tag boundary anyway. Tried
+  `get_text("", strip=True)` to fix it — this backfired badly: many far more common tag
+  boundaries in the same corpus (e.g. across "Değişiklik Yapılmasına Dair Kanun"
+  boilerplate, which appears in nearly every title) rely on that separator to supply a
+  space that isn't literally in the source text, so removing it fused those into
+  run-together non-words ("YapılmasınaDair") — including a regression on the
+  2006-01-03 case already used as the anchor-merge fix's reference example. Reverted;
+  documented the tradeoff directly in `resmigazete_module.py`. No separator choice gets
+  both cases right, and a stray mid-word space is far less damaging for downstream
+  tokenization than fused words, so `" "` stays as the default. Affects under 1% of
+  titles — acceptable, not chased further.
+- **Link coverage:** 0 links appeared in the new scrape that aren't in the trusted file
+  (no spurious extras); only 5 trusted links were absent from the new scrape (out of
+  ~3,441 shared), and those look like page-specific edge cases rather than a systematic
+  gap.
+
+**Conclusion: the rebuilt module now reproduces the trusted 2006 output at ~99%
+text-match with 0 spurious rows** — validation confirmed, addressing the gap CLAUDE.md
+flagged. `resmigazete_all/titles_resmigazete_2006.csv` now holds this freshly-validated
+scrape (not yet compared for whether it should replace or sit alongside the trusted
+`.xlsx`; that's a decision for Orhan, not made here).
+
+## Multi-year rollout: 2000-2006 (2026-09-12/13)
+
+After the 2006 validation, Orhan asked to scrape the remaining years one at a time,
+starting with 2000-2005 (2006 was already done). CSV is now the going-forward source
+of truth; trusted `.xlsx` files are kept, untouched, purely as the validation
+reference — not superseded on disk.
+
+- **A batch run across 2000-2005 surfaced a second real noise source**, found by
+  diffing against trusted the same way as the 2006 validation: a "Sayfa Başı" ("back to
+  top") in-page navigation link, present only in the 2001-2004 fragment-anchor era (one
+  long combined page per day, so a "jump to top" link recurs after every section - not
+  present in 2000, or in 2005/2006 once the site switched to one-page-per-item). It
+  isn't real gazette content, but nothing in `_should_skip_text` excluded it. Counts
+  lined up almost exactly with the "only in new scrape" divergence per year (e.g. 2003:
+  353 Sayfa Başı rows vs. 352 only-new links), confirming it as the cause. Fixed two
+  ways: (1) text-pattern check for "Sayfa Başı" repeated one or more times, and (2) a
+  belt-and-suspenders href-level check - every such link points to the same in-page
+  fragment, `#T.C.r` (the masthead anchor), distinct from real per-item fragments like
+  `#1`/`#2`. Both are in `_should_skip_text`/`_parse_links` now.
+- **Background-run interruption:** the 2001-2004 re-scrape was mid-run (2001 done, 2002
+  partway through, 2003/2004 not started) when the session ended unexpectedly. Simply
+  re-ran the same script after the interruption - the resume-by-date logic picked up
+  exactly where it stopped (skipped all of 2001, resumed 2002 from ~June 17, then did
+  2003/2004 fresh) with no manual bookkeeping needed. This is the resumability feature
+  working exactly as designed, not just in the earlier smoke test.
+  - Side effect worth noting: 2001 and the first ~5.5 months of 2002 were written
+    before the href-level `#T.C.r` check existed (only the text check was live at the
+    time), since already-written dates aren't reprocessed on resume. In practice this
+    doesn't seem to matter - the text check alone closed the gap almost completely (see
+    results below) - but flagging it in case a fully-consistent re-scrape of just those
+    two years is ever wanted.
+
+**Validation results after the Sayfa Başı fix, before the `ilan_re` fix below
+(2026-09-12/13, superseded - kept for history):**
+
+| Year | New rows | Trusted rows | Shared links | Text-match | Only-new | Only-trusted |
+|------|---------:|-------------:|-------------:|-----------:|---------:|-------------:|
+| 2000 | 1,539 | 1,708 | 1,539 | 94.2% | 0 | 164 |
+| 2001 | 3,016 | 3,424 | 3,007 | 95.8% | 0 | 332 |
+| 2002 | 3,298 | 3,534 | 3,282 | 96.0% | 0 | 240 |
+| 2003 | 3,817 | 4,206 | 3,804 | 94.8% | 1 | 13 |
+| 2004 | 3,697 | 4,125 | 3,641 | 94.7% | 44 | 12 |
+| 2005 | 3,319 | 3,337 | 3,315 | 99.6% | 0 | 20 |
+| 2006 | 3,359 | 3,372 | 3,343 | 99.0% | 0 | 12 |
+
+**Final validation results, after the `ilan_re` narrowing below - current state of
+`resmigazete_all/titles_resmigazete_{year}.csv` for 2000-2006:**
+
+| Year | New rows | Trusted rows | Shared links | Text-match | Only-new | Only-trusted |
+|------|---------:|-------------:|-------------:|-----------:|---------:|-------------:|
+| 2000 | 1,582 | 1,708 | 1,578 | 94.2% | 0 | 125 |
+| 2001 | 3,025 | 3,424 | 3,016 | 95.9% | 0 | 323 |
+| 2002 | 3,304 | 3,534 | 3,288 | 96.1% | 0 | 234 |
+| 2003 | 3,822 | 4,206 | 3,809 | 94.9% | 1 | 8 |
+| 2004 | 3,702 | 4,125 | 3,646 | 94.8% | 44 | 7 |
+| 2005 | 3,333 | 3,337 | 3,329 | 99.6% | 0 | 6 |
+| 2006 | 3,370 | 3,372 | 3,354 | 99.0% | 0 | 1 |
+
+- 2000's remaining "only-trusted" (125) is mostly the pre-2000-06-27 PDF-only era (178
+  fetch failures logged, matching CLAUDE.md/notebook's own note that `.htm` issues
+  start 2000-06-27) - not a bug, those pages never existed at that URL scheme.
+- 2001/2002's remaining "only-trusted" (323, 234) is now confirmed to be almost
+  entirely the correctly-excluded "İlanları görmek için tıklayınız" boilerplate link
+  (321/234 respectively - see below) - i.e. this gap is now the *intended* filtering,
+  not missing data.
+- 2004's 44 "only-new" rows were checked individually: all legitimate content trusted
+  never captured - annex/attachment documents (`.doc`/`.xls`/`.pdf` links), external
+  reference links (e.g. tse.org.tr, dtm.gov.tr), and footnote markers (`#_ftn1` etc.).
+  The new scraper is more complete here, not noisier; not a bug, no fix applied.
+- Text-match in the low-to-mid 90s (vs. 2005/2006's ~99%) across 2000-2004 is expected
+  given these years' pre-2005 markup quirks (fragment URLs, kerning spans, etc.) are
+  less uniform - the remaining gap wasn't chased row-by-row for every year the way 2006
+  was, since the dominant, systematic causes (encoding, anchor-splitting, Sayfa Başı,
+  ilan_re) are already found and fixed; what's left looks like long-tail per-page noise
+  rather than another single fixable bug.
+
+**Not yet scraped:** 2007-2024.
+
+## Third noise source found: `ilan_re` was over-broad (2026-09-13)
+
+Orhan asked why 2001/2002 still had a sizeable "only in trusted" gap (403 and 241
+links respectively) after the Sayfa Başı fix. Same diff-and-sample method as the
+earlier noise sources: joined new vs. trusted by hyperlink, pulled the rows only
+trusted has, and read through the samples.
+
+- **~80% of the gap (321/403 for 2001, 234/241 for 2002) is by-design filtering,
+  correctly excluding "İlanları görmek için tıklayınız" ("click to see announcements")
+  - a boilerplate link to the day's classified-notices PDF, not a real gazette item.**
+  Not a bug.
+- **The remaining ~20% is a real false-positive bug**, though in a filter that
+  predates this session - `self.ilan_re` was originally `\bilan\w*` (Orhan's own
+  design: "skip any word starting with 'ilan'"), which also silently dropped
+  legitimate titles that merely *contain* "ilan" as a substring:
+  - `"Basın-İlan Kurumu Genel Kurulu'nda..."` - "İlan" here is part of **Basın-İlan
+    Kurumu**, a real government institution (the Press Advertisement Authority), not
+    a classified notice.
+  - `"...Uygulama Alanı İlan Edilmiş Bulunan Şanlıurfa İli'nde..."` - "İlan Edilmiş"
+    ("declared") used as a verb in a real land-reform decree.
+  - `"...Tespit ve İlanına Dair Tebliğ"` - a real regulatory notification about
+    designating import/export checkpoints.
+  - (Also present, but not a bug: rows where trusted stored a `"No href"` placeholder
+    for a hrefless `<a>` around the page's "T.C." masthead text - the new scraper
+    correctly skips anchors with no href at all, so these were never going to match;
+    excluding pure letterhead/watermark text is correct behavior.)
+- **Fixed by narrowing `ilan_re`** from the blanket word-prefix match to the specific
+  boilerplate phrase pattern (`"İlanları görmek için tıklayınız"`, any case, optional
+  leading `-`/trailing `.`) - verified against every variant found across
+  `titles_resmigazete_2000/2001/2002.xlsx` (`İlanları Görmek İçin Tıklayınız`,
+  `İlanları Görmek İçin Tıklayınız.`, `İlanları görmek için tıklayınız.`,
+  `- İlanları görmek için tıklayınız.`) before applying, and against all four real-title
+  examples above to confirm no false positives.
+- **All 2000-2006 CSVs deleted and rebuilt from scratch** with the corrected filter
+  (the resumable-by-date logic would otherwise have skipped already-written dates and
+  kept the old, wrongly-dropped-title data). Done - all 7 years re-scraped cleanly, 0
+  fetch failures beyond 2000's expected pre-2000-06-27 gap. Spot-checked all four
+  real-title examples above directly in the new 2001/2002 CSVs - all four now present
+  (e.g. `Basın-İlan Kurumu`, `Resmi İlan Fiyatlarının...`). Final numbers are in the
+  validation table above.
+
 ## Open / not yet done
 
-- **Not yet decided:** whether/when to actually re-run the fixed, resumable scraper
-  across all years (2000–2024) to produce corrected data. This is a multi-hour live
-  run against a government site at a polite ~1 req/sec (~8,000+ requests). The
-  fragmented-title bug likely affects every year, not just 2006, since it's a site
-  markup pattern, not a 2006-specific issue — but this hasn't been checked against
-  other years yet.
-- **Not yet resolved:** the SSL cert verification issue on this machine, if it turns
-  out to also block the module's normal (verify=True) requests during a real run.
+- **Not yet decided:** whether/when to re-run across the remaining years (2000–2005,
+  2007–2024) — 2006 is now validated, but the encoding bug's prevalence across other
+  years hasn't been checked. Each year is a live run against a government site at a
+  polite ~1 req/sec (~350-2000+ requests per year depending on volume).
+- **Not yet decided:** whether the newly-validated `titles_resmigazete_2006.csv` should
+  replace the trusted `.xlsx` as the source of truth, or sit alongside it for further
+  comparison first.
+- **Not yet resolved generally:** the SSL cert verification issue on this machine
+  (separate from the encoding bug above) — `verify=False` was used for all fetches in
+  this session's validation runs since this machine can't validate
+  resmigazete.gov.tr's cert chain even after upgrading `certifi` (looks like a
+  server-side chain issue, not a stale local root store). The module's own `session.get`
+  calls still default to `verify=True` and were not changed to disable verification by
+  default — flag if a future real run on this machine needs the same workaround.
 - **Cross-strand coordination (per Orhan, 2026-09-11):** messaged
   `thesis_log_agroministrynews_agent` to compare "top of the head" manual category
   schemes (this strand's BERTopic-cluster-derived Agreements/Supports labels in
