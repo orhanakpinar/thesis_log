@@ -4,27 +4,43 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
-## Status & Forward Steps (2026-09-11) — read this first
+## Status & Forward Steps (updated 2026-09-12) — read this first
 
 **Done:** main/extended dataframe split; `Treated` 4-category categorical + labels; correlation/
-redundancy groundwork on both dataframes (one near-duplicate pair resolved and dropped);
-methodology grounded in Yilmaz (2025, Entropy-TOPSIS) and GFSI (2022) — decided simple-mean
-sub-indices over PCA, pooled+per-year winsorized min-max over z-score; FSOI positioned as a
-critical comparative index to GFSI; cross-strand categorical question resolved — **FSOI stays
-at 6 categories** (market, production, water, waste, energy, land-use), no political category.
+redundancy groundwork on both dataframes; methodology grounded in Yilmaz (2025, Entropy-TOPSIS)
+and GFSI (2022) — simple-mean sub-indices over PCA, pooled+per-year winsorized min-max over
+z-score; FSOI positioned as a critical comparative index to GFSI; cross-strand categorical
+question resolved (**FSOI stays at 6 categories**, no political category).
 
-**Blocking everything below:** benefit/cost direction for water, waste, energy, and land-use
-fallow — see "Open item" further down for the per-category table and recommendation. Waiting
-on Orhan; not yet decided as of 2026-09-11.
+**Both former blockers are now resolved (2026-09-12):**
+- **Aggregation: equal-weighted sum is primary**; TOPSIS is an appendix-level robustness check,
+  not co-equal (see "Comparison scope" note below on why this isn't 4 co-equal models).
+- **Benefit/cost direction: cost/burden framing** for water, waste, energy, and land-use fallow
+  (Orhan, 2026-09-12) — i.e. the primary model treats these as "lower is better." Capacity/
+  benefit framing becomes the robustness-check alternative, not the primary reading.
+- **Land-use fallow: kept, not eliminated.** Checked correlation against harvested/sowed first
+  (r = 0.32–0.65 — moderate, well below the >0.9 bar used for actual collapse candidates), so
+  elimination wasn't statistically justified. Orhan's framing: fallow is conceptually the
+  *negative* of harvested land (unused vs. used) — fits the cost framing directly, not
+  eliminated.
+- **New indicator added: fertilizer use, folded into `energy` (cost)** — see "New Data —
+  Fertilizer Use" section below for full detail. `data_official_Türkiye` is now (738, 26).
 
-**Forward plan once unblocked** (full detail in "Synthesized pipeline plan" below):
-1. Normalize the 4 leftover columns in main (plan agreed, not yet coded).
-2. Build simple-mean sub-indices for the remaining collapse candidates.
-3. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
-4. Aggregate into the 6 category sub-indices, documented inline.
-5. Compare equal-weighted sum vs. TOPSIS, and benefit/cost sensitivity, at category level.
-6. Produce the FSOI composite + top/bottom example cities — the "durable result" that triggers
-   reporting back to `thesis_log_main_agent` for its CLAUDE.md Results-status update.
+**Forward plan** (full detail in "Synthesized pipeline plan" below — steps renumbered to match
+current status; step 4 below was step 1 there and remains the next open implementation item):
+1. Build simple-mean sub-indices for the remaining collapse candidates (land-use
+   harvested/sowed, greenhouse cluster, water drainage/refined, electricity perArea/perHousehold).
+2. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
+3. Aggregate into the 6 category sub-indices, documented inline, applying cost-direction flips
+   where decided above.
+4. Normalize the 4 leftover columns in main (`Total_Agricultural_Production_Ton`,
+   `Water_Refined_LitrePerPersonPerDay`, `Waste_Collected_KgPerPersonPerDay`, drop
+   `Population_Density_PeoplePerKm2`) — plan agreed earlier, still not coded as of 2026-09-12.
+5. Produce the primary FSOI composite (equal-weight, cost-framed) + top/bottom example cities.
+6. Robustness checks: TOPSIS vs. equal-weight; benefit-framing vs. cost-framing — report as
+   appendix-level sensitivity analysis, not additional co-equal headline results.
+7. That composite (step 5) is the "durable result" that triggers reporting back to
+   `thesis_log_main_agent` for its CLAUDE.md Results-status update.
 
 Not this session's work: Gazette/Ministry-news become a national-level companion analysis, not
 a composite input (see "Cross-strand note" below).
@@ -102,6 +118,38 @@ panel's `82 locations × 9 years = 738 rows`.
 `Treated` is kept as the numeric-coded categorical (0/1/2/3) for logic/filtering; `Treated_Label`
 carries the same information as readable strings so plots (matplotlib/seaborn `hue`/legend) show
 "Non-metropolitan" etc. automatically — no manual legend needed.
+
+## New Data — Fertilizer Use (added 2026-09-12)
+
+**Source:** `TOB_fertilizer_cities.xlsx` (Ministry of Agriculture and Forestry, TOB), sheet
+`BİTKİ BESİN MADDESİ TÜKETİMİ` — total plant-nutrient/fertilizer consumption per city per year,
+in tons, 2000–2025. 81 cities, zero missing values in the raw file overall — actually more
+complete than several existing TÜİK-sourced indicators. Loaded and merged directly into
+**`data_official_Türkiye` (main)**, not extended — this indicator has no TÜİK-style publication
+gap, so the full-coverage dataframe is the right home for it, not the partial-coverage one.
+
+**City-name matching:** the source file uses ALL-CAPS Turkish city names (`AFYONKARAHİSAR`,
+`ADIYAMAN`); Python's default `.upper()`/`.lower()`/`.title()` mishandle Turkish's two distinct
+"I"s (dotted İ/i vs. dotless I/ı — e.g. `"I".lower()` gives `"i"` in Python, but Turkish
+requires `"ı"`), so a custom `tr_title()` function does the case-folding explicitly via
+`str.maketrans({'İ': 'i', 'I': 'ı'})` before re-capitalizing. Verified against the panel's full
+81-city set before merging — exact match, zero unmatched names either direction (only
+`Türkiye`, the aggregate row, is absent from the fertilizer file, as expected). The merge cell
+asserts both this match and the absence of duplicate Year/Location_Name rows, so a future
+change to the source file that breaks either assumption fails loudly rather than silently
+producing wrong values.
+
+**Known gap:** `Hakkari` has no fertilizer records at all for 2020, 2022, or 2024 in the source
+file (3 of 738 city-years, 0.4%) — confirmed as a genuine source-data gap (the other analysis
+years for Hakkari are present, including legitimate zeros in 2012/2014/2016), not a
+name-matching or merge bug. Small enough not to need a decision now, but don't be surprised by
+those 3 `NaN`s downstream.
+
+**New columns:** `fertilizer_use_perArea`, `fertilizer_use_perHousehold` — folded into the
+**energy** category as a **cost** indicator, per Yilmaz (2025)'s Entropy-TOPSIS precedent
+treating Fertilizer Intensity as a cost criterion, and per the cost/burden framing decided for
+the rest of energy/water/waste (2026-09-12, see Status section above). `data_official_Türkiye`
+is now `(738, 26)`.
 
 ## Variable Redundancy Map (2026-09-11)
 
@@ -283,7 +331,27 @@ whole conversation — read this before anything else if picking this up fresh.
    step 7 compares aggregation methods. Answers Orhan's "will there be a ratio for comparison?"
    — yes, this sensitivity check is that ratio/comparison.
 
-### Open item — benefit/cost direction per category (blocks steps 2 and 5 above)
+### Resolved — benefit/cost direction and aggregation method (2026-09-12)
+
+Both decided by Orhan on 2026-09-12, superseding the "build both and compare" open item below
+(kept for its reasoning/table, but no longer the live plan):
+
+- **Cost/burden framing** for water, waste, energy, and land-use fallow — the primary model
+  treats "lower is better" for all four. Fertilizer (new indicator, folded into energy) uses
+  this same framing by construction.
+- **Equal-weighted sum is the primary aggregation method**, not TOPSIS.
+
+**Comparison scope — not 4 co-equal models.** A full 2×2 factorial (direction × aggregation)
+produces 4 composite variants, but running all 4 as equally-weighted headline results would
+read as indecisive in the thesis. Structure instead: **one primary specification** (equal
+weight + cost framing, decided above) reported as the main FSOI result, with the other 3
+cells of the 2×2 grid (TOPSIS+cost, equal-weight+benefit, TOPSIS+benefit) reported as
+**appendix-level robustness/sensitivity checks** — do the rankings and the Law 6360 DiD
+result hold up across all 4, or does methodology choice change the substantive conclusion?
+Either answer is a reportable finding; treat it as a sensitivity analysis, not four parallel
+theses.
+
+### Open item — benefit/cost direction per category (superseded by "Resolved" above, kept for its reasoning)
 
 TOPSIS-style indices require every criterion marked as **benefit** (higher = better) or
 **cost** (lower = better) before normalization. This isn't just bookkeeping — get it backwards
