@@ -3,6 +3,114 @@
 This file is AI-authored pipeline documentation for future sessions working on this strand.
 Anything about result validity should live in the root `CLAUDE.md`, not here.
 
+## New workflow, 2026-09-13ish: AI-first-pass + Orhan's top-of-head categories
+
+Orhan proposed a new collaborative annotation model, replacing the pure "Claude classifies,
+Orhan reviews" pattern from batches 1-2:
+
+1. Claude (via subagent) classifies a batch: `Categories` (from the fixed 44-list, as
+   before) + `Ceremonial_Political` + a single merged `Comment` field (replaces the old
+   two-field `TopicGloss`/`Notes` split — simpler schema, same content). The existing 170
+   rows were migrated to this schema (`Comment` = old `TopicGloss` + " | Notes: " + old
+   `Notes` where present).
+2. An empty `Orhan_Category` column is added for Orhan to fill in his own "top of head"
+   category per row after reading Claude's `Categories`+`Comment` — this is deliberately
+   NOT constrained to the 44-list; it's how new categories (he named `Water`, `Forestry`,
+   `Collaboration` as likely candidates) are meant to emerge, grounded in concrete rows
+   rather than invented abstractly.
+3. Claude then reviews what Orhan added ("check the last version") and the category scheme
+   evolves from there — annotating more richly / more consistently once real candidate
+   categories exist. Orhan explicitly framed this as also being how a future session learns
+   *how he thinks* about the literature_research categories, not just what the categories are.
+4. **Scale plan, step by step, not all at once:** 170 (done) → +130 = 300 (batch 3, in
+   progress) → +100 = 400 (batch 4) → +100 = 500 (batch 5). Each step should let Orhan review
+   before the next batch runs, per his "step by step" framing — don't auto-chain all the way
+   to 500 without checking in.
+5. The classification subagent for batch 3 was explicitly told to call out candidate new
+   category types (Water/Forestry/Collaboration-style content that doesn't fit the 44-list)
+   directly in `Comment`, to give Orhan concrete rows to react to rather than a blank slate.
+
+**Open interpretation note — resolved, 2026-09-13ish:** Orhan's exact phrase was "make a
+Category and Comment as same." Checked with him directly: he actually meant to keep
+`Categories` + two separate free-text fields (`TopicGloss`/`Notes`, i.e. the original
+structure) — not merge them into one `Comment` column the way this session read it. **He
+decided to keep the merged single `Comment` field anyway, no revert needed** — he finds it
+readable as-is and prefers not to spend the effort reverting. So the schema
+(`Categories, Ceremonial_Political, Comment, Orhan_Category`) is confirmed as the actual
+going-forward schema, by explicit choice, not by defaulting to a misreading. Don't revert
+this without Orhan asking.
+
+**Known content-consistency caveat, accepted as-is:** the 170 rows migrated from batches 1-2
+have `Comment` mechanically built as `TopicGloss + " | Notes: " + Notes` (a concatenation),
+while batch 3's `Comment` field is genuinely free-flowing prose written directly by the
+subagent (topic + ambiguity + candidate-category flags together) — richer and more useful,
+per Orhan ("That comment section is better than Glossary I think"). **Orhan is considering
+re-running batches 1-2 to regenerate their `Comment` field in batch 3's richer free-flowing
+style, for consistency** — but explicitly said not to do this now ("let's stay same no need
+to do it now"). Treat this as a real, live backlog item to revisit if he raises it again, not
+something to do preemptively.
+
+### Batch 3 results, 2026-09-13ish (130 new rows, cumulative now 300)
+
+Output appended to `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv`
+(now 300 rows total, `Orhan_Category` still empty pending his review).
+
+- **Category tally (batch 3 only):** `Agro_policy` 38, `TR_ruralGov` 38, `TR_agroGov` 33,
+  `Agro_econ` 28, `TR_agroEcon` 20, `Rural_Livelihood` 20, `Risks_Global` 16,
+  `Food_Security` 15, `Agro_international` 14, `Rural_Development` 13, `Health` 9, `Seed` 8,
+  `Gender` 6, `Land_Policy` 6, `History` 6, `Cooperatives` 5, `Land_Consolidation` 4,
+  `Small_holder` 4, `Shortfood` 4, `Education` 3, `Agroecology` 3, `Agro_tech` 3,
+  `Buyuksehir_Law` 3, `Policy_Access` 3, `Rural_Family` 3, `Deruralization` 2, `Migration` 2,
+  `Rural_Policy` 1, `Urbanization` 1, `Debt` 1. `Ceremonial_Political = yes`: 27/130.
+  11 rows got zero categories (condolence/ceremonial content, or animal-welfare/nature-
+  tourism topics genuinely outside the 44-list's scope — consistent with prior batches).
+- **`Buyuksehir_Law`: 3 hits this batch — a meaningful recovery after the prior 170-row run
+  scored 0.** Worth Orhan reading directly, ranked by strength:
+  1. **Haber/4207 — the strongest hit found so far in this whole pilot.** The 3rd Agriculture
+     and Forestry Council's final declaration, item 17, explicitly calls for büyükşehir
+     belediyeleri to restructure neighborhoods into rural/urban categories while preserving
+     village legal-entity (`köy tüzel kişiliği`) status, with the Ministry coordinating rural
+     life — this is a direct, explicit description of Law 6360's rural-administration
+     mechanics, not a buried incidental mention like Haber/392 was.
+  2. Haber/3757 — tanzim satış (price-controlled produce sales) explicitly run by büyükşehir
+     belediyeleri across several named cities.
+  3. Haber/3666 (English) — Minister Pakdemirli credits metropolitan municipalities,
+     "especially Ankara and Istanbul," with organizing produce delivery to consumers.
+  - Two near-misses were flagged in Comments but deliberately NOT tagged: Haber/4160
+    (a forest lease to İBB since 2012 — coincidental timing with the law, not an actual Law
+    6360 rural-responsibility transfer) and Haber/3284 (Ankara büyükşehir belediyesi doing
+    landscaping near a dam — unrelated). Worth Orhan spot-checking these two specifically to
+    confirm the "not tagged" call was right, given how easy this category is to miss/misjudge
+    (see the Haber/392 saga above).
+- **Water/Forestry/Collaboration candidate flags — concrete rows for Orhan's top-of-head
+  review, exactly what this workflow needs:**
+  - Water-security-flavored content with no clean home in the 44-list: Haber/6706, 5623,
+    6774, 6370, 5542, 5617, 5183, 1981, 5215, 1941, 3477, 3879, 3130, 2447, 1769 (15 rows).
+  - Forestry/wildfire-disaster content: Haber/4788, 5967, 6499, 3477, 1668, 3146 (6 rows).
+  - Explicit cross-institution/inter-ministry collaboration content: Haber/6774, 6392.
+  - One additional candidate not previously discussed: a food-waste/zero-waste
+    sustainability angle at Haber/7015, doesn't map cleanly onto anything existing either —
+    worth Orhan considering alongside Water/Forestry/Collaboration when he does his pass.
+- **Data-quality note, not a category issue:** two near-duplicate article pairs found in this
+  batch — Haber/5455 & 5456 (same Indonesia G20 trip, covered twice) and Haber/3346 & 3325
+  (near-identical province investment-recap templates for Kilis and Trabzon). Both pairs were
+  classified independently per instructions rather than merged/deduped. Worth knowing this
+  kind of near-duplicate exists in the corpus generally (ministry site sometimes publishes
+  template-recap articles per province) if duplicate-content ever becomes a concern for
+  full-corpus counts later.
+
+**Status:** holding at 300 per Orhan's "step by step" plan — waiting for his review /
+`Orhan_Category` additions before batch 4 (+100 → 400).
+
+**File status note:** Orhan deleted `agroforestministry_news_seed.csv` (the 807-row "tohum"
+keyword subset) and `agroforestministry_news_seed_lemmatized.csv` (its `zeyrek`-lemmatized
+version) — confirmed gone. Both belonged to the lemmatization/TF-IDF branch that was
+superseded by the LLM classification pivot (see "Turning point" section below); nothing in
+the current pipeline (the cumulative sample + LLM classification work) reads either file.
+Don't go looking for them or treat their absence as something broken. If the "tohum" subset
+is ever needed again, it's one line to regenerate: filter `agroforestministry_news.csv` for
+"tohum" in `Title` or `Paragraphs`.
+
 ## Forward-steps roadmap (keep updated — last updated 2026-09-12)
 
 Read this first for current status at a glance; sections below have the full reasoning
