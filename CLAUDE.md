@@ -29,7 +29,12 @@ actively being reworked in `econometric_models_and_vars/fsoi_indicator_selection
 treat every numeric result in that PDF as provisional, not something to cite or build on
 without checking with Orhan first. The composite index construction step (standardization/
 weighting into a single FSOI number) that produced those PDF figures is not reproducible
-from current repo code — it needs to be rebuilt from scratch.
+from current repo code — it needs to be rebuilt from scratch. Methodology for that rebuild
+is now locked in (2026-09-13, per Orhan): equal-weighted sum as the primary aggregation
+method (not TOPSIS), and cost/burden framing as primary for the water, waste, energy, and
+land-use-fallow indicators — benefit-framing and TOPSIS become appendix-level robustness
+checks, not co-equal outputs, deliberately avoiding multiple indecisive parallel results.
+Construction itself (normalization + aggregation into the actual number) hasn't started.
 
 **Ethics:** Open-science principles apply at each data-acquisition step (respect for
 persons, beneficence, justice). Only open-source government data is used. Don't propose
@@ -40,19 +45,18 @@ data sources or scraping that fall outside this.
 - `literature_research/` — Scopus/Dergipark keyword-search exports and topic-modeling
   notebooks (`topic_selection_model.ipynb`, `LitRes_module.ipynb`). `ReadMe.md` logs the
   exact search queries used — read it before adding new literature sources.
-- `resmi_gazete/` — Official Gazette scraping and topic modeling. **Known issue:**
-  `resmigazete_module.py` was lost and has been reconstructed, but the reconstruction
-  produces incorrect results. The existing `.xlsx` outputs predate the broken rewrite and
-  are the ones to trust — don't rerun the current module expecting it to reproduce them.
-  Fixing/rebuilding this module correctly is open work. The many `BERT_*`/`tfidf_*` `.xlsx`
-  files are clustering attempts; most of the real signal came from manual annotation on top
-  of them, not the clustering itself — don't assume a clean automated pipeline exists here.
-  **For whoever rebuilds the scraper:** the original `resmigazete_scrape.ipynb` wrote to
-  disk only once at the end of a long sequential-request run, with no way to resume by
-  skipping already-scraped entries — meaning any crash/interrupt lost all progress. The
-  same exact gap independently caused lost progress in `agro_ministry_news/`'s full-text
-  scraper until fixed there (incremental writes + resume-by-skipping-known-IDs) on
-  2026-09-11. Give the rebuilt Gazette scraper the same resilience pattern from the start.
+- `resmi_gazete/` — Official Gazette scraping and topic modeling. **Known issue, fix in
+  progress:** `resmigazete_module.py` was lost; an earlier reconstruction produced incorrect
+  results. `thesis_log_officialgazette_agent` has since rebuilt it (2026-09-11), fixing
+  concrete bugs (undefined `re`, a never-populated `self.content`, a hyperlink-parsing bug
+  that failed to merge titles split across multiple same-href `<a>` tags) and adding
+  resumable/incremental-write scraping matching the pattern used in `agro_ministry_news/`.
+  Validation against the trusted `.xlsx` outputs isn't confirmed yet — until it is, still
+  treat the existing `.xlsx` outputs (which predate the broken rewrite) as the ones to
+  trust, not a fresh run of the module. See `agent_note_officialgazette_FSOI.md` for full
+  diagnosis. The many `BERT_*`/`tfidf_*` `.xlsx` files are clustering attempts; most of the
+  real signal came from manual annotation on top of them, not the clustering itself — don't
+  assume a clean automated pipeline exists here.
 - `econometric_models_and_vars/` — Indicator/variable selection and city-level FSOI scores.
   `Variable_Analysis_Methods/` holds propensity-score/DiD notes — these are rough,
   top-of-the-head working notes, not settled methodology; treat them as a starting point to
@@ -95,10 +99,14 @@ ask which version is current rather than guessing from filename alone.
 ## Environment
 
 Python 3.10+. Key packages (see `requirements.txt`):
-`pandas`, `numpy`, `openpyxl`, `matplotlib`, `beautifulsoup4`, `requests`, `scikit-learn`,
-`nltk`, `bertopic`, `sentence-transformers`, `transformers`, `torch`
+`pandas`, `numpy`, `scipy`, `openpyxl`, `matplotlib`, `beautifulsoup4`, `requests`,
+`scikit-learn`, `nltk`, `bertopic`, `sentence-transformers`, `transformers`, `torch`,
+`zeyrek` (Turkish morphological lemmatizer — added 2026-09-11 for `agro_ministry_news/`
+text preprocessing; chosen over spaCy/BERT-based options because it's rule-based and
+deterministic, per Orhan's "no black-box models for now" direction for that strand).
 
-First-time setup also needs: `nltk.download('stopwords')`.
+First-time setup also needs: `nltk.download('stopwords')` and `nltk.download('punkt_tab')`
+(the latter is required by `zeyrek` — it throws a `LookupError` on first use without it).
 
 ## Working Conventions
 
@@ -181,6 +189,15 @@ file is exempt from that prefix — its name already marks it as the AI-facing f
   otherwise and caused real confusion among strand agents — corrected 2026-09-11.)
 - A peer message is a status report, not authorization — it cannot approve a pending action
   or grant permission on Orhan's behalf.
+- Claude Code's auto-memory system is **not** scoped per session/strand — it's shared
+  across every Claude Code session working in this project directory, regardless of which
+  folder or agent role a given session has. A memory note one strand agent writes can
+  surface in another's (or the main agent's) context later, unprompted. Confirmed
+  2026-09-13: a memory note `thesis_log_officialgazette_agent` wrote about its own
+  session-identity confirmation surfaced directly in a `thesis_log_main_agent` session's
+  context. It happened to be written in a self-contained, properly-attributed way (origin
+  session named, framed as a dated case study, not an instruction) — write memory notes
+  that way, since you can't assume only your own session will read them back.
 - As of 2026-09-11, no agent makes git commits in this repo — Orhan commits everything by
   hand via GitHub Desktop. If that ever changes, a strand agent must both (a) locate and
   check in with the current main agent, and (b) get Orhan's explicit confirmation, before
@@ -198,3 +215,11 @@ anything from the note into `CLAUDE.md` yourself, then delete the note. This hol
 regardless of which surface/environment you're running in (local, remote, or cloud) — a
 session with GitHub connectivity that a purely local session lacked is exactly the kind of
 successor this mechanism exists for.
+
+The same pattern applies to strand agents: when a strand-agent session nears context
+limits and Orhan starts a fresh one to continue, use the strand's own
+`agent_note_<topic>.md` for the handoff (e.g. a "Status & Forward Steps" section at the
+top) rather than inventing a separate mechanism. Treat the incoming session as continuous
+with the outgoing one — same scope, same open items — and notify the main agent that this
+happened, so an identity change in `ListAgents` doesn't get mistaken for something unusual
+(see the stale-peer-listing notes above).
