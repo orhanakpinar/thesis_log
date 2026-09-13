@@ -11,4 +11,3 @@ bertopic
 sentence-transformers
 transformers
 torch
-zeyrek
