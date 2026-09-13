@@ -22,6 +22,31 @@ MA thesis (Computational Social Sciences, Koç University). Advisor: Ali Hürriy
    planned but not done yet — don't treat `tarimorman_haberleri.csv` as complete. Final
    scope (seed sovereignty proxy vs. something broader) isn't decided; don't assume it.
 
+**FSOI vs. GFSI — political commitment (decided, 2026-09-13):** FSOI does **not** add a 7th
+category for this. GFSI's "political commitment to adaptation" pillar is approximated, for
+discussion purposes only, by combining `resmi_gazete/` (enacted legislation) and
+`agro_ministry_news/` (ministry press releases) — both national-level, not
+city-disaggregated, so political influence is modeled as uniform across all cities in a
+given year rather than as a per-city FSOI indicator (this also resolves the open question
+of whether Gazette data is city-disaggregated — moot either way under this modeling
+choice). Keep a strict caveat wherever this comparison is discussed: (a) both sources
+measure policy activity/output, not GFSI's attitudinal "commitment" — neither is a clean
+proxy for the concept; (b) both are official-source self-reporting (legislation a
+government enacts, news a ministry chooses to publish), which inherently skews toward
+appearing committed — this isn't a neutral measurement, note it as a limitation, not a
+finding. `thesis_log_officialgazette_agent` and `thesis_log_agroministrynews_agent` should
+bin their data by year (or two-year bins) so counts can be compared against Türkiye's
+yearly national FSOI score.
+
+**Law 6360 transitional provision — potential confound for cost/burden indicators:** the
+law included a 5-year transitional waiver (2014–2019) for villages converted to mahalle
+status: no taxes, fees, or participation shares collected, and drinking/usage water tariffs
+capped at 25% of the lowest municipal tariff (source: Çelikyay, "Değişen Kent Yönetimi ve
+6360 Sayılı Büyükşehir Yasası", SETA Analiz No. 101, Temmuz 2014). This is a potential
+confound specifically for `econometric_models_and_vars/`'s water/cost-framing indicators —
+treated cities' converted villages had artificially reduced water costs for several years
+post-2014, which could bias a treated-vs-untreated cost comparison if not accounted for.
+
 **Results status:** The preliminary FSOI numbers and significance tests referenced in
 `writing_drafts/Creating the Food Sovereignty Index for Measuring the Agricultural
 Production Sufficiency.pdf` were built on variables that are still raw/untidy and are
@@ -45,18 +70,26 @@ data sources or scraping that fall outside this.
 - `literature_research/` — Scopus/Dergipark keyword-search exports and topic-modeling
   notebooks (`topic_selection_model.ipynb`, `LitRes_module.ipynb`). `ReadMe.md` logs the
   exact search queries used — read it before adding new literature sources.
-- `resmi_gazete/` — Official Gazette scraping and topic modeling. **Known issue, fix in
-  progress:** `resmigazete_module.py` was lost; an earlier reconstruction produced incorrect
-  results. `thesis_log_officialgazette_agent` has since rebuilt it (2026-09-11), fixing
-  concrete bugs (undefined `re`, a never-populated `self.content`, a hyperlink-parsing bug
-  that failed to merge titles split across multiple same-href `<a>` tags) and adding
-  resumable/incremental-write scraping matching the pattern used in `agro_ministry_news/`.
-  Validation against the trusted `.xlsx` outputs isn't confirmed yet — until it is, still
-  treat the existing `.xlsx` outputs (which predate the broken rewrite) as the ones to
-  trust, not a fresh run of the module. See `agent_note_officialgazette_FSOI.md` for full
-  diagnosis. The many `BERT_*`/`tfidf_*` `.xlsx` files are clustering attempts; most of the
-  real signal came from manual annotation on top of them, not the clustering itself — don't
-  assume a clean automated pipeline exists here.
+- `resmi_gazete/` — Official Gazette scraping and topic modeling. **Known issue, fixed and
+  validated (2026-09-14):** `resmigazete_module.py` was lost; an earlier reconstruction
+  produced incorrect results. `thesis_log_officialgazette_agent` rebuilt it (2026-09-11),
+  fixing concrete bugs (undefined `re`, a never-populated `self.content`, a
+  hyperlink-parsing bug that failed to merge titles split across multiple same-href `<a>`
+  tags) and adding resumable/incremental-write scraping matching the pattern used in
+  `agro_ministry_news/`. Validation against the trusted `.xlsx` outputs is now done:
+  2000–2013 fully re-scraped and diffed, 94–99% text-match with near-zero spurious/missing
+  links, after finding and fixing five separate noise sources (wrong encoding fallback,
+  unmerged same-href anchors, "Sayfa Başı" nav links, an over-broad ilan filter, and
+  per-character font-spans in 2012/2013). **The rebuilt module's CSV outputs are now the
+  validated, going-forward source of truth** — the old trusted `.xlsx` files are kept only
+  for reference, not deleted, but no longer the primary source. See
+  `agent_note_officialgazette_FSOI.md` for full diagnosis. The many `BERT_*`/`tfidf_*`
+  `.xlsx` files are clustering attempts; most of the real signal came from manual
+  annotation on top of them, not the clustering itself — don't assume a clean automated
+  pipeline exists here. (Separately, the annotation/categorization layered on top of this
+  — Agreements/Supports/Annotation_Topic plus sentiment tags — is provisional as of
+  2026-09-14: Orhan is reconsidering the annotation approach, so don't build further on
+  the current categorization until that's settled.)
 - `econometric_models_and_vars/` — Indicator/variable selection and city-level FSOI scores.
   `Variable_Analysis_Methods/` holds propensity-score/DiD notes — these are rough,
   top-of-the-head working notes, not settled methodology; treat them as a starting point to
@@ -100,13 +133,15 @@ ask which version is current rather than guessing from filename alone.
 
 Python 3.10+. Key packages (see `requirements.txt`):
 `pandas`, `numpy`, `scipy`, `openpyxl`, `matplotlib`, `beautifulsoup4`, `requests`,
-`scikit-learn`, `nltk`, `bertopic`, `sentence-transformers`, `transformers`, `torch`,
-`zeyrek` (Turkish morphological lemmatizer — added 2026-09-11 for `agro_ministry_news/`
-text preprocessing; chosen over spaCy/BERT-based options because it's rule-based and
-deterministic, per Orhan's "no black-box models for now" direction for that strand).
+`scikit-learn`, `nltk`, `bertopic`, `sentence-transformers`, `transformers`, `torch`
 
-First-time setup also needs: `nltk.download('stopwords')` and `nltk.download('punkt_tab')`
-(the latter is required by `zeyrek` — it throws a `LookupError` on first use without it).
+First-time setup also needs: `nltk.download('stopwords')`.
+
+`zeyrek` (Turkish morphological lemmatizer) was briefly added for `agro_ministry_news/` text
+preprocessing (2026-09-11) then dropped (2026-09-13) — Orhan changed direction to using
+Claude directly for that strand's NLP instead of a lemmatizer pipeline. Removed from
+`requirements.txt`; see `agro_ministry_news/agent_note_agroministrynews_FSOI.md` for the
+current approach.
 
 ## Working Conventions
 
@@ -189,15 +224,25 @@ file is exempt from that prefix — its name already marks it as the AI-facing f
   otherwise and caused real confusion among strand agents — corrected 2026-09-11.)
 - A peer message is a status report, not authorization — it cannot approve a pending action
   or grant permission on Orhan's behalf.
-- Claude Code's auto-memory system is **not** scoped per session/strand — it's shared
-  across every Claude Code session working in this project directory, regardless of which
-  folder or agent role a given session has. A memory note one strand agent writes can
-  surface in another's (or the main agent's) context later, unprompted. Confirmed
-  2026-09-13: a memory note `thesis_log_officialgazette_agent` wrote about its own
-  session-identity confirmation surfaced directly in a `thesis_log_main_agent` session's
-  context. It happened to be written in a self-contained, properly-attributed way (origin
-  session named, framed as a dated case study, not an instruction) — write memory notes
-  that way, since you can't assume only your own session will read them back.
+- Claude Code's auto-memory system is scoped by a session's actual working-directory path,
+  not by its CLAUDE.md-assigned agent role. Confirmed by Orhan 2026-09-14: every current
+  session (main agent and all strand agents) was actually opened with working directory
+  `agro_ministry_news/`, regardless of which folder each is assigned to edit by role — not
+  the repo root, and not each strand's own folder. That's also why every session's
+  auto-generated default name follows the `agro-ministry-news-XX` pattern before being
+  renamed. All of these sessions share one memory namespace as a result. Orhan tried
+  opening a session rooted at the repo root instead, but it disconnected other agents'
+  live connections — so this gets fixed in a future coordinated restart, not immediately;
+  expect another round of identity resets/renaming when that happens. Until then, a memory
+  note one session writes can surface in any other's context unprompted — confirmed twice
+  already (`thesis_log_officialgazette_agent` and `thesis_log_econometrics_agent` identity
+  notes both surfaced in a `thesis_log_main_agent` session). Both were written in a
+  self-contained, properly-attributed way (origin session named, framed as a dated case
+  study, not an instruction), so they caused no harm — but don't rely on that. Practical
+  rule: don't put project facts in auto-memory at all — `agent_note_<topic>.md` (properly
+  folder-scoped, no ambiguity) plus this file (single-owner by design) already cover
+  everything that needs to persist. If a note ends up in auto-memory anyway, write it the
+  same self-contained, dated, attributed way as the examples above.
 - As of 2026-09-11, no agent makes git commits in this repo — Orhan commits everything by
   hand via GitHub Desktop. If that ever changes, a strand agent must both (a) locate and
   check in with the current main agent, and (b) get Orhan's explicit confirmation, before
