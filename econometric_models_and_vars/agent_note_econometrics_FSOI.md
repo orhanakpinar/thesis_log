@@ -4,7 +4,73 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
-## Status & Forward Steps (updated 2026-09-12) — read this first
+## OPEN METHODOLOGICAL FLAG — Law 6360 water-tariff transitional waiver (2026-09-13, unresolved)
+
+Reported by `thesis_log_main_agent`, sourced from a SETA analysis (Çelikyay, 2014) Orhan shared:
+villages converted to mahalle status under Law 6360 got a **5-year transitional waiver,
+2014–2019** — no taxes/fees/participation shares collected, and drinking/usage water tariffs
+capped at **25% of the lowest municipal tariff**. In this panel's biennial years (2008, 2010,
+2012 [treatment], 2014, 2016, 2018, 2020, 2022, 2024), that waiver window covers **2014, 2016,
+and 2018 — half of the 6 post-treatment panel years**.
+
+**Why this matters for us specifically:** water was just locked in as cost/burden-framed
+(2026-09-12 decision) — "lower is better." If treated cities' converted villages had
+artificially suppressed water costs for three full post-treatment panel years, a treated-vs-
+untreated comparison on the water indicator could partly reflect this legal cost waiver rather
+than a real behavioral/production effect, which would bias the DiD estimate on water toward
+"treated cities look better" for a reason that has nothing to do with food sovereignty.
+
+**Important nuance, not yet resolved:** our actual water indicators (`water_drainage_perArea`/
+`perHousehold`, `water_refined_perArea`/`perHousehold`, and the leftover
+`Water_Refined_LitrePerPersonPerDay`) are all **volume** measures (m³, litres) sourced from
+TÜİK, not **tariff/price** (TL) measures — the SETA finding is specifically about *pricing*
+(tariffs, fees). Whether/how a price waiver would bias a *volume* measure isn't automatic — it
+could plausibly show up as a behavioral effect (cheaper water → more usage) or a
+metering/reporting effect (municipalities less diligent about billing/metering waived
+villages, biasing measured volume), or it might not bias volume data meaningfully at all. This
+needs actual investigation, not an assumption either way, before deciding a response.
+
+**Not yet decided — needs Orhan's call, not mine to make unilaterally:** a control variable, a
+robustness check excluding/isolating 2014–2018, or at minimum an explicit documented limitation
+in the thesis. Surfaced to Orhan directly (2026-09-13) alongside the other open items from this
+session's variable-collapse review — see that conversation for his decision once made. **Do not
+finalize the water category (or the DiD estimate more broadly) without addressing this.**
+
+## Status & Forward Steps (updated 2026-09-13) — read this first
+
+**2026-09-13 update:** forward-plan step 1 (collapse-candidate sub-indices) is now implemented
+and verified in `fsoi_indicator_selection.ipynb`, in a new "Collapsing correlated indicator
+clusters into sub-indices" section right after the "## Food Sovereignty Index" header. Ran the
+full notebook end-to-end via `jupyter nbconvert --execute` — no errors; the four new columns
+land in [0, 1] with no unexpected NaNs introduced (verified by extracting the executed cells to
+a plain script and checking `.describe()`/`.isna().sum()` on the new columns).
+
+- **Method:** each cluster's constituent columns are independently min-max scaled to [0, 1]
+  (pooled across all rows, Türkiye aggregate row included, matching how the correlation checks
+  elsewhere in the notebook already treat the panel), then simple-averaged — implements the
+  2026-09-11 "simple mean of standardized values" decision. **Open question, not yet confirmed
+  by Orhan: min-max vs. z-score for this within-cluster standardization step** — min-max was
+  chosen to keep the combined value non-negative/bounded ahead of the later `log1p` + winsorized
+  min-max pipeline step, but this specific choice was never pinned down explicitly before now,
+  so flag it before treating it as settled.
+- **Main panel (`data_official_Türkiye`):** `landuse_harvested_perArea`/`landuse_sowed_perArea`
+  → `landuse_core_perArea` (and the `_perHousehold` pair → `landuse_core_perHousehold`);
+  `agro_greenhouse_prod_ton_perArea`/`landuse_greenhouse_perArea` → `greenhouse_intensity_perArea`
+  (and the `_perHousehold` pair → `greenhouse_intensity_perHousehold`). perArea/perHousehold
+  split is preserved — the redundancy resolved is between the two *source* variables, not
+  between area/household normalization forms of one variable.
+- **Extended panel (`data_official_Türkiye_extended`):** `water_drainage_perArea`/
+  `water_refined_perArea` → `water_supply_perArea` (perArea only — perHousehold forms weren't
+  correlated, kept separate/uncollapsed). `electricity_agriculture_mwh_perArea`/
+  `electricity_agriculture_mwh_perHousehold` → `electricity_agriculture_combined` — this one
+  collapses the *same* variable's own perArea/perHousehold forms into each other (structurally
+  different from the other three clusters), so the result has no further perArea/perHousehold
+  split.
+- Note: this note's own earlier spelling `electricty_agriculture_mwh_perArea` (see "Variable
+  Redundancy Map" section below) was a typo — the actual notebook code spells it
+  `electricity_agriculture_mwh_perArea` correctly; used the code's spelling when implementing.
+
+## Status & Forward Steps (updated 2026-09-12) — superseded by the 2026-09-13 update above
 
 **Done:** main/extended dataframe split; `Treated` 4-category categorical + labels; correlation/
 redundancy groundwork on both dataframes; methodology grounded in Yilmaz (2025, Entropy-TOPSIS)
@@ -28,8 +94,9 @@ question resolved (**FSOI stays at 6 categories**, no political category).
 
 **Forward plan** (full detail in "Synthesized pipeline plan" below — steps renumbered to match
 current status; step 4 below was step 1 there and remains the next open implementation item):
-1. Build simple-mean sub-indices for the remaining collapse candidates (land-use
-   harvested/sowed, greenhouse cluster, water drainage/refined, electricity perArea/perHousehold).
+1. ~~Build simple-mean sub-indices for the remaining collapse candidates (land-use
+   harvested/sowed, greenhouse cluster, water drainage/refined, electricity perArea/perHousehold).~~
+   **Done 2026-09-13** — see update above.
 2. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
 3. Aggregate into the 6 category sub-indices, documented inline, applying cost-direction flips
    where decided above.
@@ -183,7 +250,13 @@ formula. Main and extended analysed separately, per Orhan's request.
   (per-person-per-day here vs. total-1000m³-per-year there) — don't conflate the two when
   deciding what to do with it.
 - `Waste_Collected_KgPerPersonPerDay` — string dtype (not yet cleaned to numeric), so not
-  checked here at all.
+  checked here at all. **Cleaning gotcha, verified 2026-09-13**: values use Turkish
+  comma-decimals (`'1,15'`, same pattern `Mean_Household_Size` needed `.str.replace(',', '.')`
+  for) — but at least one value additionally has a **leading non-breaking space**
+  (`'\xa01,15'`, U+00A0, not a regular space). A plain `.str.replace(',', '.').astype(float)`
+  will raise on that row — strip whitespace (`.str.strip()`, which handles `\xa0` too, or
+  explicit `.str.replace('\xa0', '')`) before the comma replacement, not after assuming it's
+  already clean.
 
 ### `data_official_Türkiye_extended` — 14 final indicators, 8 intermediate/raw columns kept only as denominators/reference
 
@@ -310,7 +383,16 @@ whole conversation — read this before anything else if picking this up fresh.
 2. Build the simple-mean sub-indices for the correlated clusters (previous section). **Not yet
    implemented — blocked on step 4 (benefit/cost direction).**
 3. Pre-process: `log1p` (not raw `log`, some city-years may have zero values) on right-skewed
-   money/volume indicators, before any normalization.
+   money/volume indicators, before any normalization. **Full rationale (added 2026-09-14, asked
+   by Orhan):** most indicators here are right-skewed — a handful of large cities (İstanbul,
+   Konya) produce/consume far more than the median city, so on a raw or linear min-max scale
+   those outliers compress every other city into a narrow band near 0. A log transform pulls in
+   the long right tail, making the distribution closer to symmetric before any mean-based step
+   (cluster-averaging, later min-max) runs on it. `log1p` specifically (not plain `log`) because
+   `log(0)` is undefined and several indicators have genuine zero values in some city-years (e.g.
+   zero greenhouse production for a small city in a given year); `log1p(x) = log(1+x)` is defined
+   at `x=0` and behaves like `log(x)` for large `x`, so true zeros don't need an arbitrary added
+   constant.
 4. **Benefit/cost direction per category — the open item, see below. Blocks steps 2 and 5.**
 5. Normalize: **both pooled (2008–2024, fixed thresholds, GFSI-style) and per-year (min-max)**
    side by side — pooled is what supports the DiD comparison (a score change has to mean the
@@ -408,10 +490,13 @@ category slot held open.** Two independent reasons, only one of which is fully c
 commitment" — a definitional mismatch, confirmed for both strands; (2) neither strand is
 city-disaggregated the way FSOI's 6 categories are (the basis for the PSM/DiD identification),
 so structurally neither could supply a comparable 7th category even setting the definitional
-question aside — **confirmed for agroministrynews_agent (Orhan declined NER city-tagging), but
-still pending for officialgazette_agent** (main agent asked directly, hadn't heard back as of
-2026-09-11 — this was an inference from the old thesis PDF description, not yet verified). Even
-if Gazette data turns out to be city-level after all, reason (1) alone is enough to keep it out
+question aside — **confirmed for agroministrynews_agent (Orhan declined NER city-tagging), and
+now moot for officialgazette_agent too**: Orhan settled the underlying question directly
+(reported via thesis_log_main_agent, 2026-09-13) — political influence is modeled as uniform
+across cities, a policy choice, not something requiring city-disaggregated Gazette data one way
+or the other. The city-vs-national granularity question for officialgazette_agent no longer
+needs an answer. Even if Gazette data turns out to be city-level after all, reason (1) alone is
+enough to keep it out
 of the composite as a "commitment" category — it just means Gazette output couldn't be ruled out
 as a *differently-framed* future addition (e.g. a "policy activity" category) on city-level
 grounds alone. Recommended treatment either way: Gazette/Ministry-news as a separate companion

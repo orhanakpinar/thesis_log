@@ -307,7 +307,18 @@ reference — not superseded on disk.
 | 2004 | 3,702 | 4,125 | 3,646 | 94.8% | 44 | 7 |
 | 2005 | 3,333 | 3,337 | 3,329 | 99.6% | 0 | 6 |
 | 2006 | 3,370 | 3,372 | 3,354 | 99.0% | 0 | 1 |
+| 2007 | 3,286 | 3,294 | 3,252 | 97.8% | 0 | 1 |
+| 2008 | 3,459 | 3,517 | 3,374 | 98.9% | 1 | 1 |
+| 2009 | 3,668 | 3,691 | 3,660 | 99.4% | 2 | 8 |
+| 2010 | 5,351 | 5,514 | 5,225 | 98.0% | 2 | 6 |
 
+- 2007-2010 (scraped 2026-09-13, across two sessions interrupted by a PC shutdown -
+  resumed cleanly both times with zero manual bookkeeping) validate very cleanly on the
+  first pass, no new noise source found - 97.8-99.4% text-match, only-new/only-trusted
+  both in the single digits every year. Consistent with 2005/2006: once the site's
+  post-2005 markup (separate `-N.htm` pages instead of same-page fragments) and the
+  fixes already found (encoding, anchor-merge, Sayfa Başı, ilan_re) are in place, these
+  years need no further work.
 - 2000's remaining "only-trusted" (125) is mostly the pre-2000-06-27 PDF-only era (178
   fetch failures logged, matching CLAUDE.md/notebook's own note that `.htm` issues
   start 2000-06-27) - not a bug, those pages never existed at that URL scheme.
@@ -325,8 +336,6 @@ reference — not superseded on disk.
   was, since the dominant, systematic causes (encoding, anchor-splitting, Sayfa Başı,
   ilan_re) are already found and fixed; what's left looks like long-tail per-page noise
   rather than another single fixable bug.
-
-**Not yet scraped:** 2007-2024.
 
 ## Third noise source found: `ilan_re` was over-broad (2026-09-13)
 
@@ -368,6 +377,85 @@ trusted has, and read through the samples.
   real-title examples above directly in the new 2001/2002 CSVs - all four now present
   (e.g. `Basın-İlan Kurumu`, `Resmi İlan Fiyatlarının...`). Final numbers are in the
   validation table above.
+
+## Fourth noise source: "Önceki"/"Sonraki" nav arrows (2026-09-13)
+
+Orhan asked whether the "ÖNCEKİ"/"SONRAKİ" (Previous/Next) rows found while
+investigating 2009/2010 were a rediscovery of an existing-but-broken filter (a
+Turkish-İ regex casing bug, like nearly bit `ilan_re` earlier). Checked both
+`resmigazete_module.py` and the original `resmigazete_scrape.ipynb` - no such filter
+ever existed, so it wasn't a casing bug, just genuinely new noise nobody had written a
+rule for. (For the record: `re.IGNORECASE` does handle Turkish İ/ı correctly in this
+codebase - confirmed when fixing `ilan_re`.) Added `nav_arrow_re` (exact match,
+case-insensitive) to `_should_skip_text`. Low-volume (2 rows/year in 2009/2010, where
+the hrefs oddly point at 2011 dates - looks like stale site navigation, not a scraper
+bug) - not worth a dedicated re-scrape of 2009/2010 for on its own, but applies
+automatically to every scrape from here on.
+
+## Fifth noise source: per-character font-spans in 2012/2013 (2026-09-13)
+
+While scraping 2011-2013, 2013 came out at only 89.7% text-match (2012: 93.6%) -
+noticeably worse than every other year. Investigated with a full only-new/only-trusted/
+text-mismatch dump (see the 2007-2010 method above) and found a much more severe
+version of the already-known, deliberately-unfixed kerning-span issue: some
+2012/2013 pages (older Word-to-HTML export markup) wrap **every individual Turkish
+diacritic character** in its own `<span>/<font>` - apparently to force a specific font
+that could render it - not just the occasional first letter. Confirmed via raw HTML:
+
+```html
+<span style="font-weight: normal"><font size="1">6491&nbsp;&nbsp;&nbsp;&nbsp; T</font></span>
+<span style="font-family: Times; font-weight: normal"><font size="1">ü</font></span>
+<font size="1"><span style="font-weight: normal">rk Petrol Kanunu</span></font>
+```
+
+`get_text(" ", strip=True)` inserted a space at every one of these boundaries too,
+turning "Türk Petrol Kanunu" into "T ü rk Petrol Kanunu". Unlike the earlier
+single-letter kerning case (a 3+ character fragment ending in one letter, e.g. "— T"),
+this pattern is structurally precise: each offending span's *entire* rendered text is
+exactly one character. That precision is what made a real, non-blanket fix possible
+this time without repeating the earlier backfire (where blanket `get_text("", ...)`
+fused unrelated word boundaries together, e.g. "Değişiklik Yapılmasına Dair Kanun" →
+"DeğişiklikYapılmasınaDair...").
+
+**Fix:** added `_get_anchor_text(a)`, which walks `a.contents` directly (not
+`get_text()`) and joins adjacent pieces with `""` only when at least one side, taken as
+a whole, is exactly one character after stripping - `" "` otherwise. Verified against
+three cases before applying: the "Türk Petrol Kanunu" pattern (now correct), the older
+"T oprak" kerning case (unchanged, still imperfect - correctly *not* caught by this
+narrower rule, since "— T" isn't a single character), and the 2006 anchor-merge
+reference title (unchanged, no regression). Replaces the plain `get_text(" ", ...)`
+call in `_parse_links`.
+
+**Result after re-scraping 2011-2013 from scratch with the fix:**
+
+| Year | Text-match before | Text-match after |
+|------|-------------------:|-------------------:|
+| 2011 | 98.6% | 98.7% |
+| 2012 | 93.6% | 96.3% |
+| 2013 | 89.7% | 94.8% |
+
+Not perfect - the older unfixable kerning-span variant still accounts for some of the
+remaining gap - but a real, substantial improvement, especially for 2013. This fix
+applies automatically to every scrape from here on; **2000-2010 were not re-scraped
+with it** - the per-character-font-span pattern may appear there too at some lower
+frequency (not checked), so their current text-match numbers in the table above are a
+slight underestimate of what a re-scrape would show. Worth doing if Orhan wants those
+years tightened up further; not done proactively since the marginal gain is unclear
+without checking first and re-scraping is a live multi-minute run each time.
+
+**Current full state (2000-2013 all scraped and validated), most recent numbers:**
+
+| Year | Text-match | Year | Text-match |
+|------|-----------:|------|-----------:|
+| 2000 | 94.2% | 2007 | 97.8% |
+| 2001 | 95.9% | 2008 | 98.9% |
+| 2002 | 96.1% | 2009 | 99.4% |
+| 2003 | 94.9% | 2010 | 98.0% |
+| 2004 | 94.8% | 2011 | 98.7% |
+| 2005 | 99.6% | 2012 | 96.3% |
+| 2006 | 99.0% | 2013 | 94.8% |
+
+**Not yet scraped:** 2014-2024.
 
 ## Open / not yet done
 

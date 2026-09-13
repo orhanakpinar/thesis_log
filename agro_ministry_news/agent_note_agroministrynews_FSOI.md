@@ -102,6 +102,140 @@ Output appended to `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.
 **Status:** holding at 300 per Orhan's "step by step" plan — waiting for his review /
 `Orhan_Category` additions before batch 4 (+100 → 400).
 
+**Update:** Orhan asked to continue straight to batch 4 without waiting for a review pass on
+300 first — the "step by step, review between batches" plan from batch 3 didn't end up
+holding in practice. Don't assume future batches will pause for review either unless Orhan
+says so explicitly each time.
+
+### Batch 4 results, 2026-09-13 (100 new rows, cumulative now 400)
+
+Sampling: plain random (seed 37), excluding all 298 already-sampled numbers. Output appended
+to `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv` (now 400 rows,
+`Orhan_Category` still empty across all of them).
+
+- **Category tally (batch 4 only):** `Agro_econ` 29, `Rural_Development` 23, `Risks_Global`
+  21, `Land_Policy` 16, `TR_agroEcon` 16, `Agro_policy` 11, `Agro_international` 9 (full
+  tally not fully retained from the subagent's report — only the top categories were listed
+  in its summary; re-derive from the CSV directly if the complete tally is needed later).
+  Never used this batch: `Autonomy`, `Buyuksehir_Law`, `Collectives`, `Food_Network`,
+  `Food_Sovereignty`, `Monoculture`, `Monoculture_Poli`, `Rurban`, `Shortfood`,
+  `Survivorship_bias`, `TR_Peasant`, `Urbanization`, `Variable`.
+- **`Ceremonial_Political = yes`: 45/100 — notably higher than prior batches' ~22-34%.**
+  Given this is a single random draw, treat this as sampling variance until confirmed by
+  more batches, not a trend by itself — don't over-read one batch's rate as a shift in the
+  corpus.
+- **Zero-category rows: 11** — EXPO circular, photo contest, poet commemoration, crane
+  migration/wildlife monitoring, watermelon-festival political speech, an off-topic
+  alcohol-tracking-system article, a TV drama gala, two condolence visits, a coup-anniversary
+  political speech, and a Ramadan weather forecast. Consistent with prior batches' "pure
+  ceremony/no substance" pattern.
+- **`Buyuksehir_Law`: 0 hits this batch** — two "büyükşehir" keyword occurrences were found
+  and explicitly checked/ruled out (farmland loss to city expansion generally; a biographical
+  aside about a president's past mayoral role), not just missed.
+- **Checked directly, 2026-09-13: Haber/392's `Categories` field still does NOT include
+  `Buyuksehir_Law`** (`Agro_econ;Rural_Development;TR_ruralGov;Land_Policy` — confirmed via
+  direct grep of the labels file). So across all 400 rows classified so far: **3 rows are
+  actually tagged `Buyuksehir_Law`** in the data (Haber/4207, 3757, 3666, all from batch 3),
+  **plus 1 independently-verified-by-manual-reading genuine hit that remains untagged**
+  (Haber/392 — verified against the raw article text earlier in this session, not fixed in
+  the labels file). Don't report "4 hits" as if the data shows that — the data shows 3; the
+  4th is a known, documented, uncorrected miss. **Corrected 2026-09-13:** Orhan explicitly
+  authorized fixing known misses directly ("You are your subagent's supervisor") — Haber/392's
+  `Categories` field now includes `Buyuksehir_Law` (patched by script, `Comment` updated to
+  document the correction and why). So as of this correction, confirmed hits across 400 rows
+  = 4 (Haber/4207, 3757, 3666, 392).
+- **Recurring gap flags, mostly reinforcing what batch 3 already found:**
+  - Water/irrigation infrastructure — the single most frequent gap again, 10 more rows
+    (Haber 2994, 6198, 5146, 5646, 2515, 3588, 3002, 2866, 2634, 1813).
+  - Forestry/wildfire-disaster — Haber 4397, 5574, 7067, 6279.
+  - Cross-institution/multi-stakeholder policy councils (Şura/forum/commission format) —
+    Haber 6594, 6276, 4996, 6154, 6288.
+  - Food waste — Haber 841, 1327.
+  - **New candidate gap types not seen in batch 3:** refugee/migration-driven water and food
+    demand (Haber 1813, 1154, 3350); overseas farmland leasing/investment, e.g. a Sudan
+    project (Haber 1499); dam-driven cultural-heritage resettlement, e.g. **Hasankeyf**
+    (Haber 1944) — a well-known, historically significant and controversial case in Turkey,
+    worth Orhan's attention specifically; wildlife/biodiversity monitoring with only
+    incidental farmland relevance (Haber 4158, 2915, 1803); routine food-safety/inspection
+    announcements (Haber 6586, 5904, 1104) that recur but don't map onto the 44-list.
+
+**Status:** cumulative sample now 400 rows, all classified, `Orhan_Category` empty
+throughout. Awaiting Orhan's direction on whether to continue to batch 5 (+100 → 500) or
+pause for review.
+
+**Update:** Orhan said to continue to batch 5 immediately ("Let's hit 500 mark").
+
+### Batch 5 results, 2026-09-13 (100 new rows, cumulative now 500 — pilot target reached)
+
+Sampling: plain random (seed 41), excluding all 398 already-sampled numbers.
+
+- **Important operational finding: the classification subagent hit Claude Code's Pro-tier
+  rate limit mid-run** (`rate_limit`, HTTP 429, "You've hit your session limit · resets
+  5:40pm Europe/Istanbul") and its task-notification came back marked `failed`. **This
+  confirms, concretely, the constraint flagged much earlier** (Claude Code Pro's rolling
+  5-hour usage windows, not pay-per-token API billing) — it's now actually binding at just
+  500-article pilot scale, not a hypothetical future concern for a full-corpus run.
+  - **But: check the output file before assuming a failed run needs a full rerun.** Despite
+    the `failed` status, all 100 rows had already been written to `batch5_labels.csv` — the
+    error happened during the subagent's final summary-generation step, *after* the actual
+    classification work was done and saved. Verified by direct row/number count on the file
+    before appending it. **This may generalize**: a `failed` status from a rate-limit hit
+    doesn't necessarily mean lost work — always check the output file's row count first
+    rather than reflexively re-running the whole batch.
+  - **Planning implication for full-corpus scale (roadmap #18):** if a 100-article batch can
+    hit this limit, a full ~7,100-article run will certainly need to be spread across many
+    separate session windows. Budget for that explicitly when that work is eventually
+    planned, don't assume it's a single long run.
+- **Category tally (batch 5 only, top categories):** `Rural_Development` 26, `Agro_econ` 22,
+  `TR_ruralGov` 21, `Agro_policy` 21, `TR_agroEcon` 19, `Risks_Global` 18, `TR_agroGov` 18,
+  `Agro_international` 16, `Rural_Livelihood` 11, `Policy_Access` 8 (full tally not fully
+  captured — the subagent's final summary was cut off by the rate-limit error before it could
+  report one; re-derive from `batch5_labels.csv` directly if the complete tally matters).
+- **`Ceremonial_Political = yes`: 18/100`** — back down from batch 4's unusually high 45%,
+  closer to the 22-34% range seen in earlier batches. Reinforces treating batch 4's 45% as
+  sampling variance, not a shift in the corpus.
+- **Zero-category rows: 10** — consistent with prior batches' pattern.
+- **`Buyuksehir_Law`: 0 confirmed hits, but one well-reasoned near-miss worth Orhan's
+  attention (Haber/412):** a major land-law story about legislation restricting agricultural-
+  land inheritance fragmentation, explicitly framed by the minister as reducing rural-to-
+  urban migration. The article records a concern that the bill would "cause problems in
+  büyükşehirler," to which the minister responds by citing a clause from a **2005** law (not
+  Law 6360/2012) restricting agricultural land conversion. The subagent correctly did NOT tag
+  this as a `Buyuksehir_Law` hit (wrong law/year) but flagged it explicitly as the closest
+  buyuksehir-adjacent passage in the batch — good judgment, and a useful example of the
+  category being applied with real discrimination rather than pattern-matching on the bare
+  word "büyükşehir".
+
+**Status: pilot target of 500 reached.** Cumulative sample + labels both at 500 rows,
+`Orhan_Category` empty throughout, awaiting Orhan's review.
+
+## Cross-strand update, 2026-09-13 (relayed via thesis_log_main_agent)
+
+- **FSOI structure decided for certain: stays at 6 categories, no 7th** — this strand's
+  output will not become a category in `econometric_models_and_vars/`'s city-year panel
+  (consistent with the earlier "national-level, not city-level" reasoning). Political
+  influence is being modeled as uniform across all cities for now, matching this strand's
+  national-only scope.
+- **GFSI's "political commitment" pillar will be approximated only for discussion purposes**,
+  by combining this strand's press-release data with `resmi_gazete/`'s legislation data —
+  NOT as a formal FSOI input. Two caveats Orhan wants attached wherever this comes up (now
+  written into root `CLAUDE.md`): (a) both sources measure policy *activity/output*, not
+  GFSI's attitudinal *commitment*; (b) both are official-source self-reporting, inherently
+  skewed toward looking committed — a limitation to disclose, not a finding to report as-is.
+- **`zeyrek` already removed from `requirements.txt` and `CLAUDE.md`'s Environment section**
+  by `thesis_log_main_agent`, reflecting the switch away from rule-based lemmatization to
+  Claude-based classification. No action needed here, just don't be surprised if `zeyrek` is
+  gone from the environment next time this strand's code is touched.
+- **New task from Orhan, also given to `thesis_log_officialgazette_agent`: bin this strand's
+  data by year (or two-year bins)**, so counts can be compared against Türkiye's yearly
+  national FSOI score. Not started as of this note revision — open question not yet resolved
+  with Orhan: bin raw article *counts* (available immediately across the full ~7,107-article
+  corpus, no classification needed) vs. bin *category* counts (would need full-corpus
+  classification, not done yet — only 500/7,107 classified so far, and per-year sample sizes
+  in the current random draws are uneven, so category rates from the sample alone would be
+  noisy if extrapolated per year). Confirm which one (or both) Orhan actually wants before
+  building it.
+
 **File status note:** Orhan deleted `agroforestministry_news_seed.csv` (the 807-row "tohum"
 keyword subset) and `agroforestministry_news_seed_lemmatized.csv` (its `zeyrek`-lemmatized
 version) — confirmed gone. Both belonged to the lemmatization/TF-IDF branch that was
@@ -276,43 +410,81 @@ point for the thesis write-up, not just a pipeline log entry — don't let it ge
     co-occur with a real policy tag (a real policy announcement can still be delivered with
     heavy political framing).
 
-### Standardized subagent classification prompt (Orhan asked, 2026-09-12, to record this so
-the process is reproducible rather than reinvented each session)
+### Standardized subagent classification prompt — kept accurate as of batch 4, 2026-09-13
+
+**Correction: this section had gone stale.** It previously showed the pre-batch-3 template
+(separate `TopicGloss`/`Notes` fields), but batch 3 and 4 actually used a different, evolved
+prompt (single `Comment` field, plus accumulated "watch for this known gap" guidance) that
+was never written back here. Orhan caught this by asking directly ("Do we have your agent
+prompt saved... are you giving the same prompt every time?") — answer: **no, not identical
+every time** — the prompt has been getting small, deliberate additions batch to batch (newly
+confirmed gap categories, sharper Buyuksehir_Law guidance) without this section being kept in
+sync. Below is the actual batch 4 version. **Update this section every time the prompt
+changes, not just when someone asks** — that was the actual failure here.
 
 Launch via the `Agent` tool, `subagent_type: "general-purpose"`, `model: "sonnet"` (Orhan's
-explicit preference — see "Correction: no separate Anthropic API access" above for why this
-is a subagent, not a raw API call). Prompt template, fill in the bracketed parts:
+explicit preference — see "no separate Anthropic API access" note above for why this is a
+subagent, not a raw API call). Current template, fill in the bracketed parts:
 
 > You are helping with an MA thesis on Turkey's Food Sovereignty Index. Part of the project
 > scrapes press releases from the Turkish Ministry of Agriculture and Forestry
-> (tarimorman.gov.tr) and wants to classify what each article is actually about.
+> (tarimorman.gov.tr) and classifies what each article is about, using a fixed category
+> codebook from a separate literature-review strand (literature_research/
+> literature_annotation.ipynb). This is batch `[N]` of an ongoing pilot — the researcher
+> reviews this output and adds his own additional categories on top of it afterward (an
+> `Orhan_Category` column gets added downstream, not by you), so your job is a careful
+> first-pass classification, not a final answer.
 >
-> Read this CSV file in full (it's long, will need multiple Read calls with offset/limit —
+> Read this CSV file in full (`[N]` rows, will need multiple Read calls with offset/limit —
 > read every row, don't stop partway): `[input CSV path]`
 >
-> Columns: Batch, Number, URL, Title, Date, Paragraphs. There are `[N]` rows, mostly Turkish,
-> a few English.
+> Columns: Batch, Number, URL, Title, Date, Paragraphs.
 >
 > For EACH row, read Title and Paragraphs and produce:
-> 1. `Categories`: zero or more labels, semicolon-separated, chosen ONLY from the fixed
->    44-category literature codebook (see below) — do not invent new category names, multi-
->    label is normal (2-3 tags per article is typical usage elsewhere in the thesis).
+> 1. `Categories`: zero or more labels, semicolon-separated, chosen ONLY from this exact
+>    44-category list (do not invent new names, multi-label is normal, 2-3 tags per article
+>    is typical): `[the 44-category list — see below, keep in sync]`
+>
+>    Guidance on recurring content without an obvious single-category home — multi-tag onto
+>    the closest existing categories rather than inventing new ones:
+>    - Irrigation/dam/flood-control infrastructure -> TR_ruralGov, Rural_Development,
+>      Agro_policy, or Land_Policy depending on framing
+>    - Wildfire/forestry-disaster response -> Risks_Global, TR_agroGov, or leave
+>      uncategorized if nothing fits
+>    - Livestock/animal husbandry/veterinary content -> Agro_econ, TR_agroGov, TR_ruralGov,
+>      Rural_Livelihood, Agroecology depending on angle
+>    - Ceremonial/political content: don't assume ceremonial framing means no category
+>      applies — a ceremonial village visit can still genuinely touch e.g. Rural_Livelihood;
+>      tag what's substantively present even if the framing is ceremonial. Only leave zero
+>      categories for content with truly no agricultural/rural substance.
+>    - Most of the 44 are literature-review meta-categories that may rarely apply — don't
+>      force usage.
+>    - Food_Sovereignty: apply strictly and rarely — near-universally top-down state framing
+>      in this corpus, genuine bottom-up content is very rare.
+>    - **Watch specifically for Turkey's 2012 Metropolitan Law** (büyükşehir belediyesi/
+>      belediyeleri gaining new agricultural/rural responsibilities, "6360", or similar) even
+>      as a small buried detail in an otherwise unrelated article — this is the single most
+>      important category for this thesis, and real hits have been found buried deep in
+>      unrelated-seeming articles (e.g. a quote from a local co-mayor near the end of an
+>      agricultural fair story). Read every article's full text with this specifically in
+>      mind, not just its main topic.
 > 2. `Ceremonial_Political`: "yes"/"no" — primarily ceremonial/photo-op/personal messaging
 >    with little substantive policy content? Can co-occur with a real category.
-> 3. `TopicGloss`: one plain-English sentence on what the article is actually about,
->    independent of the category list — keep flagging things that don't fit well, even though
->    the category list itself is now fixed (this is still useful exploratory information, see
->    "Category scheme correction" below for why).
-> 4. `Notes`: anything ambiguous, low-confidence, or where a category had to be stretched to
->    fit — be honest about stretches rather than hiding them.
+> 3. `Comment`: a few sentences (not one) covering what the article is actually about,
+>    independent of the category list, plus anything ambiguous/low-confidence/stretched, plus
+>    explicitly flag topics that don't fit any of the 44 categories well. Known recurring gap
+>    types to name explicitly when seen (accumulated across batches — update this list as new
+>    ones get confirmed): water security/infrastructure, forestry/wildfire-disaster
+>    management, cross-institution/inter-ministry collaboration or policy councils
+>    (Şura/forum/commission format), food-waste/sustainability content.
 >
-> Write output as a NEW CSV (don't modify the input) to: `[output CSV path]`
-> Columns: Batch, Number, Categories, Ceremonial_Political, TopicGloss, Notes
+> Write output as a CSV to: `[output CSV path]`
+> Columns: Batch, Number, Categories, Ceremonial_Political, Comment
 >
 > Be deliberate and consistent. Process all rows, no sampling/skipping. When done, report:
 > rows processed, category tally, count of Ceremonial_Political=yes, how many rows got zero
-> categories, and any content types that still don't fit well even after trying to map them
-> onto the fixed list.
+> categories, any Buyuksehir_Law hits (quote the relevant passage), and a list of rows
+> flagging any of the known gap types or new ones not seen before.
 
 ### Category scheme correction, 2026-09-12: literature codebook only, no invented categories
 

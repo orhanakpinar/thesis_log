@@ -4,7 +4,7 @@ import time
 import re
 import unicodedata
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from urllib.parse import urljoin
@@ -43,6 +43,12 @@ class ResmiGazeteScraper:
         # via full-year validation diffs against trusted output - see
         # agent_note_officialgazete_FSOI.md.
         self.sayfa_basi_re = re.compile(r"^(?:sayfa\s*ba[şs][ıi]\s*)+$", flags=re.IGNORECASE)
+
+        # Skip "Önceki"/"Sonraki" ("Previous"/"Next") in-page nav arrows - found on
+        # some 2009/2010 pages with hrefs oddly pointing at 2011 dates (looks like
+        # stale/mistemplated site navigation, not a scraper bug) - not real gazette
+        # content either way. See agent_note_officialgazete_FSOI.md.
+        self.nav_arrow_re = re.compile(r"^(?:önceki|sonraki)$", flags=re.IGNORECASE)
 
         # cleanup map for common "weird" characters / cp1252 artifacts
         self.bad_char_map = {
@@ -112,7 +118,43 @@ class ResmiGazeteScraper:
         if self.sayfa_basi_re.match(text):
             return True
 
+        # Omit "Önceki"/"Sonraki" prev/next nav arrows
+        if self.nav_arrow_re.match(text):
+            return True
+
         return False
+
+    # Older Word-to-HTML export tooling on some pages (mostly 2012-2013) wraps each
+    # Turkish diacritic character individually in its own <span>/<font> (apparently to
+    # force a font that could render it, e.g. font-family: Times) - one tag per single
+    # character, e.g. "T"<span>ü</span>"rk" for "Türk". get_text(" ", strip=True) (used
+    # below for everything else) inserted a space at every such boundary regardless,
+    # producing "T ü rk" instead of "Türk" - pervasive enough in 2012/2013 (~10% of
+    # titles) to be worth a targeted fix, unlike the rarer single-letter kerning-span
+    # case (see the comment on the "T oprak" case below, which this does NOT fix -
+    # that one is a 3+ char fragment ending in one letter, not an isolated single-char
+    # tag, so it doesn't match this rule and is left as documented in
+    # agent_note_officialgazete_FSOI.md). Only suppress the separator when at least one
+    # side of a tag boundary is, by itself, exactly one character - real multi-word
+    # boundaries (e.g. across "Değişiklik Yapılmasına Dair Kanun" boilerplate) still
+    # get their space.
+    def _get_anchor_text(self, a) -> str:
+        pieces = []
+        for child in a.contents:
+            if isinstance(child, NavigableString):
+                pieces.append(str(child))
+            else:
+                pieces.append(child.get_text())
+
+        if not pieces:
+            return ""
+
+        is_single = [len(p.strip()) == 1 for p in pieces]
+        result = pieces[0]
+        for i in range(1, len(pieces)):
+            sep = "" if (is_single[i - 1] or is_single[i]) else " "
+            result += sep + pieces[i]
+        return result
 
     # resolve hrefs that are local/relative to a proper absolute URL
     def _resolve_href(self, page_url: str, href: str) -> str:
@@ -153,19 +195,14 @@ class ResmiGazeteScraper:
             if resolved.rsplit("#", 1)[-1] == "T.C.r":
                 continue
 
-            # Tried get_text("", strip=True) here to fix a rare kerning-span artifact
-            # (some titles wrap part of the text in <span style="letter-spacing:...">
-            # with no real space in the source, e.g. "T<span>oprak...", producing
-            # "T oprak" instead of "Toprak" with the " " separator). Reverted: the
-            # source markup is inconsistent about this - other, far more common tag
-            # boundaries (e.g. across "Değişiklik Yapılmasına Dair Kanun" boilerplate)
-            # rely on get_text's separator to supply a space that isn't literally in the
-            # source, so "" fixed the rare case but fused many common ones instead
-            # ("YapılmasınaDair"). No separator choice gets both right; " " is the safer
-            # default since a stray space is far less damaging than fused words for any
-            # downstream tokenization/keyword search. Affects <1% of 2006 titles - see
+            # Blanket get_text("", strip=True) was tried once and reverted because it
+            # fused real word boundaries together across tag splits that don't involve
+            # a lone-character span. _get_anchor_text above is the targeted
+            # replacement: " " by default, "" only across a tag boundary where one
+            # side is a lone character (the per-character font-span pattern, mainly
+            # 2012/2013) - see its comment for the full story and
             # agent_note_officialgazette_FSOI.md.
-            text_raw = a.get_text(" ", strip=True)
+            text_raw = self._get_anchor_text(a)
             text = self._normalize_text_tr(text_raw)
 
             if len(text) < 3:
