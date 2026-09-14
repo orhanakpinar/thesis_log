@@ -3,6 +3,179 @@
 This file is AI-authored pipeline documentation for future sessions working on this strand.
 Anything about result validity should live in the root `CLAUDE.md`, not here.
 
+**Duplicate cleanup, 2026-09-15.** Orhan caught this before starting his own annotation pass
+("although we keep calling 500 rows, there are 2 duplicates so it's actually 498... clear up
+before I annotate and create duplicate having sample annotation") — right call, since
+annotating a duplicated row twice under different judgments would have been a real mess to
+untangle later. Fixed: removed the second occurrence of Number 320 and 1215 from both
+`agroforestministry_news_validation_sample.csv` and `..._sample_CLAUDE_LABELS.csv` (498
+distinct rows each), then grew the sample by 2 fresh distinct articles and classified them
+directly (not via a subagent — too small a job to justify spawning one) to bring both files
+back to a genuine, verified **500 distinct rows, zero duplicates** in each. Checked directly
+with a duplicate count after, not assumed. The two new articles (Haber/2577, Haber/1331) are
+ordinary additions, nothing special about them.
+
+## Status & Forward Steps (read this first — written 2026-09-14 for a session handoff,
+context window was getting full)
+
+**Pipeline architecture, in one paragraph — read this before touching anything:**
+Scraping (`TarimOrmanScraper`) and sample-building (`ValidationSampleBuilder.grow_sample` /
+`get_unclassified` / `append_labels`, all in `agroministrynews_module.py`) are **plain
+Python, fully automatic, no LLM involved.** The one exception is
+`build_classification_prompt()` — it only *returns a prompt string*, it does **not** call any
+model. **Actual classification (reading articles, deciding categories, writing the output
+CSV) is not code at all — it's a manual step done by whichever session is running this
+strand, via the Claude Code `Agent` tool** (Orhan has Claude Code Pro only, no separate
+Anthropic API key, so there's no way to automate this with a script). Concretely: take the
+string `build_classification_prompt()` returns, pass it to the `Agent` tool
+(`subagent_type="general-purpose"`, `model="sonnet"`), wait for it to write the output CSV,
+then call `append_labels()` on that file. A future session must do this step itself every
+time — it will never happen by just calling a function.
+
+**Current data status, verified 2026-09-15:** sample = 500 rows
+(`agroforestministry_news_validation_sample.csv` + `..._sample_CLAUDE_LABELS.csv`), **exactly
+500 distinct Numbers in each, zero duplicates** (checked directly with a duplicate count,
+after fixing 2 legacy duplicates the same day — see the dedup note right above the "Status &
+Forward Steps" heading). All 500 classified, `Orhan_Category` column empty throughout —
+Orhan is about to start his own annotation pass now (see open item #2 below, this is now
+active, not just proposed). The first 170 rows use an older concatenated
+`TopicGloss | Notes: ...` comment style vs. the rest's free-flowing prose `Comment` —
+**decided, 2026-09-14: leave as-is, not worth re-running** (no content lost, just formatting;
+re-running risks losing the verified manual fix on Haber/392 — see "Correcting known misses"
+section below). The one-off consistency-check audit file has been deleted (2026-09-15,
+Orhan's call, superseded by his own upcoming manual review) — its findings are preserved in
+prose in this file, don't go looking for the CSV.
+
+**No batch numbering — eliminated 2026-09-14, Orhan's call** ("seems redundant to say it's
+arbitrary and still apply it, we may delete it" — correct instinct, it wasn't actually
+necessary). The `Batch` column has been stripped from both sample CSVs entirely (renamed
+2026-09-14 from "cumulative" to "sample" too — see the module's docstring for why). Growing
+the sample and finding what still needs classifying are both just set operations on article
+`Number` now (`grow_sample()` / `get_unclassified()`) — there's nothing to number, track, or
+avoid colliding with. If you see any reference to `batch_num`, `draw_batch`, `extract_batch`,
+`append_batch_labels`, `cumulative_csv`, or `cumulative_labels_csv` anywhere (this note
+included, below this point, or your own memory of earlier in this session) — those are old
+method/parameter names from before this redesign, already replaced in the actual code.
+
+**Open items — unresolved as of 2026-09-14, needs Orhan's input, don't guess:**
+1. **Year-binning task** (from `thesis_log_main_agent`/Orhan, also given to
+   `thesis_log_officialgazette_agent`): bin this strand's data by year for comparison
+   against Türkiye's national FSOI score. Still open question: raw article *counts* per year
+   (doable immediately across the full ~7,107-article corpus, no classification needed) vs.
+   *category*-level counts per year (needs full-corpus classification — nowhere near done,
+   only 500/7,107 classified). Asked Orhan and relayed via main_agent; no confirmed answer
+   received yet as of this note. Also worth confirming officialgazette_agent bins the same
+   way, so the two strands' series are comparable to each other and to the national score.
+2. **Annotation UX — Orhan's last message before signing off, 2026-09-15: "I will need to
+   find an easy to annotate way to add my labels since CSV not easily readable by me."** He's
+   about to fill in `Orhan_Category` across 500 rows and raw CSV (long `Paragraphs` text,
+   many columns) isn't a workable editing surface for him. **Not solved, not even scoped yet**
+   — no format decided (options worth considering when this comes up: split into an Excel
+   file with wrapped/formatted columns, a simple local HTML/spreadsheet-like tool, Google
+   Sheets, or something else — don't assume any of these without asking what he'd actually
+   find easiest). Whoever picks this up next should raise it proactively rather than wait for
+   him to ask again, since he flagged it as a known blocker on his way out.
+3. **"Golden corpus" validation plan** (Orhan's proposal, relayed via main_agent then
+   discussed directly): he hand-annotates the existing 500, then a fresh random 500 gets
+   drawn and classified for a proper blind validation pass (hit-rate/agreement stat),
+   netting ~1000 total. He asked "how does that sound" and got a positive reaction (this
+   properly reintroduces independent human annotation, addresses the blindness gap from
+   earlier in the project) plus two practical notes: (a) for round 2 to be genuinely blind,
+   Orhan's annotation of it needs to happen independently of seeing Claude's classification
+   of the same set — worth confirming the intended order/timing before starting; (b)
+   classifying a fresh 500 will likely hit the Claude Code Pro rate limit again (already
+   happened once at exactly this scale, see batch 5's results below), so budget for spreading
+   it across multiple sessions. **Not started, no confirmed timeline** — last exchange on
+   this was Orhan's reaction request, not a go-ahead to execute.
+4. **"Topic glossary"** — downgraded earlier in this file (see "Topic glossary" discussion)
+   to "probably redundant given Comments + `KNOWN_GAP_TYPES`," not an active task.
+5. Smaller backlog items, all still open, details in their own sections further down: the
+   `Buyuksehir_Law` → `Metropolitan_Law` rename (and whether to sync it with
+   `literature_research`'s notebook), the tentative `Water_Security` and `Magazine_events`
+   category ideas, the acknowledged ethnicity/traditional-events scope gap.
+
+**If you are a new session picking this up:** notify `thesis_log_main_agent` that a handoff
+happened (per root `CLAUDE.md`'s continuity section) so an identity change in `ListAgents`
+isn't mistaken for something unusual. Read this whole file before doing anything — it's long
+because the pipeline design and the reasoning behind several corrected mistakes both live
+here, and skipping either has already caused real repeated errors this session (e.g. the
+`Buyuksehir_Law` miss on Haber/392, caught only by manual re-reading).
+
+**Duplicate-check rule for batch draws (Orhan, 2026-09-14): mandatory going forward.**
+Checked the full 500-row cumulative sample directly: **2 duplicate Numbers exist — 320 and
+1215, both Batch 1 + Batch 2.** These predate the dedup fix: batches 1 and 2 were each drawn
+independently (different seeds, no exclusion of the other's numbers) before batch 3 started
+excluding already-sampled Numbers from the eligible pool. **Batches 3, 4, and 5 are
+confirmed clean — zero duplicates**, since their draw scripts already read the cumulative
+file's existing Numbers and excluded them before sampling (see the `draw_batch*.py` pattern
+in scratchpad). So this isn't an ongoing bug, just two known legacy rows — but Orhan is right
+that nothing was *automatically verifying* this, it was only caught by manually checking when
+asked.
+
+**Rule, effective immediately: every sample growth must end with an explicit duplicate check
+that prints its result**, not just rely on the exclusion logic being correct.
+**Superseded by the module below** — `ValidationSampleBuilder.grow_sample()` now calls
+`check_duplicates()` automatically every time, so this is enforced in code, not just as a
+note to remember. If new duplicates appear beyond the known 320/1215 pair, stop and
+investigate before classifying anything new — don't classify a set that might contain an
+accidental re-draw.
+
+## Code consolidation, 2026-09-14: `agroministrynews_module.py`
+
+Orhan pointed out the sample-drawing scripts (`draw_batch*.py`) only ever existed as
+session-local scratchpad files, never committed — meaning the actual scrape/sample/classify
+pipeline was implicitly documented in this note and in prompt text, with no real code artifact
+in the repo. Fixed by creating **`agroministrynews_module.py`** (mirrors
+`resmi_gazete/resmigazete_module.py`'s class-based style, which itself already cited this
+strand's scraper as its reference pattern):
+
+- **`TarimOrmanScraper`** — the full-text scraper (`scrape_resumable`), moved out of the
+  notebook. Same logic as before (itemBody-scoped extraction, retry adapter, resume-by-
+  skipping-Number), just as a proper class instead of a notebook cell.
+- **`ValidationSampleBuilder`** — everything around building the cumulative validation
+  sample: `grow_sample()` (plain random, excludes already-sampled Numbers, ends with the
+  mandatory duplicate check above), `get_unclassified()` (Number set-difference between the
+  cumulative sample and cumulative labels files — this is what to feed a classification
+  subagent next), `build_classification_prompt()` (returns the exact prompt text for the
+  `Agent` tool — **does not call an LLM itself**, since Orhan has Claude Code Pro only, no
+  separate Anthropic API key; classification stays an interactive-session subagent call, not
+  something this module can do on its own), and `append_labels()`. **No batch numbering** —
+  see the "No batch numbering" note at the top of this file's Status section; an earlier
+  version of this class (`draw_batch`/`extract_batch`/`append_batch_labels`, all tagging rows
+  with a `Batch` column) was replaced 2026-09-14, and both cumulative CSVs had their `Batch`
+  column stripped to match. The 44-category codebook and the accumulated `KNOWN_GAP_TYPES`
+  list are class constants (`CATEGORY_LIST`, `KNOWN_GAP_TYPES`) — **update these in the
+  module when they change, and update the prompt-template documentation below in the same
+  edit**, so the two can't drift apart the way the old copy-pasted-per-batch prompts did
+  (see the "Standardized subagent classification prompt" section's own note about that
+  exact failure mode).
+
+**Sanity-checked against real data before trusting it:** ran `check_duplicates()` against the
+actual 500-row cumulative file and confirmed it reproduces the known result (320, 1215) before
+relying on the module for anything.
+
+### Notebook cleanup, 2026-09-14
+
+`agroministrynews_scrape.ipynb` (renamed 2026-09-14 from `agroministry_news_scrape.ipynb`,
+per Orhan) had its scraper/lemmatization code replaced with
+example-usage cells that import from the module above. Three dead cells were deleted, not
+just left as clutter:
+- **Original title/date-only scraper** (`scrape_tarimorman_news`, wrote
+  `agroforest_ministry_news.xlsx`) — fully superseded by the full-text scraper; the `.xlsx`
+  it produced predates the corpus's current full-text version and isn't read by anything.
+- **Original title-only "tohum" keyword filter** — read `agroforest_ministry_news.xlsx`
+  (deleted by Orhan, 2026-09) and wrote `agroforest_ministry_news_seed.xlsx` (also deleted).
+  Superseded by the full-text-aware "tohum" filter used to build the (also since-deleted)
+  807-row seed subset, which itself was superseded by the LLM classification pivot.
+- **`zeyrek`-based lemmatization cell** (`lemmatize_text`, `word_frequency_bag`,
+  `lemmatize_csv`) — abandoned when the strand switched from rule-based NLP to Claude-based
+  classification (see "Turning point" section below); `zeyrek` itself is already removed
+  from `requirements.txt`.
+
+None of this was wasted effort — see the sections below for what each abandoned approach
+actually found before being superseded. This cleanup just stops the notebook from carrying
+dead code that nothing runs anymore.
+
 ## New workflow, 2026-09-13ish: AI-first-pass + Orhan's top-of-head categories
 
 Orhan proposed a new collaborative annotation model, replacing the pure "Claude classifies,
@@ -52,7 +225,7 @@ something to do preemptively.
 
 ### Batch 3 results, 2026-09-13ish (130 new rows, cumulative now 300)
 
-Output appended to `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv`
+Output appended to `agroforestministry_news_validation_sample_CLAUDE_LABELS.csv`
 (now 300 rows total, `Orhan_Category` still empty pending his review).
 
 - **Category tally (batch 3 only):** `Agro_policy` 38, `TR_ruralGov` 38, `TR_agroGov` 33,
@@ -110,7 +283,7 @@ says so explicitly each time.
 ### Batch 4 results, 2026-09-13 (100 new rows, cumulative now 400)
 
 Sampling: plain random (seed 37), excluding all 298 already-sampled numbers. Output appended
-to `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv` (now 400 rows,
+to `agroforestministry_news_validation_sample_CLAUDE_LABELS.csv` (now 400 rows,
 `Orhan_Category` still empty across all of them).
 
 - **Category tally (batch 4 only):** `Agro_econ` 29, `Rural_Development` 23, `Risks_Global`
@@ -191,7 +364,7 @@ Sampling: plain random (seed 41), excluding all 398 already-sampled numbers.
   `Agro_international` 16, `Rural_Livelihood` 11, `Policy_Access` 8 (full tally not fully
   captured — the subagent's final summary was cut off by the rate-limit error before it could
   report one; re-derive from `batch5_labels.csv` directly if the complete tally matters).
-- **`Ceremonial_Political = yes`: 18/100`** — back down from batch 4's unusually high 45%,
+- **`Ceremonial_Political = yes`: 18/100** — back down from batch 4's unusually high 45%,
   closer to the 22-34% range seen in earlier batches. Reinforces treating batch 4's 45% as
   sampling variance, not a shift in the corpus.
 - **Zero-category rows: 10** — consistent with prior batches' pattern.
@@ -245,38 +418,33 @@ Don't go looking for them or treat their absence as something broken. If the "to
 is ever needed again, it's one line to regenerate: filter `agroforestministry_news.csv` for
 "tohum" in `Title` or `Paragraphs`.
 
-## Forward-steps roadmap (keep updated — last updated 2026-09-12)
+## Forward-steps roadmap (2026-09-12 history — for current status see the top of this file)
 
-Read this first for current status at a glance; sections below have the full reasoning
-behind each row.
+Its own header used to say "read this first," which is now wrong — the "Status & Forward
+Steps" section at the top of this file is current, this table is not. Steps #1-10 are still
+accurate history; #11+ is condensed since the detail is superseded and covered in full under
+"Decisions confirmed" below.
 
 | # | Step | Status |
 |---|---|---|
 | 1 | Full-text scrape (7,107 articles, Number 153-7260) | Done |
 | 2 | "Tohum" seed subset regenerated (807 rows, title-or-body match) | Done |
 | 3 | Keyword-bag frequency diagnostic (raw word counts, no weighting) | Done |
-| 4 | Pick lemmatizer | Done — `zeyrek` confirmed by Orhan, added to `requirements.txt` by main agent |
+| 4 | Pick lemmatizer | Done — `zeyrek` |
 | 5 | Investigate 615 rows with empty `Paragraphs` | Not started |
-| 6 | Pick which literature categories to target (subset of the ~44, multi-label) | Orhan's call, not decided |
-| 7 | Apply lemmatization to seed subset, re-run keyword-bag to confirm cleanup | Done, 2026-09-12 — see lemmatization section below for validated results and known residual errors |
-| 8 | Build TF-IDF on the lemmatized seed subset, inspect top-weighted words | **Superseded, 2026-09-12** — see "Turning point" section below. Not deleted from the roadmap because the reasoning for trying it first is still valid context, just outgrown |
-| 9 | Try YAKE/RAKE on the same subset, compare against TF-IDF | **Superseded, 2026-09-12** — same as #8 |
-| 10 | Decide whether/how to extend to full corpus and tie results to chosen categories | Still open, now via the LLM path instead of #8/#9 |
-| 11 | Pick LLM(s) | **Confirmed, 2026-09-12** — three-way comparison: Claude Haiku 4.5 (pilot/production candidate, Sonnet 5 fallback) + a local open-source model (`Qwen2.5-3B-Instruct` candidate, GTX 1660 Ti 6GB) + Orhan's own hand labels. See "Decisions confirmed" subsection |
-| 12 | Design validation protocol | **Confirmed, 2026-09-12** — stratified whole-corpus sample, hand-labeled by Orhan, percent agreement + Cohen's kappa against each model, fixed model/prompt/settings (temp 0), qualitative spot-check of disagreements |
-| 13 | Small classification demo (6 random articles, done inline by Claude, 2026-09-12) | Done — see "Turning point" section for the actual results; already surfaced a real category gap (#2820, resolved → `Agroecology`) and motivated adding a ceremonial/political-visibility category |
-| 14 | Set up local model (`Qwen2.5-3B-Instruct` or similar, 4-bit) on Orhan's GPU | Not started |
-| 15 | Draw + hand-label the stratified validation sample | Not started |
-| 16 | Run Claude Haiku 4.5 + local model on the validation sample, compute agreement/kappa vs. Orhan's labels | Not started, blocked on #14/#15 |
-| 17 | Decide final category schema (literature-codebook subset + the new ceremonial/political-visibility tag) based on what the pilot actually surfaces | Not started, blocked on #16 |
-| 18 | Run the chosen classifier at full-corpus scale | Not started, blocked on #17 |
-| — | Sentence embeddings / zero-shot transformer classification | Superseded by the LLM pivot below rather than "paused" — an LLM-based approach subsumes what this would have offered |
-| — | TF-IDF / YAKE / RAKE as the *main* classification method | Superseded, 2026-09-12 (see "Turning point") — may still resurface later as a cheap *supplementary* signal (e.g. literal keyword counts alongside LLM categories), not ruled out for that narrower use |
-| — | LDA, BERT-based topic modeling, NER | Still ruled out / discarded, don't re-propose without Orhan raising it again — note this is a **different** decision from the LLM classification pivot, don't conflate them |
-| — | Downstream framing: this strand's output is a national-level "policy activity/attention" signal, not a 7th FSOI category and not GFSI's "political commitment" framing | Decided, 2026-09-12 (see cross-strand coordination section below) |
+| 6 | Pick which literature categories to target | Superseded — see #17 below |
+| 7 | Apply lemmatization to seed subset, re-run keyword-bag | Done, see lemmatization section below |
+| 8-9 | TF-IDF / YAKE-RAKE on the lemmatized subset | **Superseded** — see "Turning point" |
+| 10 | Extend to full corpus, tie to categories | Superseded — via the LLM path instead |
+| 11-16 | *(originally: pick LLM, design kappa validation protocol, run a demo, set up a local model, hand-label a sample, compute agreement)* | **All superseded 2026-09-12, same day.** Actual outcome: Sonnet (not Haiku), no local model, no hand-labeling/kappa — see "Decisions confirmed" section below for the full story |
+| 17 | Decide final category schema | Still open — Orhan's call, see "Category scheme correction" and the "Status & Forward Steps" section at the top of this file for the latest |
+| 18 | Run the chosen classifier at full-corpus scale | Not started — pilot is at 500/7,107 |
+| — | Sentence embeddings / zero-shot transformer classification | Superseded by the LLM pivot |
+| — | LDA, BERT-based topic modeling, NER | Ruled out, don't re-propose without Orhan raising it again |
+| — | Downstream framing: national-level "policy activity/attention" signal, not a 7th FSOI category or GFSI's "political commitment" | Decided — see cross-strand coordination section below |
 
-Immediate unblockers are #11 (which LLM) and #12 (validation protocol) — both need Orhan's
-decision, not something to guess at.
+**For current status, read the "Status & Forward Steps" section at the top of this file, not
+this table** — this table is 2026-09-12 history.
 
 ## Turning point, 2026-09-12: pivot from rule-based statistics to LLM-assisted classification
 
@@ -341,15 +509,22 @@ point for the thesis write-up, not just a pipeline log entry — don't let it ge
 
 ### Decisions confirmed, 2026-09-12
 
-- **Validation protocol — SUPERSEDED, 2026-09-12, same day it was confirmed.** Originally:
-  draw a stratified sample, Orhan hand-labels it blind, compare against model output via
-  percent agreement + Cohen's kappa. Two things changed this same day, both from Orhan
+- **Validation protocol — SUPERSEDED, 2026-09-12, same day it was confirmed.** Originally (this
+  was Claude's proposed methodology, not a term or method Orhan asked for — he approved the
+  plan, didn't originate the statistic): draw a stratified sample, Orhan hand-labels it blind,
+  compare against model output via percent agreement + Cohen's kappa (a standard inter-rater
+  agreement statistic — see explanation in chat 2026-09-15 if this comes up again, not
+  duplicated here). Two things changed this same day, both from Orhan
   directly:
-  1. **Orhan will not hand-label.** His words: "I will not touch on annotation. I may only
-     review validation... Later I will closely analyze the topics and their text
-     counterpart." So there is no independent human gold-standard label set, and no
-     agreement/kappa statistic is being computed against one. Don't plan around kappa unless
-     Orhan explicitly asks for it again.
+  1. **Orhan will not hand-label — at this point in time.** His words: "I will not touch on
+     annotation. I may only review validation... Later I will closely analyze the topics and
+     their text counterpart." So there is no independent human gold-standard label set at
+     this stage, and no agreement/kappa statistic is being computed against one. **This
+     itself was later revised** (see "New workflow" section below): Orhan did commit to his
+     own hand annotation, just in a different form than the original kappa-validation design
+     — adding his own `Orhan_Category` per row on top of Claude's classification, which he's
+     doing now on the full 500-row sample. Don't read this bullet as "no hand-labeling,
+     permanently" — it's accurate only for the gap between this decision and that one.
   2. **The blind-labeling design was compromised in practice anyway.** Batch 1's subagent
      summary (category tally + gap findings) came back as a tool result inside the same
      interactive session Orhan was watching, and he confirmed he saw it ("I saw the output
@@ -412,79 +587,23 @@ point for the thesis write-up, not just a pipeline log entry — don't let it ge
 
 ### Standardized subagent classification prompt — kept accurate as of batch 4, 2026-09-13
 
-**Correction: this section had gone stale.** It previously showed the pre-batch-3 template
-(separate `TopicGloss`/`Notes` fields), but batch 3 and 4 actually used a different, evolved
-prompt (single `Comment` field, plus accumulated "watch for this known gap" guidance) that
-was never written back here. Orhan caught this by asking directly ("Do we have your agent
-prompt saved... are you giving the same prompt every time?") — answer: **no, not identical
-every time** — the prompt has been getting small, deliberate additions batch to batch (newly
-confirmed gap categories, sharper Buyuksehir_Law guidance) without this section being kept in
-sync. Below is the actual batch 4 version. **Update this section every time the prompt
-changes, not just when someone asks** — that was the actual failure here.
-
-Launch via the `Agent` tool, `subagent_type: "general-purpose"`, `model: "sonnet"` (Orhan's
-explicit preference — see "no separate Anthropic API access" note above for why this is a
-subagent, not a raw API call). Current template, fill in the bracketed parts:
-
-> You are helping with an MA thesis on Turkey's Food Sovereignty Index. Part of the project
-> scrapes press releases from the Turkish Ministry of Agriculture and Forestry
-> (tarimorman.gov.tr) and classifies what each article is about, using a fixed category
-> codebook from a separate literature-review strand (literature_research/
-> literature_annotation.ipynb). This is batch `[N]` of an ongoing pilot — the researcher
-> reviews this output and adds his own additional categories on top of it afterward (an
-> `Orhan_Category` column gets added downstream, not by you), so your job is a careful
-> first-pass classification, not a final answer.
->
-> Read this CSV file in full (`[N]` rows, will need multiple Read calls with offset/limit —
-> read every row, don't stop partway): `[input CSV path]`
->
-> Columns: Batch, Number, URL, Title, Date, Paragraphs.
->
-> For EACH row, read Title and Paragraphs and produce:
-> 1. `Categories`: zero or more labels, semicolon-separated, chosen ONLY from this exact
->    44-category list (do not invent new names, multi-label is normal, 2-3 tags per article
->    is typical): `[the 44-category list — see below, keep in sync]`
->
->    Guidance on recurring content without an obvious single-category home — multi-tag onto
->    the closest existing categories rather than inventing new ones:
->    - Irrigation/dam/flood-control infrastructure -> TR_ruralGov, Rural_Development,
->      Agro_policy, or Land_Policy depending on framing
->    - Wildfire/forestry-disaster response -> Risks_Global, TR_agroGov, or leave
->      uncategorized if nothing fits
->    - Livestock/animal husbandry/veterinary content -> Agro_econ, TR_agroGov, TR_ruralGov,
->      Rural_Livelihood, Agroecology depending on angle
->    - Ceremonial/political content: don't assume ceremonial framing means no category
->      applies — a ceremonial village visit can still genuinely touch e.g. Rural_Livelihood;
->      tag what's substantively present even if the framing is ceremonial. Only leave zero
->      categories for content with truly no agricultural/rural substance.
->    - Most of the 44 are literature-review meta-categories that may rarely apply — don't
->      force usage.
->    - Food_Sovereignty: apply strictly and rarely — near-universally top-down state framing
->      in this corpus, genuine bottom-up content is very rare.
->    - **Watch specifically for Turkey's 2012 Metropolitan Law** (büyükşehir belediyesi/
->      belediyeleri gaining new agricultural/rural responsibilities, "6360", or similar) even
->      as a small buried detail in an otherwise unrelated article — this is the single most
->      important category for this thesis, and real hits have been found buried deep in
->      unrelated-seeming articles (e.g. a quote from a local co-mayor near the end of an
->      agricultural fair story). Read every article's full text with this specifically in
->      mind, not just its main topic.
-> 2. `Ceremonial_Political`: "yes"/"no" — primarily ceremonial/photo-op/personal messaging
->    with little substantive policy content? Can co-occur with a real category.
-> 3. `Comment`: a few sentences (not one) covering what the article is actually about,
->    independent of the category list, plus anything ambiguous/low-confidence/stretched, plus
->    explicitly flag topics that don't fit any of the 44 categories well. Known recurring gap
->    types to name explicitly when seen (accumulated across batches — update this list as new
->    ones get confirmed): water security/infrastructure, forestry/wildfire-disaster
->    management, cross-institution/inter-ministry collaboration or policy councils
->    (Şura/forum/commission format), food-waste/sustainability content.
->
-> Write output as a CSV to: `[output CSV path]`
-> Columns: Batch, Number, Categories, Ceremonial_Political, Comment
->
-> Be deliberate and consistent. Process all rows, no sampling/skipping. When done, report:
-> rows processed, category tally, count of Ceremonial_Political=yes, how many rows got zero
-> categories, any Buyuksehir_Law hits (quote the relevant passage), and a list of rows
-> flagging any of the known gap types or new ones not seen before.
+**Correction, 2026-09-14: this section is deleted as a maintained copy, not just re-synced —
+the duplication itself was the bug.** This used to hold a hand-copied version of the
+classification prompt, which went stale not once but twice (once discovered when Orhan asked
+"are you giving the same prompt every time?", fixed by re-syncing it here; then it went stale
+*again* after the `batch_num` elimination redesign, because there were still two copies of
+the same prompt text to keep in sync — this note, and the actual `f-string` in
+`ValidationSampleBuilder.build_classification_prompt()`). Re-syncing a second copy every time
+doesn't fix that pattern, it just delays the next staleness. **The module's
+`build_classification_prompt()` is now the single source of truth for the actual prompt
+text — read it there, don't maintain a copy here.** What's worth keeping in this note instead
+(genuinely a different kind of information, not a duplicate): the launch mechanics —
+`Agent` tool, `subagent_type="general-purpose"`, `model="sonnet"` (Orhan's explicit
+preference, see "no separate Anthropic API access" above) — and the reasoning/history behind
+specific prompt decisions (why `Buyuksehir_Law` gets special emphasis, why `Food_Sovereignty`
+is applied strictly, etc.), which the other sections of this file already cover. When the
+category list or `KNOWN_GAP_TYPES` change, update them in the module — that alone is now
+sufficient; there's no second copy to remember.
 
 ### Category scheme correction, 2026-09-12: literature codebook only, no invented categories
 
@@ -531,14 +650,24 @@ a sign the classifier is missing things (see batch results below).
 ### Cumulative sample file architecture (Orhan, 2026-09-12: "place annotated batches in same
 file on top of each other... use it later for cumulative graphs")
 
+**Schema note added 2026-09-15: the column lists below are a 2026-09-12 snapshot, since
+superseded twice over — don't trust them as the current schema.** The `Batch` column
+described here was removed entirely 2026-09-14 (see "No batch numbering" at the top of this
+file), and `TopicGloss`/`Notes` were merged into one `Comment` field as of batch 3 (see "New
+workflow" section). The **current** schema is `Number, URL, Title, Date, Paragraphs` for the
+sample file and `Number, Categories, Ceremonial_Political, Comment, Orhan_Category` for the
+labels file — check `agroministrynews_module.py`'s `SAMPLE_FIELDNAMES`/`LABELS_FIELDNAMES`
+if in doubt, don't rely on this historical section. Kept below for the reasoning history
+(why one growing file instead of per-batch files), which is still accurate.
+
 Switched from per-batch files (overwritten each round) to **one growing cumulative file**
 with a `Batch` column, so nothing gets lost and later analysis (e.g. cumulative counts/graphs
 over time) has everything in one place:
-- `agro_ministry_news/agroforestministry_news_validation_cumulative.csv` — source articles,
-  columns `Batch, Number, URL, Title, Date, Paragraphs`.
-- `agro_ministry_news/agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv` —
-  Claude's classification, columns `Batch, Number, Categories, Ceremonial_Political,
-  TopicGloss, Notes`.
+- `agro_ministry_news/agroforestministry_news_validation_sample.csv` — source articles,
+  columns *at the time*: `Batch, Number, URL, Title, Date, Paragraphs`.
+- `agro_ministry_news/agroforestministry_news_validation_sample_CLAUDE_LABELS.csv` —
+  Claude's classification, columns *at the time*: `Batch, Number, Categories,
+  Ceremonial_Political, TopicGloss, Notes`.
 
 The old per-batch files (`agroforestministry_news_validation_sample_BLANK.csv` and
 `..._CLAUDE_LABELS.csv`) were **deleted 2026-09-12** once their content was merged in — don't
@@ -553,7 +682,7 @@ don't assume 170 rows means 170 distinct articles.
 **Future batches — sampling method simplified per Orhan ("I don't know how you batch it.
 Just randomly select"):** drop the year-stratification logic from batches 1-2, just draw a
 plain random sample from articles with non-empty `Paragraphs` that **aren't already in the
-cumulative file** (check existing `Number`s in `agroforestministry_news_validation_cumulative.csv`
+cumulative file** (check existing `Number`s in `agroforestministry_news_validation_sample.csv`
 first, exclude them, then random-sample from the remainder — keeps growing the cumulative set
 without re-drawing the same articles). Append (don't overwrite) both the source-article rows
 and, after running the classification subagent again, the labels rows, incrementing the
@@ -589,7 +718,7 @@ artifact of the abandoned categories.
 
 ### Corrected classification results, 2026-09-12 (170 rows, full 44-category codebook)
 
-Output: `agroforestministry_news_validation_cumulative_CLAUDE_LABELS.csv`. All 170 rows
+Output: `agroforestministry_news_validation_sample_CLAUDE_LABELS.csv`. All 170 rows
 processed, verified against the source file's Batch+Number keys (no rows lost/duplicated).
 
 **Category tally** (times used across 170 rows; most articles carry 2-4 tags): `Agro_econ`
@@ -721,8 +850,13 @@ right after a classification run, and as a way to dig deeper into specific rows 
 to scrutinize later. Not run yet as of this note revision — do this once the current
 cumulative re-classification (170 rows) finishes, or any time after on any labels file.
 
-**Results, run 2026-09-12.** Output:
-`agroforestministry_news_validation_cumulative_CONSISTENCY_CHECK.csv`. 8 rows flagged out of
+**Results, run 2026-09-12; source file deleted 2026-09-15.** Output was
+`agroforestministry_news_validation_sample_CONSISTENCY_CHECK.csv` — Orhan asked to drop it
+once he realized it was essentially a one-time supervision/audit report he'd already read and
+mostly acted on (the Haber/392 fix), and that his own upcoming manual annotation pass over
+all 500 rows would naturally re-surface anything real in the other 7 findings anyway, making
+the file redundant going forward. **Deleted, but the findings themselves are preserved below**
+— don't go looking for the file, this section is now the only record. 8 rows flagged out of
 170 (Categories_vs_Gloss_mismatch: 6, Metropolitan_Law_miss: 1, Ceremonial_undercategorized: 1).
 
 - **Haber/392's Metropolitan Law miss: confirmed caught, and confirmed to be the *only* one
@@ -775,10 +909,20 @@ cumulative re-classification (170 rows) finishes, or any time after on any label
 
 ## Full-text scraping status (as of 2026-09-11)
 
-- `agroministry_news_scrape.ipynb` (renamed from `New Text Document.ipynb`) has two scraper
-  functions: the original title/date-only pass (produced `agroforest_ministry_news.xlsx`,
-  ~6,900 rows) and a fixed full-text pass, `scrape_tarimorman_news_fulltext`, added
-  2026-09-11 by `thesis_log_agroministrynews_agent`.
+**Correction, 2026-09-15: the bullet below describing the notebook's contents is stale.** As
+of 2026-09-11 (when this section was written) the notebook did hold both scraper functions
+inline, as described. As of the 2026-09-14 code consolidation, neither function lives in the
+notebook anymore — the full-text scraper's logic moved into `agroministrynews_module.py`'s
+`TarimOrmanScraper` class, and the original title/date-only scraper was deleted outright (see
+"Notebook cleanup" section above). The bug-fix reasoning and history below (why the extraction
+was scoped to `itemBody`, the resume/incremental-write design) are still accurate — just don't
+expect to find this code sitting in the notebook itself anymore.
+
+- `agroministrynews_scrape.ipynb` (renamed from `New Text Document.ipynb`, then from
+  `agroministry_news_scrape.ipynb` on 2026-09-14) **had, at the time this bullet was
+  written,** two scraper functions: the original title/date-only pass (produced
+  `agroforest_ministry_news.xlsx`, ~6,900 rows) and a fixed full-text pass,
+  `scrape_tarimorman_news_fulltext`, added 2026-09-11 by `thesis_log_agroministrynews_agent`.
 - The full-text pass fixes a real bug found in Orhan's original pilot code (which produced
   the old `tarimorman_haberleri.csv` / renamed `agroforestministry_news.csv`, 8 rows): that
   code ran `soup.find_all("p")` over the whole page, which also captured footer contact
@@ -1004,7 +1148,8 @@ TF-IDF + YAKE/RAKE satisfy without needing a labeled training set.
 
 ## Lemmatization implementation, validated (2026-09-12)
 
-`zeyrek` implemented in `agroministry_news_scrape.ipynb` (cell after the full-text scraper):
+`zeyrek` implemented in `agroministrynews_scrape.ipynb` (cell after the full-text scraper,
+**since deleted** — see "Notebook cleanup" section above):
 `lemmatize_text()`, `word_frequency_bag()`, `lemmatize_csv()`. Setup needs
 `nltk.download('punkt_tab')` in addition to the existing `nltk.download('stopwords')`
 requirement (zeyrek's tokenizer needs it; hit a `LookupError` without it) — flagged to main
@@ -1045,9 +1190,11 @@ keyword variants.
 - None of these are severe enough to block moving to TF-IDF (step 8) — recorded so a future
   session doesn't mistake `yumak`/`bun`/`üremek` showing up in results as meaningful signal.
 
-Output: `agroforestministry_news_seed_lemmatized.csv` (807 rows, adds a
-`Paragraphs_Lemmatized` column) — this is the input for TF-IDF/YAKE next (roadmap #8-9), not
-yet run on the full ~7,100-article corpus.
+Output at the time: `agroforestministry_news_seed_lemmatized.csv` (807 rows, adds a
+`Paragraphs_Lemmatized` column). **This file was deleted 2026-09-14/15** (Orhan asked, this
+session confirmed it was safe since nothing in the current LLM-based pipeline reads it — see
+the file-status note near the top of this document) — don't go looking for it. The
+TF-IDF/YAKE plan this fed into never happened either way; see the "Turning point" pivot.
 
 **NER / entity extraction: discarded (Orhan, 2026-09-11).** An earlier version of this note
 proposed running NER over `Paragraphs` (location entities as a possible bridge to
@@ -1085,9 +1232,13 @@ takeaways specific to this strand, from that remark:
   re-litigate "should this be a 7th FSOI category" or reach for GFSI's "political commitment"
   language without knowing this was already discussed and decided against, 2026-09-12.
 
-**Status:** nothing above is implemented yet. TF-IDF/keyword-extraction on a subset is the
-agreed next concrete step once Orhan confirms which literature categories (if any) to target
-first; embeddings/zero-shot remain paused, not planned.
+**Status at the time (2026-09-12): nothing above implemented yet, TF-IDF/keyword-extraction
+was the agreed next step.** That never happened — the whole rule-based/statistical direction
+(this section, TF-IDF, YAKE/RAKE, embeddings) was superseded a little later the same day by
+the pivot to LLM-assisted classification (see "Turning point" section). **For the actual
+current status, read the "Status & Forward Steps" section at the very top of this file**,
+not this line — as of the last update there, the sample is at 500 LLM-classified rows and
+Orhan is doing his own manual annotation pass on top.
 
 ## Coordination behavior: don't assume CLAUDE.md is unaffected
 
