@@ -67,6 +67,10 @@ class ResmiGazeteScraper:
         self.session.mount("https://", HTTPAdapter(max_retries=retries))
         self.session.mount("http://", HTTPAdapter(max_retries=retries))
 
+        # See _fetch_day: only set True (and only ever once) if this machine actually
+        # hits an SSL verification error - not assumed upfront.
+        self._ssl_verify_disabled = False
+
     def _valid_date(self, month: str, day: str) -> bool:
         try:
             datetime(self.year, int(month), int(day))
@@ -234,7 +238,29 @@ class ResmiGazeteScraper:
         page_url = self._page_url(month, day)
 
         try:
-            r = self.session.get(page_url, timeout=20)
+            # Some machines can't validate resmigazete.gov.tr's certificate chain
+            # (confirmed on at least one dev machine, 2026-09-12/16: upgrading certifi
+            # didn't fix it) - but this is NOT universal, another machine ran the same
+            # scrape successfully with no workaround at all. So: try a normal, verified
+            # request first, and only fall back to verify=False (with a one-time
+            # visible warning) if THIS machine actually needs it - don't assume every
+            # environment does. Once we know, skip straight to the fallback instead of
+            # re-attempting (and re-failing) the verified request every single call.
+            if self._ssl_verify_disabled:
+                r = self.session.get(page_url, timeout=20, verify=False)
+            else:
+                try:
+                    r = self.session.get(page_url, timeout=20)
+                except requests.exceptions.SSLError:
+                    import urllib3
+                    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                    print(
+                        f"  NOTE: SSL certificate verification failed against "
+                        f"{self.base_url} on this machine - falling back to "
+                        f"verify=False for the rest of this run."
+                    )
+                    self._ssl_verify_disabled = True
+                    r = self.session.get(page_url, timeout=20, verify=False)
             # These archived pages never declare a charset, so requests falls back to
             # ISO-8859-1 (per RFC default for text/*) even though the real encoding is
             # usually Windows-1254 - the two only disagree on a handful of code points
@@ -294,7 +320,7 @@ class ResmiGazeteScraper:
 class ResumableResmiGazeteScraper(ResmiGazeteScraper):
     """Wraps the parent's per-date fetch/parse with incremental CSV writes and
     resume-by-skipping-already-scraped-dates, mirroring the pattern already proven in
-    agro_ministry_news/agroministry_news_scrape.ipynb's scrape_tarimorman_news_fulltext
+    agro_ministry_news/agroministrynews_scrape.ipynb's scrape_tarimorman_news_fulltext
     (append-mode CSV, flush after every record, resume by reading existing output)."""
 
     FIELDNAMES = ["Datetime", "Text", "Hyperlink"]

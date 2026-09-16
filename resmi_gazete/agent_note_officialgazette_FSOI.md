@@ -5,6 +5,48 @@ scoped to `resmi_gazete/`, reporting to `thesis_log_main_agent`). Pipeline/mecha
 documentation only — anything about result validity or known-bad status belongs in the
 root `CLAUDE.md` instead (owned by the main agent), not here.
 
+## Status & Forward Steps (handoff note, updated 2026-09-17)
+
+This session's context is filling up; a fresh session will likely pick up this strand
+soon. Per CLAUDE.md's continuity convention: treat the incoming session as continuous
+with this one (same scope, same open items), not a fresh start — read this whole file,
+and `CLAUDE.md` in full, before doing anything. Notify `thesis_log_main_agent` that the
+handoff happened once it does, so an identity change in `ListAgents` isn't mistaken for
+something unusual.
+
+**Done and solid, safe to build on:**
+- `resmigazete_module.py` is fixed, validated, and reproducible - all six known noise
+  sources (encoding fallback, unmerged same-href anchors, Sayfa Başı nav links,
+  over-broad ilan filter, Önceki/Sonraki nav arrows, per-character font-spans) are
+  fixed in the actual code (not just described here), plus an adaptive SSL fallback
+  (tries a verified request first, only falls back to `verify=False` if this specific
+  machine actually hits an `SSLError`). Note this fallback's own note (2026-09-17
+  correction below): it fires 7 times on this machine every run, once per year - it
+  does not mean the cert issue is absent, only that it's handled gracefully now.
+- `resmigazete_scrape.ipynb` runs cleanly end-to-end as-is - confirmed by Orhan running
+  it directly (not via a session script) for 2018-2024.
+- **All of 2000-2024 is now scraped and validated** into
+  `resmigazete_all/titles_resmigazete_{year}.csv`, diffed against trusted `.xlsx`
+  (94.2-99.8% text-match every year - see the tables further down). CSVs are the
+  going-forward source of truth per CLAUDE.md; old `.xlsx` kept for reference only. One
+  real, non-cosmetic gap was found and fixed along the way: a single missing day in
+  2020 (2020-08-27) - see the "2018-2024" section below for how it was caught, since
+  the same check is worth applying to any future re-scrape.
+
+**No scraping work remains.** Next steps are all downstream / waiting on Orhan:
+- The Agreements/Supports/Annotation_Topic categorization and the sentiment tags layered
+  on top of it. Orhan is reconsidering the annotation approach entirely (previous
+  annotation as-is vs. a fresh pass using the old one only as a guideline) - see
+  CLAUDE.md and the "LLM sentiment pass" section below for the reproducibility caveat on
+  the sentiment work specifically.
+- The year-binning task (bin Gazette entries by year/two-year bins to compare against
+  Türkiye's national FSOI score, per CLAUDE.md) - waiting on Orhan's raw-count-vs-
+  category-level decision, which affects `thesis_log_agroministrynews_agent`'s strand
+  the same way, so it needs to land identically on both rather than being decided here
+  alone. Orhan said (2026-09-14) this is waiting until the 2000-2024 scraping wraps up -
+  **that milestone is now reached (2026-09-17)**, so this is worth raising with Orhan
+  again rather than continuing to wait silently.
+
 ## Where things stood (2026-09-11, start of this session)
 
 - `resmigazete_module.py` was **not just producing wrong results — it was dead code**.
@@ -61,7 +103,9 @@ root `CLAUDE.md` instead (owned by the main agent), not here.
     merging unrelated "see also" links to the same page).
   - `ResumableResmiGazeteScraper(ResmiGazeteScraper)`: wraps the parent's per-date
     fetch with incremental writes and resume-by-skipping-already-scraped-dates,
-    mirroring `agro_ministry_news/agroministry_news_scrape.ipynb`'s
+    mirroring `agro_ministry_news/agroministrynews_scrape.ipynb`'s (renamed from
+    `agroministry_news_scrape.ipynb` 2026-09-14, per
+    `thesis_log_agroministrynews_agent`)
     `scrape_tarimorman_news_fulltext` pattern — `requests.Session` with
     `HTTPAdapter`/`Retry`, output opened in append mode, one row written + `f.flush()`
     immediately per date, existing output file read on startup to build the
@@ -199,6 +243,27 @@ Orhan) knows the ~3% negative / ~61% positive / ~36% neutral split is a good-fai
 estimate, not machine-verified-exact. A true per-title independent LLM judgment (546
 separate calls) would likely fix these remaining edge cases but wasn't done here for
 efficiency; worth doing if higher precision is needed later.
+
+**Reproducibility reminder (2026-09-16):** to be precise about what is and isn't in
+the repo here — **the two `*_Sentiment.xlsx` output files themselves are committed and
+present** (they've been in `resmi_gazete/` since 2026-09-12). What's *not* in the repo
+is the script that generated the `Sentiment`/`Sentiment_Reason` columns — it only ever
+ran in a session scratchpad, which doesn't persist. This is deliberate, not an
+oversight, for two reasons:
+1. The rules encode subjective judgment calls made by reading the corpus once (e.g.
+   deciding tariff-quota administration counts as "neutral," or that a repealed
+   support mechanism counts as "negative"). Even with the script saved, re-running it
+   reproduces the same *output*, but the *reasoning behind the rules* isn't
+   independently re-derivable the way a principled, documented methodology would be.
+2. The judgment itself came from a proprietary, closed-weight model (Claude, this
+   session) reading the titles — not a transparent, auditable algorithm a third party
+   could inspect or re-derive from published methodology, even in principle.
+
+Given Orhan is reconsidering the annotation approach for this strand generally (see
+CLAUDE.md), don't save or build further on this script until that's settled — flagging
+this so whoever picks this strand up next understands the `Sentiment` columns reflect
+one session's one-time model judgment call, not a repo-backed, independently
+reproducible pipeline, even though the output files themselves are safely committed.
 
 ## Full-year validation against trusted 2006 output (2026-09-12)
 
@@ -436,43 +501,115 @@ call in `_parse_links`.
 
 Not perfect - the older unfixable kerning-span variant still accounts for some of the
 remaining gap - but a real, substantial improvement, especially for 2013. This fix
-applies automatically to every scrape from here on; **2000-2010 were not re-scraped
-with it** - the per-character-font-span pattern may appear there too at some lower
-frequency (not checked), so their current text-match numbers in the table above are a
-slight underestimate of what a re-scrape would show. Worth doing if Orhan wants those
-years tightened up further; not done proactively since the marginal gain is unclear
-without checking first and re-scraping is a live multi-minute run each time.
+applies automatically to every scrape from here on.
 
-**Current full state (2000-2013 all scraped and validated), most recent numbers:**
+**Update 2026-09-14/15:** Orhan asked to re-scrape 2000-2010 too, to check whether the
+per-character-font-span pattern appeared there at a lower rate. It did - re-scraped all
+11 years from scratch in one clean run (0 interruptions, 0 fetch failures beyond 2000's
+expected pre-2000-06-27 gap). Every year improved: 2005-2010 all moved to ~99%+,
+2000-2004 each gained roughly a point (those years have other, unrelated legacy
+quirks - fragment URLs, the ilan/Sayfa Başı eras - so they don't reach the same ceiling
+as 2005+, but the font-span fix helped there too). Final numbers are in the
+consolidated table below.
+
+**Current full state (2000-2017 all scraped and validated), most recent numbers -
+2000-2010 include the font-span fix (re-scraped 2026-09-15), 2011-2017 always did:**
 
 | Year | Text-match | Year | Text-match |
 |------|-----------:|------|-----------:|
-| 2000 | 94.2% | 2007 | 97.8% |
-| 2001 | 95.9% | 2008 | 98.9% |
-| 2002 | 96.1% | 2009 | 99.4% |
-| 2003 | 94.9% | 2010 | 98.0% |
-| 2004 | 94.8% | 2011 | 98.7% |
-| 2005 | 99.6% | 2012 | 96.3% |
-| 2006 | 99.0% | 2013 | 94.8% |
+| 2000 | 95.1% | 2009 | 99.8% |
+| 2001 | 96.6% | 2010 | 98.8% |
+| 2002 | 96.8% | 2011 | 98.7% |
+| 2003 | 96.0% | 2012 | 96.3% |
+| 2004 | 95.3% | 2013 | 94.8% |
+| 2005 | 99.8% | 2014 | 96.3% |
+| 2006 | 99.2% | 2015 | 99.5% |
+| 2007 | 99.2% | 2016 | 98.8% |
+| 2008 | 99.5% | 2017 | 98.8% |
 
-**Not yet scraped:** 2014-2024.
+2014-2017 (scraped 2026-09-14/15, across another PC-shutdown interruption resumed
+cleanly mid-2016) validated with no new noise source - near-zero only-new/only-trusted
+every year, consistent with the post-2005 markup era generally.
 
-## Open / not yet done
+## 2018-2024: scraping complete, all years validated (2026-09-17)
 
-- **Not yet decided:** whether/when to re-run across the remaining years (2000–2005,
-  2007–2024) — 2006 is now validated, but the encoding bug's prevalence across other
-  years hasn't been checked. Each year is a live run against a government site at a
-  polite ~1 req/sec (~350-2000+ requests per year depending on volume).
-- **Not yet decided:** whether the newly-validated `titles_resmigazete_2006.csv` should
-  replace the trusted `.xlsx` as the source of truth, or sit alongside it for further
-  comparison first.
-- **Not yet resolved generally:** the SSL cert verification issue on this machine
-  (separate from the encoding bug above) — `verify=False` was used for all fetches in
-  this session's validation runs since this machine can't validate
-  resmigazete.gov.tr's cert chain even after upgrading `certifi` (looks like a
-  server-side chain issue, not a stale local root store). The module's own `session.get`
-  calls still default to `verify=True` and were not changed to disable verification by
-  default — flag if a future real run on this machine needs the same workaround.
+Orhan ran `resmigazete_scrape.ipynb` himself this time (not via a session script) -
+confirms it runs cleanly end-to-end, including the adaptive SSL fallback in
+`resmigazete_module.py`. **Correction (checked the notebook's actual saved cell output
+via its raw JSON, not just Orhan's summary):** his run hit the exact same
+`SSLError`/cert-verification failure this session's runs always hit - the fallback note
+fired 7 times, once per year (each year gets a fresh scraper instance in the loop, so
+`_ssl_verify_disabled` resets and the adaptive check runs fresh each time - one
+fallback message per year rather than once for the whole run, which is harmless but
+worth knowing). So this machine's cert issue is real and consistent, not something
+that only affected this session - "no certificate error" from Orhan's side meant no
+*crash*, which is exactly what the adaptive fallback is for: catch the SSLError, note
+it once (per scraper instance), keep going. The design point still holds - try
+verified first, only fall back on an actual failure - it just hasn't yet been tested
+on a machine where the cert issue genuinely isn't present. The notebook's raw JSON
+output also confirmed the root cause of the 2020-08-27 gap directly: a `ConnectionError`
+on that one request, logged as "failed to retrive page ... (ConnectionError)" - matches
+the transient-failure guess below with actual evidence instead of just inference.
+
+**Text-match after diffing against trusted:**
+
+| Year | Text-match | Notes |
+|------|-----------:|-------|
+| 2018 | 97.8% | |
+| 2019 | 98.7% | |
+| 2020 | 98.4% | see below - one full day was missing, found and fixed |
+| 2021 | 99.7% | |
+| 2022 | 99.7% | |
+| 2023 | 98.6% | |
+| 2024 | 97.8% (on the 2,090 links trusted actually has) | trusted's 2024 file is genuinely incomplete - see below |
+
+- **2024: trusted itself only covers roughly half the year** (2,090 links vs. the new
+  scrape's 4,326) - flagged by Orhan before the diff even ran ("2024 on trusted has
+  missing dates due to day performed, about half of it"), and confirmed by the diff:
+  2,236 "only-new" links, entirely explained by trusted's shorter coverage, not a
+  scraper defect. On the portion trusted *does* have, text-match is 97.8%, in line with
+  every other year - the underlying scrape quality for 2024 is fine, only trusted's
+  completeness is limited. **`titles_resmigazete_2024.csv` is more complete than the
+  trusted `.xlsx` for this year** - worth keeping in mind if anything downstream
+  compares 2024 counts against trusted rather than against itself.
+- **2020: one full day (2020-08-27, ~21 items) was entirely missing** from the new
+  scrape - not a legitimately empty day (trusted has real content for it: university
+  technology-zone designations, expropriation decisions, several regulation
+  amendments). Confirmed via a direct check - zero rows for that date in the CSV. Looks
+  like a one-off transient fetch failure during the run, not a systematic bug (every
+  other day in 2020, and every other year in this whole 2000-2024 span, scraped fine).
+  Fixed trivially thanks to the resumable design: re-ran `scrape_resumable` for 2020
+  alone - it correctly skipped all 365 already-done dates and retried only the missing
+  one. Text-match for 2020 after the fix: 98.4%, only-trusted dropped from 25 to 1 (the
+  usual harmless blank placeholder row). **Worth remembering as a general pattern:**
+  when a diff shows an unusually high only-trusted count concentrated on one date, check
+  for a full-day gap first (`df[df['Datetime']=='<date>']` on the CSV) before assuming
+  it's cosmetic noise like every other case found so far - this is the first time in
+  the whole 2000-2024 pass it turned out to be a real, if minor, missing-data gap rather
+  than filtering/rendering noise.
+
+**All of 2000-2024 is now scraped and validated.** No years remain.
+
+## Open / not yet done (historical — mostly resolved, see "Status & Forward Steps" at
+the top of this file for the actual current open items)
+
+This section reflects how things stood as this multi-week task progressed. Everything
+below except the two coordination write-ups is now resolved — kept for the audit
+trail, not because it's still open. Don't act on the "not yet decided" framing below;
+check the top section instead.
+
+- **RESOLVED (2026-09-15/17):** ~~whether/when to re-run across the remaining years~~
+  — all of 2000-2024 is scraped and validated now, see the "2018-2024" section above
+  for the final state.
+- **RESOLVED (2026-09-12, reaffirmed in CLAUDE.md):** ~~whether the newly-validated
+  CSVs should replace the trusted `.xlsx`~~ — yes, CSV is the going-forward source of
+  truth per CLAUDE.md; trusted `.xlsx` kept only for reference.
+- **RESOLVED (2026-09-16):** ~~the SSL cert verification issue~~ — the module now has
+  an adaptive fallback (verified request first, `verify=False` only if this machine
+  actually hits an `SSLError`) instead of a blanket workaround. Confirmed still firing
+  on this machine (7 times in the 2018-2024 run, once per year) but never crashing —
+  see the "2018-2024" section above for the full story, including a correction to an
+  earlier wrong assumption about who does/doesn't need it.
 - **Cross-strand coordination (per Orhan, 2026-09-11):** messaged
   `thesis_log_agroministrynews_agent` to compare "top of the head" manual category
   schemes (this strand's BERTopic-cluster-derived Agreements/Supports labels in
@@ -530,6 +667,17 @@ without checking first and re-scraping is a live multi-minute run each time.
      pre/post-2012) than GFSI's more attitudinal "political commitment" framing.
      Econometrics agreed this distinction is worth keeping separate. Write-up sent
      directly to `thesis_log_main_agent` (each strand routes its own write-up there
-     rather than collating through econometrics) — main_agent holding until all three
-     are in before giving its coordinating remark. **Not yet resolved** — update this
-     section once that remark arrives.
+     rather than collating through econometrics).
+
+     **RESOLVED (2026-09-13, in CLAUDE.md):** the coordinating remark arrived. FSOI
+     stays at 6 categories, no 7th added for this. GFSI's "political commitment"
+     pillar is approximated, for discussion only, by combining this strand's
+     legislation data with `agro_ministry_news/`'s press releases — both
+     national-level, so political influence is modeled as uniform across all cities
+     per year (which also made the city-disaggregation question moot). The
+     policy-output-vs-attitudinal-commitment distinction this strand raised made it
+     into the official caveat: keep noting wherever this comparison comes up that (a)
+     both sources measure activity/output, not attitudinal commitment, and (b) both
+     are official self-reporting, which skews toward looking committed — a limitation,
+     not a finding. Full wording is in CLAUDE.md's FSOI vs. GFSI section - that's the
+     authoritative version, this is just the history of how it got there.
