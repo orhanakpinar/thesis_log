@@ -71,16 +71,24 @@ data sources or scraping that fall outside this.
   notebooks (`topic_selection_model.ipynb`, `LitRes_module.ipynb`). `ReadMe.md` logs the
   exact search queries used — read it before adding new literature sources.
 - `resmi_gazete/` — Official Gazette scraping and topic modeling. **Known issue, fixed and
-  validated (2026-09-14):** `resmigazete_module.py` was lost; an earlier reconstruction
+  validated (2026-09-14, full 2000–2024 coverage as of 2026-09-17):**
+  `resmigazete_module.py` was lost; an earlier reconstruction
   produced incorrect results. `thesis_log_officialgazette_agent` rebuilt it (2026-09-11),
   fixing concrete bugs (undefined `re`, a never-populated `self.content`, a
   hyperlink-parsing bug that failed to merge titles split across multiple same-href `<a>`
   tags) and adding resumable/incremental-write scraping matching the pattern used in
-  `agro_ministry_news/`. Validation against the trusted `.xlsx` outputs is now done:
-  2000–2013 fully re-scraped and diffed, 94–99% text-match with near-zero spurious/missing
-  links, after finding and fixing five separate noise sources (wrong encoding fallback,
-  unmerged same-href anchors, "Sayfa Başı" nav links, an over-broad ilan filter, and
-  per-character font-spans in 2012/2013). **The rebuilt module's CSV outputs are now the
+  `agro_ministry_news/`. Validation against the trusted `.xlsx` outputs is now done for
+  the full run, 2000–2024 (2026-09-17): every year re-scraped and diffed, 94.2–99.8%
+  text-match, after finding and fixing six separate noise sources (wrong encoding
+  fallback, unmerged same-href anchors, "Sayfa Başı" nav links, an over-broad ilan filter,
+  per-character font-spans in 2012/2013, and "Önceki"/"Sonraki" nav arrows). One real
+  (non-cosmetic) gap was also caught and fixed during the 2018–2024 pass: a transient
+  `ConnectionError` had silently dropped one full day (2020-08-27), found via an
+  unusually high diff count and recovered by re-running the resumable scraper for that
+  year. The scraper also now uses an adaptive SSL fallback (tries a verified request
+  first, only drops to `verify=False` if this machine's cert issue actually fires —
+  confirmed firing 7 times, once per year, never crashing) rather than an earlier blanket
+  workaround. **The rebuilt module's CSV outputs are now the
   validated, going-forward source of truth** — the old trusted `.xlsx` files are kept only
   for reference, not deleted, but no longer the primary source. See
   `agent_note_officialgazette_FSOI.md` for full diagnosis. The many `BERT_*`/`tfidf_*`
