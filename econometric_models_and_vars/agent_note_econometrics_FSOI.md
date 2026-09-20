@@ -4,7 +4,221 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
-## OPEN METHODOLOGICAL FLAG — Law 6360 water-tariff transitional waiver (2026-09-13, unresolved)
+
+---
+
+# PART 1 — CURRENT STATE (read this first)
+
+*Structure of this file (reorganised 2026-09-19, per Orhan): **Part 1** is the live picture —
+open decisions and the current variable inventory. **Part 2** is stable reference material that
+is still true. **Part 3** is the dated process record, kept for traceability but not current.
+When these disagree, Part 1 wins.*
+
+## Where things stand (2026-09-19)
+
+**Water is settled.** Refined (*arıtılan*) dropped — it records whether a treatment plant exists
+(27/81 cities reported exactly zero in 2008, 9/81 by 2022; drawn water has 0 zeros in 648
+city-years), so in a cost-framed category it would also point the wrong way. The main panel's
+per-person daily series is dropped too: TÜİK computes it per person *in municipalities*, and Law
+6360 moved that base for treated cities in 2014 (+0.226 vs −0.020 for non-metros), so it carried
+the reform in its own denominator. **Water is now the extended panel's annual drawn series alone,
+as a symmetric `water_drainage_perArea` / `water_drainage_perHousehold` pair.** This costs no
+coverage — both series were missing exactly 2024 — and it restores the main panel to **zero gaps**.
+Consequence: the main panel carries no water column; water sits in extended, as market already did.
+**Terminology: always "refined", never "treated"** (collides with the `Treated` status variable).
+
+**Process failure worth recording.** The first version of the Diagnostics cells contained numbers
+computed in an external scratch script and pasted in as hardcoded literals, with a static
+"CONFIRMED" string — the cells checked nothing and would have gone stale silently. Caught by Orhan,
+2026-09-19. They now compute everything from `diagnostic_raw`, a snapshot taken before the raw
+columns are dropped. Recomputed values matched. Both correlation heatmap cells were also deleted
+outright (not just their outputs) since the printed table carries the same information.
+
+**What `implied municipal population` is, and is not.** It inverts TÜİK's own published per-person
+rate — `annual total ÷ (daily rate × 365)` — to recover the population base TÜİK used, then
+expresses it as a share of provincial population. Validity checks pass: the share never exceeds
+1.003 (0 of 648 values above 1.05), and pre-reform it reads sensibly as a municipal-population
+share (non-metro 0.713, old-metro 0.888 — the more urbanised group is higher). **It says nothing
+about tariffs, and nothing about informal or private water use** (wells, boreholes, irrigation
+outside the municipal network), which sit outside both series entirely. Its usefulness as an
+urbanisation control is limited to the pre-2014 period: after the reform, metros saturate at ~1.0
+and it becomes purely a coverage indicator.
+
+**Household-count algebra — a correction worth keeping.** `Mean_Household_Count ~
+Mean_Household_Size` is only **−0.11** across the panel, not the ≈−0.99 the construction
+`Count = Population / Size` suggests: population varies 214× across cities while household size
+varies 3.4×, so Count tracks population (r = 0.992) and the inverse link is swamped. **But within a
+single city over time it *is* ≈−0.99** (Konya −0.991, Şırnak −0.990, Çanakkale −0.987). That matters
+because a DiD identifies off within-city variation, so the household-size trend is the dominant
+driver of the denominator in exactly the dimension the estimate uses — which is why the
+treated-vs-control household-size trend check mattered (gap −0.045, small; see Part 2 briefing).
+
+**The per-capita equity objection, measured and accepted.** Spearman between perHousehold and
+perCapita rankings: greenhouse output 0.996, crop production 0.965, harvested land 0.959 — but
+**waste collected 0.640, water drawn 0.752**. So the objection has little force for land/production
+indicators (where the household is anyway the farming unit) and real force for municipal-service
+indicators, which are consumption quantities experienced per person. **Agreed with Orhan
+(2026-09-19): keep perHousehold as the structural denominator and add a perCapita variant for
+water/waste to the robustness-check list.** Not implemented — it is a post-composite step.
+
+## Denominators: the two tracks are contaminated in opposite dimensions (2026-09-19/20)
+
+The single most important structural fact for interpreting the index. `Area_km2` is **constant
+within a city** (0 of 81 vary; merged from HGM on name with no year key). `Mean_Household_Count`
+is **not** — households multiply as household size shrinks.
+
+| | across cities (ranking) | within a city over time (DiD) |
+|---|---|---|
+| **perArea** | ≈ population density, r = **0.988** ✗ | pure numerator, r = **1.000** with the raw total (100% of cities) ✓ |
+| **perHousehold** | free of density, r = **0.048** ✓ | drifts, r = **0.72** with the total (only 1% of cities above 0.99) ✗ |
+
+Population density spans 288× across cities while the behaviour measured spans ~5×, which is why
+perArea collapses onto density. Within a city, density barely moves (CV 0.046) — it separates
+cities, not years.
+
+**Which track for what.** In a DiD with city fixed effects, the between-city density that spoils
+perArea is *absorbed* by the fixed effects, whereas perHousehold's within-city denominator drift is
+*not* — so perArea is mechanically the cleaner causal track. But perArea is close to meaningless as
+a published level (it would rank cities by density), and food sovereignty is a household-level
+construct.
+
+**Recommendation (revised 2026-09-20, supersedes an earlier lean toward perArea):** use
+**perHousehold as the headline index** and perArea as the robustness track. The reason this is
+affordable is that perHousehold's one weakness has been *measured* and is small — the treated-vs-
+control differential in household-size trend is −0.045 on a base of ~3.2, about 1.4%. Taking the
+mechanically-cleaner track at the cost of an uninterpretable headline number would be a bad trade.
+Not finally decided; Orhan's call at aggregation.
+
+**Never put both tracks into one aggregation.** Equal-weighting all 28 normalised columns together
+would average the two tracks by the back door — the same collapse that was rejected explicitly
+(Orhan spotted this, 2026-09-20). Each index is built from its own 14 columns.
+
+## Normalisation implemented (2026-09-20)
+
+`log1p` → winsorise (1st/99th) → pooled min-max, each indicator independently, raw columns kept and
+normalised versions written with a `_norm` suffix. Thresholds computed from **cities only** (the
+`Türkiye` aggregate is placed on the scale, not used to define it) and **pooled across 2008–2024**,
+not per-year, so a score change means the city changed rather than its peers being different that
+year. Cost-direction flips are deliberately deferred to aggregation (`1 − x`) so these columns stay
+comparable and the flip stays visible.
+
+- 28 indicators normalised (18 main, 10 extended). Verified: every `_norm` column lies in [0, 1],
+  Spearman rank within each indicator is preserved (log1p and min-max are both monotonic), and NaN
+  counts are unchanged.
+- `log1p` applied to all 28 via `LOG1P_SKEW_THRESHOLD = 0.0`; raising that parameter switches to
+  selective transformation. Uniform was chosen to avoid an arbitrary cutoff needing defence, and it
+  is harmless since log1p is monotonic — it never reorders a city within an indicator, it only
+  changes how much weight extremes carry when indicators are averaged. Mean |skew| fell 3.25 → 1.81.
+- No indicator contains negative values, so log1p is safe throughout.
+
+**Open issue found during normalisation — floor-bunching.** `log1p` cannot fix zero-inflation, and
+four indicators still have most cities pressed against the floor: `landuse_greenhouse_km2_perHousehold`
+85.3% below 0.05, `landuse_greenhouse_km2_perArea` 85.2%, `agro_greenhouse_prod_ton_perHousehold`
+79.0%, `wasteCollected_1000ton_perArea` 74.6%. Greenhouse is genuinely concentrated (Antalya/Mersin)
+and ~12% of city-years are exact zeros; waste-perArea is the density skew again (0% exact zeros).
+Consequence: in an equal-weighted mean these contribute almost no discrimination — near-constants
+plus a couple of outliers. Options: accept and document; widen `WINSOR_LIMITS` to (0.05, 0.95) to
+spread the middle; or rank-normalise those indicators specifically. **Not decided — needs Orhan.**
+
+## Variable selection is COMPLETE (2026-09-19)
+
+All open variable decisions are resolved. Final list — 14 indicator pairs, every one a symmetric
+`_perArea` + `_perHousehold` pair, 28 columns total, all six categories populated:
+
+| Category | Indicators | Panel |
+|---|---|---|
+| market | `agro_crop_1000USD_*`, `agro_livestock_1000USD_*`, `agro_animalproducts_1000USD_*` | extended |
+| production | `total_agro_production_ton_*`, `agro_greenhouse_prod_ton_*` | main |
+| water | `water_drainage_*` | extended |
+| waste | `wasteCollected_1000ton_*` | main |
+| energy | `fertilizer_use_*` (main), `electricity_agriculture_mwh_*` (extended) | split |
+| land-use | `landuse_core_*`, `landuse_fallow_km2_*`, `landuse_greenhouse_km2_*`, `landuse_longtermCrops_km2_*`, `landuse_vegetables_km2_*` | main |
+
+Final resolutions (all per Orhan, 2026-09-19):
+- **Waste `_kg_daily` dropped**, both forms together (symmetry rule). The annual total already
+  supplies waste; the daily derivation was 0.999-correlated with it in perArea form. Waste is now a
+  single clean pair.
+- **Greenhouse split rather than collapsed.** `agro_greenhouse_prod_ton_*` → production,
+  `landuse_greenhouse_km2_*` → land-use. Its two inputs belonged to different categories, so a
+  combined index belonged cleanly to neither and mixed tonnes with km². They keep their units.
+  Consequence to note in the write-up: the two remain ~0.94 correlated, so greenhouse activity is
+  reflected in two of six categories — defensible (a greenhouse-heavy city genuinely has both more
+  output and more land under glass) but worth stating rather than leaving implicit.
+- **Water/waste stay separate categories.** At perHousehold they correlate only ~0.2, so there is no
+  statistical case for merging; the shared municipal-coverage confound is handled as a confound, not
+  by merging.
+- **`landuse_core_*` remains the one collapsed indicator** (harvested ≈ sowed, r = 0.99 in *both*
+  tracks — a genuine same-construct case, unlike the perArea-artifact ones).
+
+**Structural fact to settle before construction: the six categories do not span the same years.**
+Main panel is gap-free 2008–2024. Extended is missing 2024 (water, agricultural electricity) and
+2022 + 2024 (market). So a complete six-category FSOI exists only for **2008–2020** — 7 biennial
+points, 3 pre-treatment and 4 post. Options: build the headline index on 2008–2020, or report a
+reduced-category index for 2022/2024 alongside it. Not yet decided.
+
+**Do not impute the missing years.** They are publication gaps, not random missingness, and
+fabricating post-treatment observations is precisely where invented data does most damage in a
+causal design. The main/extended split exists to quarantine them.
+
+## Standing measurement concerns (not blocking, but must reach the thesis text)
+
+- **Law 6360 boundary expansion (2026-09-19, the most serious one).** From 2014 metropolitan
+  municipalities serve the whole province, so municipal-service statistics may cover populations
+  they did not before. Waste per household shows a +19.7% treated-vs-control DiD gap and the annual
+  water total +17.6%, while the per-person water rate moves −9.6% and a non-municipal control
+  (harvested land) moves −21.4%. A coverage change explains that split (totals rise as territory
+  grows; per-head rates fall as lower-usage rural population is absorbed). Plausible, not proven —
+  a real treatment effect could produce part of the same pattern. Affects water, waste and possibly
+  energy, i.e. three of the six categories. **A ratio of two municipal statistics is immune to
+  this** (treatment coverage shows a DiD gap of only +0.003), which is one possible mitigation.
+- **Law 6360 water-tariff waiver (2014–2019).** Working position: probably not a confound, since
+  our indicators measure volume rather than price. Reasoning and caveats in Part 2.
+- **perHousehold denominator and household size.** Safe against the non-metropolitan control (DiD
+  gap −0.045 on a ~3.2 base) but drifts ~6% against old-metropolitan. Household size is a **west–east
+  regional gradient, not a rural/urban one** (Şırnak 4.9 … Eskişehir 2.6, with urban and rural cities
+  at both ends). Distributional consequence worth documenting: for equal per-capita resources, large
+  household cities score *higher* on perHousehold benefit indicators and *worse* on cost-framed ones,
+  so the bias does not run in one direction across categories.
+- **perArea is largely a scale artifact.** `perArea = quantity / km²`, and city area is an
+  administrative boundary varying ~50× that is unrelated to the indicator, so any two
+  population-proportional quantities correlate at r > 0.95 in that form (water ~ waste: 0.977
+  perArea vs 0.208 perHousehold). Tested and rejected the alternative explanation that
+  industrialisation drives it — a non-agricultural-electricity proxy correlates only −0.27 with
+  water per household, the wrong sign for that story. **A high perArea correlation is therefore weak
+  evidence of redundancy; the perHousehold number is the informative one.**
+
+## Current variable inventory (as of 2026-09-19)
+
+`data_official_Türkiye` (main, 738 rows) — `landuse_core_perArea`/`perHousehold`,
+`greenhouse_intensity_perArea`/`perHousehold`, `landuse_fallow_km2_*`, `landuse_longtermCrops_km2_*`,
+`landuse_vegetables_km2_*`, `total_agro_production_ton_*`, `wasteCollected_1000ton_*`,
+`waste_collected_kg_daily_*`, `water_drainage_litre_daily_*`, `fertilizer_use_*` (each with a
+`_perArea` and a `_perHousehold` form), plus `Year`, `Location_Name`, `Treated`, `Treated_Label`.
+Only remaining gap: the water pair's missing 2024 — see open decision 3.
+
+`data_official_Türkiye_extended` — `agro_crop_1000USD_*`, `agro_livestock_1000USD_*`,
+`agro_animalproducts_1000USD_*`, `water_supply_perArea`, `water_drainage_perHousehold`,
+`water_refined_perHousehold`, `electricity_agriculture_mwh_*`, plus raw denominators and the
+`nonagri_electricity_mwh_perHousehold` covariate (a control, not an FSOI indicator).
+
+## Next implementation steps
+
+1. Resolve open decisions 1–6 above (all are variable-selection, not construction).
+2. `log1p` skewed indicators, then normalise — **pooled 2008–2024 only, no per-year variant**
+   (Orhan, 2026-09-17), winsorised min-max.
+3. Aggregate into the six category sub-indices, applying cost-direction flips.
+4. Produce the primary FSOI composite (equal weight, cost-framed) + top/bottom cities.
+5. Robustness checks: TOPSIS vs. equal weight; benefit vs. cost framing; waiver-years exclusion;
+   **leave-one-category-out** (6 reruns, not per-variable — that would be excessive and harder to
+   interpret).
+6. Report the composite to `thesis_log_main_agent` — that is the trigger for its CLAUDE.md
+   Results-status update.
+
+---
+
+# PART 2 — REFERENCE (stable)
+
+## Standing limitation — Law 6360 water-tariff transitional waiver (2026-09-13; downgraded 2026-09-17)
 
 Reported by `thesis_log_main_agent`, sourced from a SETA analysis (Çelikyay, 2014) Orhan shared:
 villages converted to mahalle status under Law 6360 got a **5-year transitional waiver,
@@ -30,87 +244,73 @@ metering/reporting effect (municipalities less diligent about billing/metering w
 villages, biasing measured volume), or it might not bias volume data meaningfully at all. This
 needs actual investigation, not an assumption either way, before deciding a response.
 
-**Not yet decided — needs Orhan's call, not mine to make unilaterally:** a control variable, a
-robustness check excluding/isolating 2014–2018, or at minimum an explicit documented limitation
-in the thesis. Surfaced to Orhan directly (2026-09-13) alongside the other open items from this
-session's variable-collapse review — see that conversation for his decision once made. **Do not
-finalize the water category (or the DiD estimate more broadly) without addressing this.**
+**Orhan's working position (2026-09-17), addressing the nuance above:** likely not a real
+confound after all, for essentially the reason flagged in the nuance paragraph — our water
+indicators measure *usage/volume*, and usage is plausibly *irrelevant* to the tariff waiver.
+The SETA finding is about the price a household is charged; our indicators measure how much
+water a city draws/treats for agricultural and municipal use, which in Orhan's view is driven
+by production needs (irrigation, municipal supply requirements) rather than being
+price-elastic at the household-tariff level in the relevant sense — i.e. this is a **production
+cost/capacity question, not a consumption-price-response question**, and our indicators sit on
+the production-cost side, not the household-billing side. Under this reading, a village's water
+bill being waived doesn't change how much water the municipality actually draws or treats to
+serve it.
 
-## Status & Forward Steps (updated 2026-09-13) — read this first
+**Still worth being explicit about, not fully closed:** this is a reasoned working position, not
+an empirically checked one — nobody has actually tested whether treated cities' volumes moved
+differently in 2014–2018 vs. other years/cities. Two of the metering/reporting mechanisms from
+the nuance paragraph above (a municipality being less diligent about metering/reporting for a
+village it doesn't bill) are not addressed by the "usage is production-driven" argument and
+remain a possible source of measurement bias even if actual usage was unaffected. Treat this as
+the current answer to write into the thesis as a reasoned limitation/robustness note, not as a
+fully closed empirical question — flag it as such rather than presenting it as verified. **Given
+this, the water category can proceed** (no longer a hard blocker on finalizing it or the DiD
+estimate), but the thesis text addressing this should state the reasoning above, not just assert
+"no confound found."
 
-**2026-09-13 update:** forward-plan step 1 (collapse-candidate sub-indices) is now implemented
-and verified in `fsoi_indicator_selection.ipynb`, in a new "Collapsing correlated indicator
-clusters into sub-indices" section right after the "## Food Sovereignty Index" header. Ran the
-full notebook end-to-end via `jupyter nbconvert --execute` — no errors; the four new columns
-land in [0, 1] with no unexpected NaNs introduced (verified by extracting the executed cells to
-a plain script and checking `.describe()`/`.isna().sum()` on the new columns).
+## Briefing for Orhan — household vs. per-capita denomination (2026-09-18)
 
-- **Method:** each cluster's constituent columns are independently min-max scaled to [0, 1]
-  (pooled across all rows, Türkiye aggregate row included, matching how the correlation checks
-  elsewhere in the notebook already treat the panel), then simple-averaged — implements the
-  2026-09-11 "simple mean of standardized values" decision. **Open question, not yet confirmed
-  by Orhan: min-max vs. z-score for this within-cluster standardization step** — min-max was
-  chosen to keep the combined value non-negative/bounded ahead of the later `log1p` + winsorized
-  min-max pipeline step, but this specific choice was never pinned down explicitly before now,
-  so flag it before treating it as settled.
-- **Main panel (`data_official_Türkiye`):** `landuse_harvested_perArea`/`landuse_sowed_perArea`
-  → `landuse_core_perArea` (and the `_perHousehold` pair → `landuse_core_perHousehold`);
-  `agro_greenhouse_prod_ton_perArea`/`landuse_greenhouse_perArea` → `greenhouse_intensity_perArea`
-  (and the `_perHousehold` pair → `greenhouse_intensity_perHousehold`). perArea/perHousehold
-  split is preserved — the redundancy resolved is between the two *source* variables, not
-  between area/household normalization forms of one variable.
-- **Extended panel (`data_official_Türkiye_extended`):** `water_drainage_perArea`/
-  `water_refined_perArea` → `water_supply_perArea` (perArea only — perHousehold forms weren't
-  correlated, kept separate/uncollapsed). `electricity_agriculture_mwh_perArea`/
-  `electricity_agriculture_mwh_perHousehold` → `electricity_agriculture_combined` — this one
-  collapses the *same* variable's own perArea/perHousehold forms into each other (structurally
-  different from the other three clusters), so the result has no further perArea/perHousehold
-  split.
-- Note: this note's own earlier spelling `electricty_agriculture_mwh_perArea` (see "Variable
-  Redundancy Map" section below) was a typo — the actual notebook code spells it
-  `electricity_agriculture_mwh_perArea` correctly; used the code's spelling when implementing.
+Orhan asked for a critical check on his own long-standing pipeline choice: every `_perHousehold`
+indicator in this pipeline is `Total / Mean_Household_Count`, never `Total / Population_Total`
+(per-capita). Requested as an explicit, attributed briefing, not just a passing chat answer — so
+recorded here in full.
 
-## Status & Forward Steps (updated 2026-09-12) — superseded by the 2026-09-13 update above
+**Why household-based denomination is a reasonable, defensible choice:**
+1. **Theoretical fit.** This project's own lit-review framing of food sovereignty centers
+   household/family-level provisioning capacity and burden (land access, water/waste burden), as
+   distinct from GFSI's more atomized per-capita "consumer" framing — household denomination
+   matches FSOI's own theoretical stance better than per-capita would.
+2. **Internal consistency.** Essentially every indicator in both dataframes already uses
+   `Mean_Household_Count`; switching to per-capita for isolated variables would break the
+   composite's internal uniformity for no clear gain.
+3. **Practical/behavioral fit.** Many of the underlying burdens (a water bill, a waste bin, a
+   farm plot) are organized at the household level, not the individual level, so dividing by
+   household count can be more behaviorally meaningful than dividing by raw headcount.
 
-**Done:** main/extended dataframe split; `Treated` 4-category categorical + labels; correlation/
-redundancy groundwork on both dataframes; methodology grounded in Yilmaz (2025, Entropy-TOPSIS)
-and GFSI (2022) — simple-mean sub-indices over PCA, pooled+per-year winsorized min-max over
-z-score; FSOI positioned as a critical comparative index to GFSI; cross-strand categorical
-question resolved (**FSOI stays at 6 categories**, no political category).
+**Where the choice carries real risk — the actual critique, not just validation:**
+1. **Compositional confound risk for the DiD (the important one).** `Mean_Household_Count` is
+   derived as `Population_Total / Mean_Household_Size`, and `Mean_Household_Size` is not constant
+   across cities or years. If average household size changed *differently* between treated and
+   control cities after 2012 (e.g. from migration or demographic shifts tied to the metro-status
+   change itself), every `_perHousehold` indicator would partly reflect that compositional shift
+   rather than a real change in burden/capacity — structurally the same *kind* of risk as the
+   Law 6360 water-tariff-waiver flag above: plausible, not yet checked, checkable in principle
+   (compare `Mean_Household_Size` trends by `Treated` group over 2008–2024). **Not done yet** —
+   flagging as a candidate lightweight sanity check, not urgent.
+2. **Derived, not primary, denominator.** `Mean_Household_Count` is itself computed from an
+   averaged, estimated figure (`Mean_Household_Size`), while `Population_Total` is a more directly
+   measured administrative count (TÜİK/ADNKS). Every `_perHousehold` indicator inherits whatever
+   estimation noise sits in `Mean_Household_Size`, on top of the underlying indicator's own noise
+   — a per-capita denominator would avoid this extra layer.
+3. ~~**Comparability to GFSI.**~~ **Withdrawn (Orhan, 2026-09-18)** — this critique point doesn't
+   apply. FSOI is never numerically compared to GFSI in the first place: FSOI is city-level, GFSI is
+   national-level, so the comparison is at the level of **categories and construct framing**, not
+   numbers. The denominator choice therefore has no bearing on GFSI comparability. Left here rather
+   than deleted so the reasoning trail stays visible.
 
-**Both former blockers are now resolved (2026-09-12):**
-- **Aggregation: equal-weighted sum is primary**; TOPSIS is an appendix-level robustness check,
-  not co-equal (see "Comparison scope" note below on why this isn't 4 co-equal models).
-- **Benefit/cost direction: cost/burden framing** for water, waste, energy, and land-use fallow
-  (Orhan, 2026-09-12) — i.e. the primary model treats these as "lower is better." Capacity/
-  benefit framing becomes the robustness-check alternative, not the primary reading.
-- **Land-use fallow: kept, not eliminated.** Checked correlation against harvested/sowed first
-  (r = 0.32–0.65 — moderate, well below the >0.9 bar used for actual collapse candidates), so
-  elimination wasn't statistically justified. Orhan's framing: fallow is conceptually the
-  *negative* of harvested land (unused vs. used) — fits the cost framing directly, not
-  eliminated.
-- **New indicator added: fertilizer use, folded into `energy` (cost)** — see "New Data —
-  Fertilizer Use" section below for full detail. `data_official_Türkiye` is now (738, 26).
-
-**Forward plan** (full detail in "Synthesized pipeline plan" below — steps renumbered to match
-current status; step 4 below was step 1 there and remains the next open implementation item):
-1. ~~Build simple-mean sub-indices for the remaining collapse candidates (land-use
-   harvested/sowed, greenhouse cluster, water drainage/refined, electricity perArea/perHousehold).~~
-   **Done 2026-09-13** — see update above.
-2. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
-3. Aggregate into the 6 category sub-indices, documented inline, applying cost-direction flips
-   where decided above.
-4. Normalize the 4 leftover columns in main (`Total_Agricultural_Production_Ton`,
-   `Water_Refined_LitrePerPersonPerDay`, `Waste_Collected_KgPerPersonPerDay`, drop
-   `Population_Density_PeoplePerKm2`) — plan agreed earlier, still not coded as of 2026-09-12.
-5. Produce the primary FSOI composite (equal-weight, cost-framed) + top/bottom example cities.
-6. Robustness checks: TOPSIS vs. equal-weight; benefit-framing vs. cost-framing — report as
-   appendix-level sensitivity analysis, not additional co-equal headline results.
-7. That composite (step 5) is the "durable result" that triggers reporting back to
-   `thesis_log_main_agent` for its CLAUDE.md Results-status update.
-
-Not this session's work: Gazette/Ministry-news become a national-level companion analysis, not
-a composite input (see "Cross-strand note" below).
+**Bottom line:** the choice is defensible and consistent, not an error — but it's a choice, not a
+neutral default, and a reviewer could reasonably ask why. Point 1 above is the one item worth an
+actual empirical look before finalizing the DiD, in the same spirit as the water-tariff flag.
 
 # FSOI Working Dataframes: Variable Split
 
@@ -127,7 +327,11 @@ indicators are kept in a separate dataframe and analysed on their own — this m
 Economic conditions / Ecological conditions categories from the literature review (see
 `Variable_Analysis_Methods/variables_agrolife_econometrics.md`).
 
-## `data_official_Türkiye` (main panel — full 2008–2024 coverage)
+## `data_official_Türkiye` (main panel) — STALE LIST, see Part 1 for the current inventory
+
+> Superseded 2026-09-19. Variable names below predate the `_km2`/`_litre_daily`/`_kg_daily`
+> renames, and the "full 2008–2024 coverage" claim is no longer accurate — the water pair is
+> missing 2024 (open decision 3 in Part 1). Kept for the rationale, not the names.
 
 - `Total_Agricultural_Production_Ton`
 - `Population_Density_PeoplePerKm2`
@@ -546,3 +750,323 @@ folder, so it doesn't need re-deriving from the notebook or CLAUDE.md each time.
 If this session's context gets too large and a new sub-agent session picks up this folder,
 `CLAUDE.md` plus this note is the fastest way for it to recover working context without
 re-asking Orhan.
+
+---
+
+# PART 3 — PROCESS HISTORY (dated record, superseded by Part 1)
+
+*Kept for traceability of how decisions were reached. Where this contradicts Part 1, Part 1 is
+current. Variable names in this part are often pre-rename — see the reorg entries.*
+
+## 2026-09-18 (later) — translation fix, unit naming, household-size evidence, open water decision
+
+**1. Water translation corrected (Orhan confirmed).** `Water_Refined_LitrePerPersonPerDay` was a
+mistranslation and is now **`Water_Drainage_LitrePerPersonPerDay`**; derived indicators renamed
+`water_refined_litre_daily_*` → **`water_drainage_litre_daily_*`**. The source reads "kişi başı
+**çekilen** günlük su miktarı" — *çekilen* (drawn/withdrawn) is the same word behind
+`Water_Drainage_1000m3PerYear`, whereas *arıtılan* (treated) is what `Water_Refined_1000m3PerYear`
+measures. Convention now fixed and documented in the source-rename cell: çekilen → `Water_Drainage_*`,
+arıtılan → `Water_Refined_*`. **The data independently confirms the fix** — annualized, this column
+correlates r = 0.81 (perHousehold) with the annual *drawn* series but only r = 0.03 with the annual
+*treated* series.
+
+**2. Unit suffixes added to land-use indicators** (`landuse_harvested_km2_perArea`, etc., per
+Orhan): the source is hectares/decares and the pipeline converts to km² itself, so the derived name
+should state the unit rather than making the reader trace the conversion. Collapsed cluster outputs
+(`landuse_core_*`, `greenhouse_intensity_*`, `water_supply_*`) deliberately carry **no** unit
+suffix — they are means of min-max-scaled values, hence unitless, and `greenhouse_intensity` mixes
+tonnage with area so no single unit would be correct.
+
+**3. Household-size evidence (answers the confound flagged in the briefing below).** Ran the check:
+- **It is a regional gradient, not a rural/urban one.** Highest 2024 mean household size: Şırnak 4.9,
+  Şanlıurfa 4.6, Batman 4.5, Hakkari 4.4, Siirt 4.4, Ağrı 4.3, Mardin 4.3, Van 4.2 — all
+  southeast/east. Lowest: Çanakkale 2.5, Giresun 2.5, Edirne 2.6, Balıkesir 2.6, Eskişehir 2.6.
+  Urbanization does **not** separate them — Eskişehir (old-metropolitan, urban) sits at 2.6, the
+  same as rural Çanakkale at 2.5; Diyarbakır (old-metropolitan) is still 4.1. So Orhan's
+  rural-vs-urban hypothesis isn't what the data shows; it's a west–east demographic gradient.
+- **The DiD confound is small against the main control group, larger against old-metropolitan.**
+  Mean household size change, pre-treatment (2008→2012) vs post (2012→2024): Non-metro −0.373 →
+  −0.878; New-metro (treated) −0.307 → −0.857; Old-metro −0.288 → −0.644. Treated-vs-non-metro
+  difference-in-differences on household size is only **−0.045** (~1.4% of a ~3.2 base) — reassuring.
+  Treated-vs-old-metro is **−0.19** (~6%) — non-trivial. **Implication: the perHousehold denominator
+  is safe against the non-metropolitan control, but old-metropolitan comparisons carry a modest
+  compositional drift that should be acknowledged.**
+
+**4. Industrialization does NOT explain the perArea/perHousehold divergence.** `Electric_Energy_Use_Total_MWh`
+is present in the raw data (656/738) but currently dropped from the main panel — usable as an
+industrial/urban-activity proxy. Built a crude proxy (total minus agricultural electricity, per
+household) and tested Orhan's industrial-use hypothesis: it correlates **−0.27** with water
+perHousehold and **−0.25** with waste perHousehold — weak, and the *wrong sign* for the industrial
+story (industrial cities would show higher, not lower, water per household). Also
+`Mean_Household_Size` ~ proxy = −0.27, i.e. the same west–east development gradient is showing
+through. Meanwhile water ~ waste at perHousehold level is **0.46** (moderate), not ~0 — so they are
+related, just far less so than the 0.978 seen at perArea. **Reading: the perArea correlation is a
+scale artifact, not industrial-use noise.** `perArea = quantity / km²`, and city area is an
+administrative boundary that varies by ~50x (Konya vs Yalova) while being unrelated to the
+indicator; any two roughly population-proportional quantities divided by it both collapse onto
+population density and therefore onto each other. `perHousehold` divides by a
+population-proportional denominator, which cancels that shared scale factor and leaves the
+indicator-specific residual — which is why it discriminates and perArea doesn't.
+
+**5. Structural issue found — main panel now violates its own full-coverage invariant.**
+`water_drainage_litre_daily_perArea`/`perHousehold` are missing **all of 2024** (82 rows = 81 cities
++ the Türkiye row) — exactly the publication gap that `data_official_Türkiye_extended` exists to
+quarantine. Promoting this leftover column into the main panel therefore breaks the main panel's
+stated design rule ("full coverage, no NaN"). Not yet resolved — options are to move these two
+columns to the extended panel, accept a documented exception, or drop them in favour of the
+extended panel's water variables. (Separately: `fertilizer_use_*` shows 12 NaN, not the "3" recorded
+further below — 3 is the genuine Hakkari gap, the other 9 are the Türkiye aggregate row, which is
+absent from the fertilizer source file. Not a bug, just a more precise count.)
+
+**6. Open decision — drawn vs. treated water (Orhan's three options).** Orhan framed it as: collapse
+the two water types, keep both separate, or choose one — with perArea and perHousehold symmetric
+either way. Evidence and reasoning to weigh:
+- They are genuinely different constructs, not redundant: r = 0.26 at perHousehold (the perArea
+  0.99 is the scale artifact described in point 4, so it should not be read as evidence of
+  redundancy).
+- **They point in opposite framing directions.** *Çekilen* (drawn) measures extraction pressure on
+  the resource → fits the **cost/burden** framing locked in for water on 2026-09-12 ("lower is
+  better"). *Arıtılan* (treated) measures treatment infrastructure/service capacity → that is a
+  **benefit** indicator ("more treatment = better municipal service"). Putting them in one
+  cost-framed category would score a city *worse* for treating more of its water, which is
+  substantively wrong.
+- **Therefore the recommendation is "choose one — drawn":** it matches the locked-in cost framing,
+  avoids averaging two opposite-direction constructs, and resolves the perArea/perHousehold
+  asymmetry cleanly (drawn_perArea + drawn_perHousehold is a symmetric pair). The treated variable
+  would be better used, if at all, as a separate service-capacity indicator in a benefit-framed
+  category, not inside cost-framed water.
+- **Consequence if drawn is chosen:** drawn water is then measured *twice* — the main panel's daily
+  series and the extended panel's annual series (r = 0.998 perArea / 0.81 perHousehold, identical
+  656/738 coverage, both missing 2024). One of the two should go; this interacts directly with
+  point 5 above.
+Not implemented — Orhan's call.
+
+## 2026-09-18 findings — water perArea/perHousehold asymmetry, cross-dataframe redundancy, leave-one-out
+
+**Water perArea/perHousehold mismatch, confirmed (caught by Orhan).** The extended panel's water
+cluster is asymmetric: `water_supply_perArea` is a single collapsed column (from
+`water_drainage_perArea`/`water_refined_perArea`, r=0.99), but the perHousehold side is still two
+separate, uncollapsed columns (`water_drainage_perHousehold`, `water_refined_perHousehold`) —
+exactly the perArea/perHousehold weighting-symmetry gap flagged on 2026-09-13 and deferred
+("extended panel comes later"). Not yet fixed. **Important number to weigh before collapsing for
+symmetry alone:** `water_drainage_perHousehold` ~ `water_refined_perHousehold` only correlates
+**r = 0.26** — collapsing them would be justified by symmetry with the perArea track, not by
+statistical redundancy (unlike every other collapse in this pipeline, which was correlation-driven
+first). Orhan's call on whether symmetry alone is enough justification here.
+
+**Cross-dataframe verification test (run 2026-09-18, per Orhan's request):** does the main panel's
+`water_refined_litre_daily` (daily-rate-sourced), annualized (`x365`, converted litre→1000m³),
+correlate with the extended panel's yearly water variables? Merged both dataframes on
+Year+Location_Name (738/738 rows matched). Results:
+- perArea: r = 0.9981 vs. `water_drainage_perArea` (raw), r = 0.9850 vs. `water_refined_perArea`
+  (raw), r = 0.9947 vs. the already-collapsed `water_supply_perArea`. **Near-total redundancy** —
+  all three perArea water measures, from two structurally different TÜİK source tables (a daily
+  per-person survey stat vs. annual city totals), are essentially the same signal.
+- perHousehold: r = 0.8056 vs. `water_drainage_perHousehold`, but only r = 0.0294 vs.
+  `water_refined_perHousehold` — **not redundant, and the two extended-panel perHousehold
+  variables don't even agree with each other** (consistent with their own r=0.26 above).
+
+**Reading this together with the waste finding below:** this is now the *third* case where a
+perArea version of a water/waste "total-like" indicator turns out to be near-perfectly correlated
+with an entirely different-source indicator that measures something only loosely related in
+principle (waste_daily_perArea ~ wasteCollected_1000ton_perArea = 0.999; water_daily_perArea ~
+waste_daily_perArea = 0.978 cross-category; and now water_daily_perArea ~ extended water = up to
+0.998 cross-dataframe) — while the matching perHousehold pairs consistently do *not* show this
+(0.71, 0.03–0.81). This looks like a general pattern, not three isolated coincidences: **perArea
+versions of these TÜİK city-total-style indicators may be dominated by city scale/density almost
+regardless of what they nominally measure, while perHousehold versions carry more genuine,
+indicator-specific signal.** Worth treating as a standing consideration for any future
+perArea indicator in this pipeline, not just a one-off fix for water/waste.
+
+**Waste symmetric-drop question (Orhan, 2026-09-18):** given the perArea/perHousehold
+weighting-symmetry rule above, dropping `waste_daily_perArea` alone (as previously suggested,
+2026-09-17) would itself break that same rule — the real choice is drop-both or keep-both, not
+drop-perArea-only. `waste_daily_perHousehold` ~ `wasteCollected_1000ton_perHousehold` = 0.71
+(moderate, likely-independent signal) vs. `waste_daily_perArea` ~ `wasteCollected_1000ton_perArea`
+= 0.999 (near-total redundancy). Not yet decided.
+
+**Leave-one-out robustness check — noted for later (Orhan, 2026-09-18):** once the composite is
+built, add "drop one *category* (not one raw variable), rebuild the FSOI, recheck the DiD
+estimate" to the robustness-check list alongside TOPSIS-vs-equal-weight, cost-vs-benefit framing,
+and the waiver-years exclusion. Category-level, not variable-level — with only 6 categories this
+is a small, interpretable set of checks (6 reruns); variable-level leave-one-out across ~20+
+indicators would be excessive and harder to interpret substantively. Not started — this is a
+post-composite step, still in variable cleanup as of this note.
+
+## Reorg + rename (2026-09-17, later same day, per Orhan) — supersedes some naming below
+
+The leftover-column step described below was moved earlier in the notebook (right after the
+"Transformations" cell that first computes `Mean_Household_Count`, before "Extended Indicators"),
+using `Population_Total` directly instead of reconstructing it — simpler, and removes the need to
+keep `Mean_Household_Size` alive past its original drop point. Also renamed the two per-person-rate
+leftover derivations: `water_refined_perPersonPerDay_perArea`/`perHousehold` →
+**`water_daily_perArea`/`perHousehold`**, `waste_collected_perPersonPerDay_perArea`/`perHousehold` →
+**`waste_daily_perArea`/`perHousehold`** — once scaled to a population total and re-denominated,
+"per person" no longer describes the derived indicator (only the source unit did), so keeping it
+in the name was misleading. Re-verified via full notebook execution; correlation numbers are
+numerically identical to before (confirms the reconstruction and the direct approach are the same
+math). **Anywhere below still says `_perPersonPerDay_perArea`/`perHousehold` or describes
+`population_total_reconstructed` — read it as the pre-rename/pre-reorg history, not current code.**
+
+Category variable counts as of this reorg (for the open collapse-candidate question just below):
+main panel water = 2 (`water_daily_perArea`, `water_daily_perHousehold` only); main panel waste = 4
+(`waste_daily_perArea`/`perHousehold`, `wasteCollected_1000ton_perArea`/`perHousehold`); extended
+panel water = 3 real indicators (`water_drainage_perHousehold`, `water_refined_perHousehold`,
+`water_supply_perArea`) plus 2 raw columns not yet promoted to indicators.
+
+## Status & Forward Steps (updated 2026-09-17) — superseded by Part 1
+
+**Verification pass (2026-09-17, per Orhan's request), before any of the changes below:**
+`fsoi_indicator_selection.ipynb` executed clean end-to-end via `jupyter nbconvert --execute`
+from the state left at the end of the 2026-09-13 session (after the electricity-collapse revert)
+— zero errors. That confirmed baseline is what all the changes below were built on top of, each
+re-verified with its own clean full-notebook execution afterward.
+
+**2026-09-17 changes (all implemented and verified, per Orhan):**
+
+1. **Renamed at the source, not just at the final indicator:** the crop-production-value column
+   was ambiguously named `Agricultural_Production_1000TL`/`_1000USD` (vs. the clearly-named
+   `_Livestock_1000TL` / `_AnimalProducts_1000TL`). Renamed to `Agricultural_Production_Crop_1000TL`/
+   `_1000USD` at the very first rename mapping (the `data_TÜİK.rename(...)` cell, near the top of
+   the notebook), so the naming is consistent through the whole derivation chain, not just at the
+   end. Final indicator names: `agro_prod_1000USD_perArea`/`perHousehold` → `agro_crop_1000USD_perArea`/
+   `perHousehold` (extended panel).
+2. **Dropped the redundant bare per-capita columns** (`Agricultural_Production_PerCapita_Crops_USD`,
+   `_Livestock_USD`) — these correlate 0.94/0.93 with `agro_crop_1000USD_perHousehold`/
+   `agro_livestock_1000USD_perHousehold` (see the new correlation section below), close enough that
+   keeping both isn't adding independent signal. **Pairing note (asked for by Orhan):** dropping
+   these does *not* leave a perArea/perHousehold pair with a missing side — per-capita is a
+   fundamentally different normalization basis with no meaningful perArea equivalent (you'd have to
+   go back through population and area, at which point you're just re-deriving
+   `agro_crop_1000USD_perArea` from scratch), so the market category's perArea+perHousehold pair
+   for crops/livestock was always fully supplied by the `agro_crop_1000USD_*`/`agro_livestock_1000USD_*`
+   columns on their own; per-capita was only ever a second, non-paired way of looking at the same
+   value, kept as a cross-check (see the redundancy-cleanup cell) and now retired.
+3. **The 3 remaining leftover columns are now denominated.** `Population_Density_PeoplePerKm2` is
+   dropped outright (0.995-correlated with `wasteCollected_1000ton_perArea`; confirmed *not*
+   related to `Mean_Household_Count`'s construction — that uses `Population_Total`, unrelated
+   despite the similar name). `Total_Agricultural_Production_Ton` gets the standard
+   Total/Area, Total/Household split → `total_agro_production_ton_perArea`/`perHousehold`.
+   `Water_Refined_LitrePerPersonPerDay` and `Waste_Collected_KgPerPersonPerDay` (both per-person
+   rates) are scaled up to a reconstructed city total (`rate x Population_Total`, recovering
+   `Population_Total = Mean_Household_Count x Mean_Household_Size` since the raw column was
+   already dropped upstream) and then split into the standard perArea/perHousehold pair, per
+   Orhan's explicit direction to extend rather than special-case these two — → `total_agro_production_ton_perArea`/
+   `perHousehold`, `water_refined_perPersonPerDay_perArea`/`perHousehold`,
+   `waste_collected_perPersonPerDay_perArea`/`perHousehold`. Required a small ordering fix:
+   `Mean_Household_Size` is no longer dropped from the main panel in the "Extended Indicators"
+   cell (only from the extended panel there) — it's dropped later, at the end of the main
+   "Transformations" cell, once the leftover-column step has used it.
+4. **New "Detailed high-correlation-pairs table" section added**, right after the existing
+   perArea/perHousehold self-check, as a live re-runnable notebook cell (not an offline script)
+   — see below for what it surfaced.
+
+**Two things the new correlation table surfaced that need Orhan's attention, not yet acted on:**
+
+- **New near-exact duplicate:** `waste_collected_perPersonPerDay_perArea` (from the just-resolved
+  leftover column) correlates **0.9990** with the existing `wasteCollected_1000ton_perArea` —
+  higher than the 0.99 that triggered the land-use harvested/sowed collapse. On the surface this
+  looks like a genuine collapse candidate. **But see the next point before treating it as one.**
+- **Population-density confound in the "scale to total, then divide by Area" approach itself:**
+  `water_refined_perPersonPerDay_perArea` also correlates strongly with
+  `waste_collected_perPersonPerDay_perArea` (0.9784) and with `wasteCollected_1000ton_perArea`
+  (0.9773) — a *cross-category* correlation (water vs. waste), which is suspicious. Reasoning
+  through why: `perArea = (rate_per_person x Population_Total) / Area_km2 = rate_per_person x
+  Population_Density`. Since population density varies far more across cities than the
+  underlying per-person rate does, **any indicator built this way (rate × reconstructed
+  population, divided by area) is mathematically dominated by population density**, not by the
+  behavior the rate is meant to capture — so it's expected to correlate highly with *any other*
+  area-based indicator that's also secretly density-driven (like `wasteCollected_1000ton_perArea`,
+  which is also just "more people → more collected waste per km²"), regardless of whether the two
+  variables measure related things at all. **This means the perArea forms of these two new
+  leftover indicators may be adding population-density noise rather than genuine
+  water/waste-behavior signal** — worth Orhan's explicit call on whether to keep them as normal
+  indicators, treat them with caution/exclude from the perArea track, or address density as a
+  separate control. Note the perHousehold forms of these same two variables do **not** have this
+  problem — algebraically, `perHousehold = rate_per_person x Mean_Household_Size` (population
+  cancels out entirely), so they're clean; the population-density issue is specific to the perArea
+  reconstruction. Flagging both points to Orhan directly rather than deciding unilaterally.
+
+## Status & Forward Steps (updated 2026-09-13) — superseded by the 2026-09-17 update above
+
+**Correction (2026-09-13, same day):** the electricity collapse described just below
+(`electricity_agriculture_combined`) was flagged by Orhan as wrong — it blended a variable's own
+perArea and perHousehold forms, which this pipeline treats as two permanently separate tracks —
+and was reverted in code the same day. `electricity_agriculture_mwh_perArea` and
+`_perHousehold` are two separate, uncollapsed columns in the actual notebook; ignore the
+`electricity_agriculture_combined` references below.
+
+**2026-09-13 update:** forward-plan step 1 (collapse-candidate sub-indices) is now implemented
+and verified in `fsoi_indicator_selection.ipynb`, in a new "Collapsing correlated indicator
+clusters into sub-indices" section right after the "## Food Sovereignty Index" header. Ran the
+full notebook end-to-end via `jupyter nbconvert --execute` — no errors; the four new columns
+land in [0, 1] with no unexpected NaNs introduced (verified by extracting the executed cells to
+a plain script and checking `.describe()`/`.isna().sum()` on the new columns).
+
+- **Method:** each cluster's constituent columns are independently min-max scaled to [0, 1]
+  (pooled across all rows, Türkiye aggregate row included, matching how the correlation checks
+  elsewhere in the notebook already treat the panel), then simple-averaged — implements the
+  2026-09-11 "simple mean of standardized values" decision. **Open question, not yet confirmed
+  by Orhan: min-max vs. z-score for this within-cluster standardization step** — min-max was
+  chosen to keep the combined value non-negative/bounded ahead of the later `log1p` + winsorized
+  min-max pipeline step, but this specific choice was never pinned down explicitly before now,
+  so flag it before treating it as settled.
+- **Main panel (`data_official_Türkiye`):** `landuse_harvested_perArea`/`landuse_sowed_perArea`
+  → `landuse_core_perArea` (and the `_perHousehold` pair → `landuse_core_perHousehold`);
+  `agro_greenhouse_prod_ton_perArea`/`landuse_greenhouse_perArea` → `greenhouse_intensity_perArea`
+  (and the `_perHousehold` pair → `greenhouse_intensity_perHousehold`). perArea/perHousehold
+  split is preserved — the redundancy resolved is between the two *source* variables, not
+  between area/household normalization forms of one variable.
+- **Extended panel (`data_official_Türkiye_extended`):** `water_drainage_perArea`/
+  `water_refined_perArea` → `water_supply_perArea` (perArea only — perHousehold forms weren't
+  correlated, kept separate/uncollapsed). `electricity_agriculture_mwh_perArea`/
+  `electricity_agriculture_mwh_perHousehold` → `electricity_agriculture_combined` — this one
+  collapses the *same* variable's own perArea/perHousehold forms into each other (structurally
+  different from the other three clusters), so the result has no further perArea/perHousehold
+  split.
+- Note: this note's own earlier spelling `electricty_agriculture_mwh_perArea` (see "Variable
+  Redundancy Map" section below) was a typo — the actual notebook code spells it
+  `electricity_agriculture_mwh_perArea` correctly; used the code's spelling when implementing.
+
+## Status & Forward Steps (updated 2026-09-12) — superseded by the 2026-09-13 update above
+
+**Done:** main/extended dataframe split; `Treated` 4-category categorical + labels; correlation/
+redundancy groundwork on both dataframes; methodology grounded in Yilmaz (2025, Entropy-TOPSIS)
+and GFSI (2022) — simple-mean sub-indices over PCA, pooled+per-year winsorized min-max over
+z-score; FSOI positioned as a critical comparative index to GFSI; cross-strand categorical
+question resolved (**FSOI stays at 6 categories**, no political category).
+
+**Both former blockers are now resolved (2026-09-12):**
+- **Aggregation: equal-weighted sum is primary**; TOPSIS is an appendix-level robustness check,
+  not co-equal (see "Comparison scope" note below on why this isn't 4 co-equal models).
+- **Benefit/cost direction: cost/burden framing** for water, waste, energy, and land-use fallow
+  (Orhan, 2026-09-12) — i.e. the primary model treats these as "lower is better." Capacity/
+  benefit framing becomes the robustness-check alternative, not the primary reading.
+- **Land-use fallow: kept, not eliminated.** Checked correlation against harvested/sowed first
+  (r = 0.32–0.65 — moderate, well below the >0.9 bar used for actual collapse candidates), so
+  elimination wasn't statistically justified. Orhan's framing: fallow is conceptually the
+  *negative* of harvested land (unused vs. used) — fits the cost framing directly, not
+  eliminated.
+- **New indicator added: fertilizer use, folded into `energy` (cost)** — see "New Data —
+  Fertilizer Use" section below for full detail. `data_official_Türkiye` is now (738, 26).
+
+**Forward plan** (full detail in "Synthesized pipeline plan" below — steps renumbered to match
+current status; step 4 below was step 1 there and remains the next open implementation item):
+1. ~~Build simple-mean sub-indices for the remaining collapse candidates (land-use
+   harvested/sowed, greenhouse cluster, water drainage/refined, electricity perArea/perHousehold).~~
+   **Done 2026-09-13** — see update above.
+2. `log1p` skewed indicators, then normalize (pooled + per-year, winsorized min-max).
+3. Aggregate into the 6 category sub-indices, documented inline, applying cost-direction flips
+   where decided above.
+4. Normalize the 4 leftover columns in main (`Total_Agricultural_Production_Ton`,
+   `Water_Refined_LitrePerPersonPerDay`, `Waste_Collected_KgPerPersonPerDay`, drop
+   `Population_Density_PeoplePerKm2`) — plan agreed earlier, still not coded as of 2026-09-12.
+5. Produce the primary FSOI composite (equal-weight, cost-framed) + top/bottom example cities.
+6. Robustness checks: TOPSIS vs. equal-weight; benefit-framing vs. cost-framing — report as
+   appendix-level sensitivity analysis, not additional co-equal headline results.
+7. That composite (step 5) is the "durable result" that triggers reporting back to
+   `thesis_log_main_agent` for its CLAUDE.md Results-status update.
+
+Not this session's work: Gazette/Ministry-news become a national-level companion analysis, not
+a composite input (see "Cross-strand note" below).
+
