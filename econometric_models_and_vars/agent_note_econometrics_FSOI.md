@@ -7,6 +7,45 @@
 
 ---
 
+# HANDOVER — session change 2026-09-20
+
+Written by `thesis_log_econometrics_agent` before Orhan starts a fresh session. Treat the incoming
+session as continuous with this one: same scope (`econometric_models_and_vars/`), same open items.
+`thesis_log_main_agent` has been notified.
+
+**Where the work stands.** Variable selection is finished and normalisation is implemented and
+verified. The notebook `fsoi_indicator_selection.ipynb` runs clean end to end; every change in this
+session was checked with a full `jupyter nbconvert --execute` run. Outputs are cleared, so the file
+sits at ~106 KB.
+
+**The immediate next task is aggregation**, in this order:
+1. Apply cost-direction flips (`1 − x` on the normalised columns) for water, waste, energy and
+   land-use-fallow. These were deliberately NOT applied during normalisation so the `_norm` columns
+   stay comparable and the flip stays visible.
+2. Build the six category sub-indices as means of their member indicators.
+3. Equal-weight the categories into the composite.
+4. Top/bottom cities, then the robustness checks.
+
+**Build the index from the perHousehold columns only.** perArea is computed as a robustness track.
+Never put both tracks in one aggregation — equal-weighting all 28 normalised columns would average
+the two denominators by the back door, which is the collapse that was explicitly rejected.
+
+**Three things that must not be re-derived from scratch** (all proven in the notebook's Diagnostics
+section, all with live-computing cells):
+- `perArea` is ~99% population density across cities, but is the *clean* track within a city over
+  time; `perHousehold` is the reverse. They are contaminated in opposite dimensions.
+- TÜİK's per-person water series sits on a *municipal* population base that Law 6360 moved in 2014.
+  That is why the main panel's daily water series was dropped.
+- Refined (*arıtılan*) water measures whether a treatment plant exists, not water use.
+
+**Working practice this session settled on, worth keeping:** every analytical claim goes in the
+notebook as a cell that *computes* its numbers. An earlier version of the Diagnostics cells had
+results pasted in as hardcoded literals; Orhan caught it and it was rewritten. Don't restate
+numbers computed elsewhere — compute them where they are shown.
+
+**Open questions for Orhan are listed under "Open decisions" in Part 1 below.** The one that blocks
+aggregation is how to join the two panels (question 1).
+
 # PART 1 — CURRENT STATE (read this first)
 
 *Structure of this file (reorganised 2026-09-19, per Orhan): **Part 1** is the live picture —
@@ -187,19 +226,134 @@ causal design. The main/extended split exists to quarantine them.
   water per household, the wrong sign for that story. **A high perArea correlation is therefore weak
   evidence of redundancy; the perHousehold number is the informative one.**
 
-## Current variable inventory (as of 2026-09-19)
+## Current variable inventory (corrected 2026-09-21 — the 09-19 version was stale)
 
-`data_official_Türkiye` (main, 738 rows) — `landuse_core_perArea`/`perHousehold`,
-`greenhouse_intensity_perArea`/`perHousehold`, `landuse_fallow_km2_*`, `landuse_longtermCrops_km2_*`,
-`landuse_vegetables_km2_*`, `total_agro_production_ton_*`, `wasteCollected_1000ton_*`,
-`waste_collected_kg_daily_*`, `water_drainage_litre_daily_*`, `fertilizer_use_*` (each with a
-`_perArea` and a `_perHousehold` form), plus `Year`, `Location_Name`, `Treated`, `Treated_Label`.
-Only remaining gap: the water pair's missing 2024 — see open decision 3.
+*The previous version of this section listed `greenhouse_intensity_*`, `waste_collected_kg_daily_*`,
+`water_drainage_litre_daily_*`, `water_supply_perArea` and `water_refined_perHousehold`, all of
+which were subsequently dropped or split. Verified against a live notebook run.*
 
-`data_official_Türkiye_extended` — `agro_crop_1000USD_*`, `agro_livestock_1000USD_*`,
-`agro_animalproducts_1000USD_*`, `water_supply_perArea`, `water_drainage_perHousehold`,
-`water_refined_perHousehold`, `electricity_agriculture_mwh_*`, plus raw denominators and the
-`nonagri_electricity_mwh_perHousehold` covariate (a control, not an FSOI indicator).
+**`data_official_Türkiye`** (main, 738 rows, 22 columns pre-normalisation, **no gaps**) — 9
+indicator pairs, each with a `_perArea` and a `_perHousehold` form:
+`agro_greenhouse_prod_ton_*`, `total_agro_production_ton_*`, `landuse_core_*`,
+`landuse_fallow_km2_*`, `landuse_greenhouse_km2_*`, `landuse_longtermCrops_km2_*`,
+`landuse_vegetables_km2_*`, `wasteCollected_1000ton_*`, `fertilizer_use_*`
+— plus `Year`, `Location_Name`, `Treated`, `Treated_Label`.
+Categories present here: production, land-use, waste, energy (fertiliser only).
+
+**`data_official_Türkiye_extended`** — 5 indicator pairs: `agro_crop_1000USD_*`,
+`agro_livestock_1000USD_*`, `agro_animalproducts_1000USD_*`, `water_drainage_*`,
+`electricity_agriculture_mwh_*` — plus raw source columns and denominators (`Area_km2`,
+`Mean_Household_Count`, `Water_Drainage_1000m3PerYear`, `Water_Refined_1000m3PerYear`,
+`Electric_Energy_Use_*`) and the `nonagri_electricity_mwh_perHousehold` covariate, which is a
+control, **not** an FSOI indicator (it is excluded via `EXTENDED_EXCLUDE`).
+Categories present here: market, water, energy (agricultural electricity).
+
+14 indicator pairs in total, 28 columns. After the normalisation cell each also has a `_norm`
+twin, so the notebook carries both raw and normalised values throughout.
+
+## Winsorising: why 1st/99th, evidenced (2026-09-20)
+
+Four schemes were priced against real indicators rather than assumed (notebook: "Choosing the
+winsorising bounds"). On greenhouse output perArea, the worst-behaved indicator:
+
+| scheme | % below 0.05 | % at exactly 0 | % at exactly 1 | IQR |
+|---|---|---|---|---|
+| none | 79.1 | 0.1 | 0.1 | 0.033 |
+| **1/99 (chosen)** | 74.6 | 1.1 | 1.1 | 0.039 |
+| 5/95 | 22.5 | 5.1 | 5.1 | 0.268 |
+| rank | 4.9 | 0.0 | 0.1 | 0.500 |
+
+5/95 fixes the floor-bunching but at an unacceptable price: Antalya, Mersin, Adana and Muğla all
+collapse to exactly 1.000 in greenhouse — indistinguishable in the one category where they are the
+entire story. Rank-normalisation separates them but discards magnitude (Antalya lands 0.010 above
+Mersin despite producing far more), the wrong thing to throw away in an index about quantity of
+production.
+
+**1/99 stands, and the floor-bunching is documented rather than engineered away.** It is
+substantively real — most Turkish provinces genuinely have negligible greenhouse agriculture. The
+consequence to state in the thesis: an indicator where most cities sit near the floor contributes
+little discrimination to an equal-weighted mean, so its practical weight is below its nominal share
+of its category. A property to disclose, not a fault to fix.
+
+## Control groups: which is clean, and for which variables (2026-09-20)
+
+Reading the old-metropolitan coverage finding as a blanket disqualification would throw away a
+useful comparison group. Precisely: Law 6360 extended metropolitan boundaries to the whole province
+for **existing** metros as well as new ones. Implied municipal coverage across 2012→2014:
+non-metropolitan **−0.020** (flat), new-metropolitan **+0.226**, old-metropolitan **+0.089**.
+
+- **Municipal-service variables (water, waste): non-metropolitan is the only clean control.**
+  Old-metros received a weaker version of the same boundary treatment, so a treated-vs-old-metro
+  comparison understates the effect — both groups moved.
+- **Non-municipal variables (land use, production, fertiliser): old-metropolitan remains usable.**
+  Agricultural statistics are collected province-wide regardless of municipal status, so the
+  boundary change does not mechanically move harvested hectares or crop tonnage. Evidence already
+  in the notebook: the harvested-land control moved −21.4% across the reform, the *opposite*
+  direction to the municipal services.
+
+Keep all three groups, but state which control serves which category. Do not report a single
+treated-vs-old-metro estimate across all six categories as though it were uniformly valid.
+
+## The two Law 6360 confounds are different things — don't merge them
+
+- **(a) Measurement confound — municipal coverage.** TÜİK's per-person water figure divides by
+  *municipal* population, and the reform moved that denominator. About **how the number was
+  recorded**, not behaviour. **Resolved by deletion** — series dropped; do not re-add.
+- **(b) Behavioural confound — the tariff waiver.** Converted villages paid no fees and had capped
+  water tariffs 2014–2019. About **what people actually did**. **Not resolvable with this data** —
+  informal and private water use is invisible in both TÜİK series. Described only.
+
+**Must not be stated as a finding:** that the waiver's end caused water use to fall. The defensible
+sentence is that treated cities' water use rose after the reform and fell after the waiver ended
+while controls stayed flat; that this is *consistent with* the waiver having suppressed costs in
+2014–2019; and that it is equally consistent with the initial coverage effect fading — with 2020
+being the COVID year and only two observations following the waiver.
+
+## Exact year coverage per category (verified 2026-09-21)
+
+City rows with data, by year — measured, not assumed:
+
+| Year | main panel | water (drawn & refined) | energy (agri. elec.) | market |
+|---|---|---|---|---|
+| 2008–2020 | 81 | 81 | 81 | 81 |
+| 2022 | 81 | 81 | 81 | **0** |
+| 2024 | 81 | **0** | **0** | **0** |
+
+**No water variable covers 2024 at all** — drawn and refined both stop at 2022. Water is therefore
+2008–2022 (8 points), market is 2008–2020 (7 points), the main panel is complete 2008–2024.
+
+**The binding constraint on a six-category index is MARKET, not water.** Market is the only
+category missing 2022.
+
+**Correction to an earlier statement in this file and in conversation:** it was said that 2020
+would be "the only post-waiver observation". That is true *only of the six-category composite*,
+which market caps at 2020. It is not true of water itself, which has **two** post-waiver points,
+**2020 and 2022** (the waiver ran 2014–2019).
+
+**Practical consequence worth carrying into the next session:** the tariff-waiver question is a
+*water* question and does not need the composite. It can be studied directly on the water series
+across 2008–2022 with two post-waiver observations, independent of whatever is decided about
+joining the panels. Don't let the composite's year constraint truncate that analysis.
+
+## Open decision — joining the two panels (blocks aggregation)
+
+The merge is trivial (`Year` + `Location_Name`); the question is the years extended does not cover.
+Main is complete 2008–2024; extended is missing 2024 (water, agricultural electricity) and
+2022 + 2024 (market).
+
+- **(a) Six-category index, 2008–2020** — 7 points, 3 pre / 4 post. The FSOI as defined, consistent
+  throughout, which is what the DiD needs. *Recommended headline.* Cost: 2020 is the only
+  post-waiver observation.
+- **(b) (a) plus a four-category index for 2008–2024** (main panel only: production, land-use,
+  waste, energy-fertiliser), labelled a **coverage-extension robustness check**, not a rival index.
+  Buys 6 post-treatment periods and the post-waiver window. Note it also happens to exclude water,
+  the category most affected by the measurement confound.
+- **(c) Average whatever categories exist each year.** *Advise against* — the index would change
+  definition mid-panel, and the change lands post-treatment, so composition drift could be
+  mistaken for a treatment effect.
+
+Whichever is chosen, report the extended-only categories (market, water) separately for the years
+they exist rather than letting them vanish silently.
 
 ## Next implementation steps
 
