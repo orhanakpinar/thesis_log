@@ -17,10 +17,31 @@ MA thesis (Computational Social Sciences, Koç University). Advisor: Ali Hürriy
    activity over time.
 3. Econometric analysis on TÜİK (Turkstat) agricultural data — city-level FSOI compared
    across non-metropolitan / new-metropolitan (Law 6360) / old-metropolitan city groups.
-4. **Exploratory, unpushed as of 2026-09:** `agro_ministry_news/` — scraping
-   tarimorman.gov.tr press releases, currently title/date only. Full-text download is
-   planned but not done yet — don't treat `tarimorman_haberleri.csv` as complete. Final
-   scope (seed sovereignty proxy vs. something broader) isn't decided; don't assume it.
+4. **Exploratory:** `agro_ministry_news/` — scraping tarimorman.gov.tr press releases.
+   Full-text scraping is **done** as of 2026-09-11. Mind the two different numbers:
+   **7,107 is the scrape row count; 6,492 is usable articles** — quoting 7,107 as corpus
+   size overstates by ~9%. The 615-row gap is 559 dead URLs (the ministry site returns
+   HTTP 200 with a removal page rather than a 404, so the scraper couldn't tell them from
+   real articles — nothing to recover, exclude them) plus 56 genuine extraction misses
+   (valid date and title, no body; clustered in older ALL-CAPS "Orman ve Su İşleri
+   Bakanlığı"-era posts, suggesting a page template the `itemBody` selector misses — 0.9%
+   of usable articles, the only actually-lost content). Every article with text has a
+   parseable date, so there is no missing-date problem for year-binning.
+   **Structural limitation: this corpus starts in 2013.** Law 6360 passed in 2012 and took
+   effect in 2014, so this strand *cannot observe a pre-law baseline at all* — it can't
+   support a before/after framing on its own, independent of any binning choice.
+   `resmi_gazete/` reaches back to 2000 and is the only strand of the two that can anchor
+   a pre-law comparison. Classification is LLM-based against a category codebook, not
+   keyword matching;
+   a 500-row validation sample is fully machine-classified, and Orhan is **about to**
+   annotate it by hand as ground truth — as of 2026-09-21 `Orhan_Category` is empty in all
+   500 rows, so **no human ground truth exists yet**; don't plan validation work as though
+   it does. Measurement scope (seed-sovereignty proxy vs. something broader, and the final
+   category schema) is still genuinely undecided, and is gated on the year-binning
+   decision below, since raw-counts vs. category-counts determines what the output series
+   even is. Note this is a different question from the *downstream framing*, which was
+   settled on 2026-09-12/13 — see the FSOI vs. GFSI paragraph above; the two aren't in
+   conflict.
 
 **FSOI vs. GFSI — political commitment (decided, 2026-09-13):** FSOI does **not** add a 7th
 category for this. GFSI's "political commitment to adaptation" pillar is approximated, for
@@ -36,16 +57,61 @@ government enacts, news a ministry chooses to publish), which inherently skews t
 appearing committed — this isn't a neutral measurement, note it as a limitation, not a
 finding. `thesis_log_officialgazette_agent` and `thesis_log_agroministrynews_agent` should
 bin their data by year (or two-year bins) so counts can be compared against Türkiye's
-yearly national FSOI score.
+yearly national FSOI score. Two cautions on those counts, both found 2026-09-21:
+(i) ministry publication volume is extremely uneven — 1,043 articles in 2017 vs 103 in
+2014, a 10x spread — so a bare count per year partly measures the ministry's own
+publishing behaviour rather than policy activity; this likely needs a rate/share or an
+explicit caveat, not a raw count. (ii) The two strands cover different windows, and the combined
+signal is narrower than either alone. `resmi_gazete/` is validated 2000–2024;
+`agro_ministry_news/` runs 2013–2026. That gives three regions: **2000–2012 Gazette only**
+(the entire pre-law period, single-sourced), **2013–2024 both** (the only window a combined
+policy-activity series is currently supported), and **2025–2026 ministry-news only**
+(~724 articles, beyond the Gazette's validated range). A chart spanning the full 2000–2026
+union would look continuous while being single-sourced at both ends — and the recent end is
+the more dangerous one, since a reader naturally assumes the latest years are the
+best-supported rather than the least. State the supported window explicitly wherever a
+combined series appears.
 
-**Law 6360 transitional provision — potential confound for cost/burden indicators:** the
-law included a 5-year transitional waiver (2014–2019) for villages converted to mahalle
-status: no taxes, fees, or participation shares collected, and drinking/usage water tariffs
-capped at 25% of the lowest municipal tariff (source: Çelikyay, "Değişen Kent Yönetimi ve
-6360 Sayılı Büyükşehir Yasası", SETA Analiz No. 101, Temmuz 2014). This is a potential
-confound specifically for `econometric_models_and_vars/`'s water/cost-framing indicators —
-treated cities' converted villages had artificially reduced water costs for several years
-post-2014, which could bias a treated-vs-untreated cost comparison if not accounted for.
+**2026 is a partial year on both strands** (Gazette publication confirmed through
+2026-09-19, year still running), so charting through 2026 produces a false decline in the
+final year on *either* strand — exclude 2026 or mark it explicitly partial. The genuinely
+complete combined window is therefore **2013–2025**, not 2013–2026.
+
+The 2000–2012 gap cannot be closed — tarimorman.gov.tr's archive doesn't reach back. The
+2025–2026 Gazette gap **can** be: `thesis_log_officialgazette_agent` probed it live on
+2026-09-21 (six sample dates plus a control, all HTTP 200, parsing cleanly at 8–13
+links/day, same `eskiler/{year}/{mm}/{yyyymmdd}.htm` scheme and same post-2005 markup era
+already validated at 97.8–99.7% for 2018–2024, no new noise pattern). Cost ~630 requests,
+15–25 minutes, resumable. **Tested-feasible, not done — new data files are Orhan's call.**
+The catch is evidentiary, not technical: trusted `.xlsx` baselines stop at 2024, so
+2025–2026 can be *collected* to the same standard but not *verified* the same way. A
+completeness check (every expected publication date has ≥1 row) does substitute for the one
+genuinely non-cosmetic defect found across all of 2000–2024 — a silently dropped day from a
+transient `ConnectionError` — but text fidelity would rest on inheritance from the same
+markup era, which is an argument by analogy, not a measurement. Write it up that way if
+it's done.
+
+**Law 6360 confounds — two distinct ones, don't conflate them:**
+
+*(a) Measurement confound (structural, most consequential — found 2026-09-20).* TÜİK's
+per-person water series is computed per person **in municipalities**, and Law 6360 moved
+that population base: implied municipal coverage jumps from 73% to 96% of provincial
+population for new-metropolitan cities in the reform year, while non-metros stay flat. The
+series therefore encodes the treatment in its own denominator, and has been **dropped** —
+don't re-add it. **Old-metropolitan cities were affected too (90% → 99%), which weakens
+them as a control group for any municipal-service variable** — a caveat on the three-group
+comparison design itself, not just on one variable.
+
+*(b) Transitional-provision confound (behavioural, descriptive evidence only).* The law
+included a 5-year transitional waiver (2014–2019) for villages converted to mahalle status:
+no taxes, fees, or participation shares collected, and drinking/usage water tariffs capped
+at 25% of the lowest municipal tariff (source: Çelikyay, "Değişen Kent Yönetimi ve 6360
+Sayılı Büyükşehir Yasası", SETA Analiz No. 101, Temmuz 2014). Drawn water per household in
+treated cities shows a parallel decline with controls pre-2012, a break upward at 2014, a
+peak in 2018, then a fall to 2022 while controls stay flat — consistent with villages being
+brought inside the municipal system and then charged once the waiver ended, but this is
+**descriptive only**: confounded by COVID from 2020, and informal/private water use is
+invisible in the TÜİK series. Don't state it as a finding.
 
 **Results status:** The preliminary FSOI numbers and significance tests referenced in
 `writing_drafts/Creating the Food Sovereignty Index for Measuring the Agricultural
@@ -59,7 +125,17 @@ is now locked in (2026-09-13, per Orhan): equal-weighted sum as the primary aggr
 method (not TOPSIS), and cost/burden framing as primary for the water, waste, energy, and
 land-use-fallow indicators — benefit-framing and TOPSIS become appendix-level robustness
 checks, not co-equal outputs, deliberately avoiding multiple indecisive parallel results.
-Construction itself (normalization + aggregation into the actual number) hasn't started.
+
+As of 2026-09-20, variable selection is **complete** and normalisation is **implemented and
+verified** (notebook runs clean end to end). Final set: 14 indicator pairs across the six
+categories, every one a symmetric perArea + perHousehold pair. Normalisation recipe:
+`log1p` → winsorise (1st/99th) → pooled min-max, with thresholds taken from cities only and
+Türkiye placed onto that scale rather than defining it. **perHousehold is the headline
+index; perArea is a robustness track; the two are never combined in one aggregation** —
+they're contaminated in opposite dimensions (perArea is ~99% population density across
+cities but perfectly clean within a city over time given its fixed denominator;
+perHousehold is the reverse). Still not started: aggregation itself — cost-direction flips,
+category sub-indices, and the composite number.
 
 **Ethics:** Open-science principles apply at each data-acquisition step (respect for
 persons, beneficence, justice). Only open-source government data is used. Don't propose
@@ -97,7 +173,14 @@ data sources or scraping that fall outside this.
   pipeline exists here. (Separately, the annotation/categorization layered on top of this
   — Agreements/Supports/Annotation_Topic plus sentiment tags — is provisional as of
   2026-09-14: Orhan is reconsidering the annotation approach, so don't build further on
-  the current categorization until that's settled.)
+  the current categorization until that's settled. Underneath that sits a more fundamental
+  open question Orhan raised 2026-09-19 and which is **still unanswered: how Gazette
+  legislation is meant to point at food sovereignty at all.** That determines the codebook,
+  so it gates any re-annotation. Practical consequence: if a re-annotation round is coming
+  anyway, extending the scrape to 2025 *first* is the cheaper order — new years get
+  annotated in the same pass rather than as a follow-up. Note the 546-article annotated
+  chain derives from the 2000–2024 master title list, so extending coverage does not
+  extend the annotated corpus.)
 - `econometric_models_and_vars/` — Indicator/variable selection and city-level FSOI scores.
   `Variable_Analysis_Methods/` holds propensity-score/DiD notes — these are rough,
   top-of-the-head working notes, not settled methodology; treat them as a starting point to
@@ -110,16 +193,25 @@ data sources or scraping that fall outside this.
   `data_official_Türkiye_extended`, the `Treated` categorical, etc.) — that file is
   AI-authored pipeline documentation only (see Multi-Agent Coordination below); anything
   about result validity/known-bad status belongs in this file instead, not there.
-- `agro_ministry_news/` — new, exploratory, not yet pushed. Scraper for tarimorman.gov.tr
-  news. Two similarly-named but distinct files — don't confuse them:
-  `agroforest_ministry_news.xlsx` (the original ~6,900-row title/date-only scrape; the
-  redundant `.csv` version of this same data was deleted by Orhan, 2026-09) and
-  `agroforestministry_news.csv` (no underscore between "agroforest" and "ministry" — the
-  full-text pilot, currently small, being scaled up as of 2026-09 per Orhan; has a
-  Paragraphs column the other file doesn't). The "tohum"/seed-sovereignty keyword filter
-  applied so far is a first-pass search, not settled methodology — whether to do
-  keyword-based or full NLP analysis once full-paragraph text is available isn't decided.
-  See `agent_note_agroministrynews_FSOI.md` in this folder for current pipeline status.
+- `agro_ministry_news/` — exploratory strand, scraping tarimorman.gov.tr news. Folder
+  contents verified 2026-09-21; the earlier title/date-only files
+  (`agroforest_ministry_news.xlsx` and `..._seed.xlsx`) were deleted by Orhan on
+  2026-09-11 once the full-text corpus superseded them, so ignore any reference to them
+  elsewhere. Data is `agroforestministry_news.csv` (the full-text corpus — 7,107 scraped
+  rows but **6,492 usable articles**; see Project item 4 for the breakdown before quoting
+  either number), plus
+  `agroforestministry_news_validation_sample.csv` and its
+  `..._validation_sample_CLAUDE_LABELS.csv` counterpart — the 500-row validation sample and
+  its machine labels. Code lives in `agroministrynews_module.py` (class-based, mirroring
+  `resmigazete_module.py`) with `agroministrynews_scrape.ipynb` as its notebook entry
+  point, plus `annotate_tool.py` — a local stdlib-only annotation UI (`python
+  annotate_tool.py`, serves on 127.0.0.1:8000) that Orhan uses to fill the `Orhan_Category`
+  column one article at a time; it writes only that column, passes Claude's columns through
+  untouched, writes atomically, and backs up before first write. The early
+  "tohum"/seed-sovereignty keyword filter was a first-pass search, since superseded by LLM
+  classification against a category codebook. See `agent_note_agroministrynews_FSOI.md` for
+  current pipeline status (structured Part 1 Current State / Part 2 Reference / Part 3
+  Process History — Part 1 wins on any disagreement).
 - `writing_drafts/` — `thesis_plan.md`, `thesis_draft.md`, `discussion_topics.md`, and
   versioned draft exports in `TezRapor/*.docx` (higher numbers are more recent — don't
   delete old versions without asking).
@@ -145,6 +237,14 @@ Python 3.10+. Key packages (see `requirements.txt`):
 
 First-time setup also needs: `nltk.download('stopwords')`.
 
+**Environment trap:** `git` is not on PATH in this PowerShell environment at all — confirmed
+independently by `thesis_log_main_agent` and `thesis_log_officialgazette_agent`. No agent
+session here can run `git status`/`git log`, which means **no agent can determine what is
+committed vs. uncommitted**. Don't reason about, report on, or assume commit state; if it
+matters, ask Orhan (he commits by hand via GitHub Desktop — see Multi-Agent Coordination).
+Some scrapers also need an SSL workaround on this machine; `resmi_gazete/`'s module handles
+this with an adaptive fallback (see its repo-map entry).
+
 `zeyrek` (Turkish morphological lemmatizer) was briefly added for `agro_ministry_news/` text
 preprocessing (2026-09-11) then dropped (2026-09-13) — Orhan changed direction to using
 Claude directly for that strand's NLP instead of a lemmatizer pipeline. Removed from
@@ -155,6 +255,11 @@ current approach.
 
 - Notebooks are the primary codebase — when editing, preserve existing cell structure
   and clear noisy outputs before committing so diffs stay reviewable.
+- **Any analytical claim shown in a notebook must be computed by the cell that shows it.**
+  Never compute a number in a scratch script and paste it in as a hardcoded literal — this
+  happened once in `econometric_models_and_vars/`'s diagnostics cells (2026-09, caught by
+  Orhan, since rewritten to compute in-notebook). A pasted literal silently stops tracking
+  the data it claims to describe.
 - Large `.xlsx`/`.csv` intermediate files are checked into the repo directly (no external
   data store) — keep this pattern unless told otherwise.
 - Methodology and repo structure are both actively evolving — don't silently "clean up"
