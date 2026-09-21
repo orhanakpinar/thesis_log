@@ -1,0 +1,52 @@
+### Annotations
+
+Agropolicy Agreements
+0. Kontenjan (Quota)
+1. İşbirliği (Collaboration)
+2. Taviz (Concession)
+3. Ortaklık (Partnership)
+4. IPA, IFAD
+5. Gübre (fertilizer)
+6. İthalat Esasları (Import Rules)
+
+Agropolicy Supports
+0. Destekleme (Support)
+1. Kredi Faiz İndirimi (Tax Rate Reduction)
+2. Doğrudan gelir desteği (Direct income support)
+3. Arazi koruma desteği (Agricultural land protection support)
+4. Borç erteleme, doğal afet ve terör hasar desteği (Debt postponement, disaster support)
+5. Tarım yayım ve danışmanlık desteği (Agricultural publication and consultation support)
+6. Borç sebebiyle destekleme iptali (Support cancellation due to debt)
+7. Lisanslı depoculuk desteği (Licenced warehouse support)
+8. Tarım kanunu (Agricultural law)
+9. Mazot ve gübre desteği (Fuel and fertilizer support)
+10. İhracat iadesi desteği (Export refund support)
+11. Tarıma dayalı ekonomik yatırım (Agricultural economic investment)
+12. Arazi kullanım etkinleştirilmesi (Land activation)
+13. Sulama desteği, enerji desteği (Irrigation and energy support)
+14. Hazine kar payı destekli finansman (Financial support with treasury dividend)
+15. Çiftlik muhasebe veri ağı katılım desteği (Farmer accounting data network participation support)
+16. Kooperatif satış desteği (Cooperative sale support)
+17. Kırsal kalkınma destekleri (Rural development support)
+18. Fark ödemesi (Deficiency payment)
+19. İyi tarım desteklemesi (Good agricultural practices support)
+20. Sigorta prim kesilmesi (Insurance premium deduction)
+21. Arz fazlası devlet alımı (Surplus purchase by government)
+22. Sosyal destek ödemesi (Social support payment)
+23. Valilik kararı (Local governorship verdict)
+24. Genetik kaynaklar (Genetic sources)
+25. Sözleşmeli tarımsal ürün esasları (contracted agricultural product rules)
+26. Destekleme kesintisi (Support interruption)
+27. Arazi paylaşımı, miras (Land division, legacy)
+28. İhracat tebliği (Export notification)
+
+Residual code (both lists)
+99. Miscategorised — the item does not belong in the file it sits in.
+    Not a topic. Used twice, and in both cases the two files are swapped:
+    - Agreements, 2007, "5661 ... Ziraat Bankası ... Tarım Kredi Kooperatifleri ...
+      Kefaletin Sona Erdirilmesi Hakkında Kanun" is a domestic credit/debt law,
+      so it belongs in Supports, not Agreements.
+    - Supports, 2009, "2009/15078 ... Avustralya ... Tarım Alanında Teknik, Bilimsel
+      ve Ekonomik İşbirliği Konulu Mutabakat Zaptı" is an international cooperation
+      MoU, so it belongs in Agreements topic 1 (İşbirliği), not Supports.
+    Any re-annotation round should reassign both and leave 99 empty.
