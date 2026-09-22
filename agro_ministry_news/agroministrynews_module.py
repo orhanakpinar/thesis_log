@@ -138,7 +138,7 @@ class ValidationSampleBuilder:
     # list is ever suspected stale - don't trust this copy blindly forever.
     CATEGORY_LIST = [
         "Agro_econ", "Agro_international", "Agro_policy", "Agro_tech", "Agroecology",
-        "Autonomy", "Big_agro", "Buyuksehir_Law", "Collectives", "Cooperatives", "Debt",
+        "Autonomy", "Big_agro", "Metropolitan_Law", "Collectives", "Cooperatives", "Debt",
         "Deruralization", "Education", "Food_Network", "Food_Security", "Food_Sovereignty",
         "Gender", "Health", "History", "Interdisciplinary", "Land_Consolidation",
         "Land_Policy", "Land_Use", "Migration", "Monoculture", "Monoculture_Poli",
@@ -278,7 +278,7 @@ Guidance on recurring content without an obvious single-category home — multi-
 - Ceremonial/political content: don't assume ceremonial framing means no category applies — a ceremonial village visit can still genuinely touch e.g. Rural_Livelihood; tag what's substantively present even if the framing is ceremonial. Only leave zero categories for content with truly no agricultural/rural substance.
 - Most of the 44 are literature-review meta-categories that may rarely apply — don't force usage.
 - Food_Sovereignty: apply strictly and rarely — near-universally top-down state framing in this corpus, genuine bottom-up content is very rare.
-- Watch specifically for Turkey's 2012 Metropolitan Law (büyükşehir belediyesi/belediyeleri gaining new agricultural/rural responsibilities, "6360", or similar) even as a small buried detail in an otherwise unrelated article — this is the single most important category for this thesis, and real hits have been found buried deep in unrelated-seeming articles. Read every article's full text with this specifically in mind, not just its main topic. Tag Buyuksehir_Law if found and quote/describe the relevant passage explicitly in the Comment.
+- Watch specifically for Turkey's 2012 Metropolitan Law (büyükşehir belediyesi/belediyeleri gaining new agricultural/rural responsibilities, "6360", or similar) even as a small buried detail in an otherwise unrelated article — this is the single most important category for this thesis, and real hits have been found buried deep in unrelated-seeming articles. Read every article's full text with this specifically in mind, not just its main topic. Tag Metropolitan_Law if found and quote/describe the relevant passage explicitly in the Comment.
 
 2. `Ceremonial_Political`: "yes"/"no" — primarily ceremonial/photo-op/personal messaging with little substantive policy content? Can co-occur with a real category.
 3. `Comment`: a few sentences (not just one) covering what the article is actually about, independent of the category list, plus anything ambiguous, low-confidence, or where a category was a stretch to fit, plus explicitly flag topics that don't fit any of the 44 categories well. Known recurring gap types found in prior batches — name these explicitly when you see them: {gaps}. Also flag any NEW gap type not on this list if you see one.
@@ -288,7 +288,7 @@ Write output as a CSV to:
 
 Columns: Number, Categories, Ceremonial_Political, Comment
 
-Be deliberate and consistent. Process all {n_rows} rows, no sampling/skipping. When done, report: rows processed, full category tally, count of Ceremonial_Political=yes, how many rows got zero categories, any Buyuksehir_Law hits (quote the relevant passage), and a list of rows flagging any of the known gap types or new ones not seen before."""
+Be deliberate and consistent. Process all {n_rows} rows, no sampling/skipping. When done, report: rows processed, full category tally, count of Ceremonial_Political=yes, how many rows got zero categories, any Metropolitan_Law hits (quote the relevant passage), and a list of rows flagging any of the known gap types or new ones not seen before."""
 
     def append_labels(self, labels_csv: str):
         """Folds a completed classification CSV (Number, Categories,
