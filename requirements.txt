@@ -11,3 +11,4 @@ bertopic
 sentence-transformers
 transformers
 torch
+statsmodels==0.14.5
