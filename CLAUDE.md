@@ -584,7 +584,9 @@ targeted, since Track A's `municipal_burden` is waste-only) would help; not buil
 urgent — the headline conclusion (`municipal_burden` drives the estimate, and it's a
 municipal-service finding, not a food-sovereignty one) doesn't depend on resolving this.
 
-**Update (2026-09-24): the water_drainage test above was run.** DiD −0.168 (p=0.0001) on
+*Superseded 2026-09-25 — the "identical signature" was mostly the normalised scale; in logs
+waste fades 3%, water 23%; see the Correction 2 RESOLUTION block below.* **Update
+(2026-09-24): the water_drainage test above was run.** DiD −0.168 (p=0.0001) on
 `water_drainage` itself, showing the **identical** onset-2014/peak-2018/fade-after-2019
 shape as waste, with a comparable 27–34% fade. **Two independent municipal variables now
 show the same signature — real evidence favoring the price-driven-waiver mechanism over
@@ -650,9 +652,9 @@ precise and more interesting claim, not a weaker one. Corrected everywhere this 
 in the notebook (DiD summary, flat-weighting summary, robustness-batch summary) — found
 wrong, fixed in place, same discipline as every prior correction this week.
 
-⚠️ **CORRECTION 2 (2026-09-24) — a serious, UNRESOLVED tension about whether the
-`municipal_burden` causal finding should be trusted at all. Orhan's call, not settled by
-further computation.** The primary DiD (−0.037, significant) is on **perHousehold**. Run on
+✅ **CORRECTION 2 — RESOLVED 2026-09-25, see the resolution block directly below. The
+original text is kept for the record; don't cite its "unresolved" framing.** (Originally:
+a serious tension about whether the `municipal_burden` causal finding should be trusted.) The primary DiD (−0.037, significant) is on **perHousehold**. Run on
 **perArea instead — the track already established above as theoretically CLEANER for
 within-city causal identification, precisely because perArea's denominator (land area)
 doesn't drift for a city over time, while perHousehold's denominator (household count) can
@@ -667,8 +669,43 @@ resolved. Do not present the −0.037 finding as settled until Orhan has weighed
 specifically** — it's a different kind of open item from the robustness checks above,
 because those asked "how big/which category," and this one asks "is it real at all."
 
-**Update (2026-09-24): one candidate explanation ruled out with evidence, the core question
-still unresolved.** Denominator diagnostic (same event-study machinery, applied to
+✅ **RESOLUTION (2026-09-25) — the effect is real, it lives in the numerator, and it is
+municipal coverage expansion one-for-one. Supersedes the two paragraphs immediately below.**
+Method: DiD on **logs of raw quantities** (waste, population, household count, household
+size; non-metro vs. new-metro, two-way FE) — no normalisation in the way, denominators
+become additive, additivity identities asserted in-cell (`fsoi_indicator_selection.ipynb`,
+"Denominator decomposition").
+- **Real, in the numerator:** raw waste collected **+0.260 log (~30%), p<0.0001**; per
+  household +27%, per capita +23%, both significant. Household count +2% (p=0.37),
+  household size +3% (p=0.21) — not significant. A new per-capita track replicates
+  perHousehold almost exactly (−0.0369 vs. −0.0373). **The denominator-artifact hypothesis
+  is dead.**
+- **The perArea null was scale compression, not a real null.** Pooled min-max on perArea is
+  dominated by cross-city density: only **0.9%** of the perArea waste score's variance is
+  within-city (vs. 34% under perHousehold); within-city SD is 10.7x smaller and the
+  `municipal_burden` coefficient 10.9x smaller — the ratios match. `municipal_burden` alone
+  is still significant under perArea (−0.016, p<0.001). **Normalised perArea is not a usable
+  DiD track.** perArea's fixed-denominator advantage holds for *raw* perArea; pooled
+  normalisation erases it.
+- **Mechanism: municipal coverage expansion, one-for-one.** Log DiD waste +0.260 vs. log DiD
+  of the implied municipal coverage share **+0.259 (ratio 1.00)**, same year-by-year path,
+  from independent series (coverage from TÜİK water figures; waste its own series). **Waste
+  per covered resident did not change.** This is confound (a) — the one that removed the
+  per-person water series — now showing in waste's numerator.
+- **Headline: Law 6360's clearest statistical footprint is the extension of municipal
+  service coverage — administrative reach, not household burden, not food sovereignty.**
+**Two earlier readings corrected by the same analysis:** (a) the household-count "smooth
+divergence / parallel-trends complication" came from a raw-level event study (big cities at
+equal % growth show widening absolute gaps); **in logs there is no significant differential
+trend in any year (p>0.3)**. Only population shows a small ~5% differential, with one
+pre-period coefficient (2008) significant. (b) The waiver-favouring "fade" was mostly the
+normalised scale: **in logs waste fades only 3% (a permanent level shift, as coverage
+predicts), water 23%**. Water vs. coverage isn't cleanly testable (coverage is derived from
+water). Waiver: still possible for water, **no longer supported by waste.** The paragraphs
+below and the water_drainage "moves the needle toward waiver" update above are superseded.
+
+*Superseded (2026-09-24):* one candidate explanation ruled out with evidence, the core question
+still unresolved. Denominator diagnostic (same event-study machinery, applied to
 `Mean_Household_Count` and `Mean_Household_Size` directly, non-metro vs. new-metro): neither
 jumps at 2014. `Mean_Household_Count` diverges **smoothly across the entire 2008–2024
 period, including before 2012** — pre-treatment coefficients already move the same direction
@@ -680,7 +717,7 @@ measurement confound). **It does NOT resolve the broader perArea-vs-perHousehold
 that stays exactly as open as before, still Orhan's call, not settled by this or any single
 further test.**
 
-**Separate, smaller finding from the same check, worth its own line rather than folding in:**
+*Superseded 2026-09-25 (was a raw-level artifact; no differential trend in logs):*
 household count's smooth pre-existing divergence between treated and control (already
 present before 2012) is itself a mild **parallel-trends complication** for any
 perHousehold-denominated estimate — city fixed effects absorb *level* differences between
@@ -688,9 +725,9 @@ groups, not *differential trends*. Lower-grade than the jump hypothesis, but rea
 distinct — worth a sentence in the limitations section regardless of how Correction 2 is
 ultimately resolved.
 
-DiD section status: **substantive results exist, but two corrections above are unresolved
-open items, not closed ones** — this is not yet a defensible, complete first pass; treat as
-active until Orhan rules on Correction 2 specifically. Track C has no DiD of its own — Track
+DiD section status (2026-09-25): **defensible first pass.** Correction 1 is a settled
+refinement; Correction 2 is resolved (real effect, coverage expansion). Only remaining open
+item: bootstrap for the non-primary specifications. Track C has no DiD of its own — Track
 A is the designated causal track per the settled two-track structure, so this is by design,
 not a gap.
 
@@ -757,12 +794,14 @@ data sources or scraping that fall outside this.
   dataframe, kept apart from the main city-year panel, inside
   `fsoi_indicator_selection.ipynb`. See `agent_note_econometrics_FSOI.md` in this folder for
   the current dataframe/variable structure (`data_official_Türkiye` vs.
-  `data_official_Türkiye_extended`, the `Treated` categorical, etc.). **Pending Orhan's
-  decision (2026-09-24):** a province-level choropleth map was deliberately not built —
-  `geopandas` is installed, but there's no province boundary/coordinate file anywhere in
-  this repo, and `thesis_log_econometrics_agent` flagged sourcing one as Orhan's call rather
-  than pulling in external geographic data unprompted (suggested source: Harita Genel
-  Müdürlüğü, matching the area-data source already used for `Türkiye_Municipal_Areas.xlsx`).
+  `data_official_Türkiye_extended`, the `Treated` categorical, etc.). **Maps (built
+  2026-09-25, Orhan agreed to a separate notebook):** `fsoi_map.ipynb` reads
+  `fsoi_track_C/A_perHousehold.csv` exported by the main notebook. Boundaries: HDX
+  `cod-ab-tur` admin-1, original source Harita Genel Müdürlüğü (same agency as the area
+  data), CC BY-IGO; download+simplify code in the notebook, cached at
+  `geo/tur_admin1_simplified.geojson` (0.37 MB). Province names matched on a Turkish-folded
+  key, asserted 81/81 both ways. Four maps, visually checked: groups, 2020 choropleth,
+  centroid points, 2012→2024 change (captioned descriptive-only).
   That file is
   AI-authored pipeline documentation only (see Multi-Agent Coordination below); anything
   about result validity/known-bad status belongs in this file instead, not there.
