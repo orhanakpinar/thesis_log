@@ -507,3 +507,277 @@ equal-weight vs. TOPSIS. If the ranking is stable either way, direction didn't m
 your results. If it isn't, that instability is itself worth reporting — it would mean FSOI's
 verdict on a city depends on whether you frame resource use as capacity or as burden, which is
 exactly the kind of thing a sovereignty-vs-security framing debate should surface.
+
+---
+
+## Moved from Part 1 on 2026-09-24 (note hygiene pass)
+
+The full DiD narrative — every intermediate specification, every conclusion later
+corrected (the mechanism check's onset-vs-fade reasoning, the group-ranking claim
+before TOPSIS overturned it, the pre-isolation-check overclaim about production/
+land-use/external-input), in the order it happened. Compressed into a current-state
+summary in Part 1 ("Aggregation, DiD, and robustness — current state"); kept here for
+traceability and for defending how each number was actually reached.
+
+   **This inverts the provisional thesis PDF's group ordering** (old-metro highest → new-metro
+   → non-metro lowest, per the PDF's own inference that "greatness of a city correlates with
+   domestic food production"). The rebuilt index gives the opposite order: non-metropolitan
+   highest, then old-metropolitan, then new-metropolitan lowest. Not a magnitude shift — a
+   direction reversal. Expected, not alarming: the PDF's numbers were built on variables since
+   found to carry the treatment in their own denominators (see the water measurement confound
+   above). But any thesis prose already written on the old ordering needs rewriting, not
+   reconciling, with the new one. `thesis_log_main_agent` recorded this in CLAUDE.md as an
+   explicit supersession and is raising it with Orhan directly given the implication for
+   `writing_drafts/`.
+
+   **Diagnostic 7 (2026-09-22) — traced the reversal, doesn't fully explain it.** Added after
+   the aggregation cells, computed live from `diagnostic_raw`: correlated `Mean_Household_Size`
+   against the Track C composite and each category, at the city level, 2020.
+   - **`municipal_burden` alone drives almost all of the group gap.** Category means by group:
+     non-metro 0.744, old-metro 0.563, new-metro 0.536 — a spread of ~0.21, roughly 3× any
+     other category's spread (production ~0.04, land_use ~0.01, external_input ~0.06, market
+     ~0.13). The overall FSOI gap (non-metro 0.500 vs new-metro 0.424, a spread of 0.076) is
+     substantially a municipal_burden effect.
+   - **Household size correlates with municipal_burden specifically** (city-level Spearman
+     ρ = −0.504, all cities, 2020), much more than with FSOI overall (ρ = −0.280) or with any
+     other single category (all |ρ| < 0.19). Group-average household size lines up the same
+     way: new-metro largest (3.514) → lowest municipal_burden score; non-metro smallest (3.343)
+     → highest. Mechanically consistent with the household-vs-per-capita briefing above
+     (perHousehold = per-capita × household size, so cost-framed indicators, which are flipped,
+     score worse for larger households) — but the within-non-metropolitan-only correlation
+     (ρ = −0.064) is far weaker than the all-cities figure, so this is **partly a between-group
+     pattern, not purely a general mechanical link.**
+   - **This is one candidate contributor, not a full account.** `municipal_burden` is also
+     exactly the category carrying both previously-documented Law 6360 confounds — the
+     coverage-expansion effect and the tariff waiver (see "Law 6360 confounds" above) — so three
+     distinct explanations (coverage expansion, tariff waiver, household-size denomination)
+     converge on the same category, and a Spearman correlation cannot disentangle them.
+     **Do not write "household size explains the reversal"** — write that municipal_burden
+     drives the reversal, and household size is one correlated, partially-confirmed contributor
+     to *that category* specifically, alongside two other unresolved confounds on the same
+     variable.
+
+   **LOCO on municipal_burden (2026-09-22) — the ordering survives, the size doesn't.**
+   Elevated by `thesis_log_main_agent` above the rest of the item-5 robustness list: run
+   before any prose touches the group comparison, since the headline result and the most
+   confound-laden category were the same object, making this a question of whether the
+   result exists rather than how robust it is. Rebuilt Track C's composite from the
+   remaining four categories (production, land_use, external_input, market) and compared
+   group means against the full five-category version, every shared year (2008–2020), not
+   just 2020.
+   - **Non-metropolitan leads in all seven years, with or without municipal_burden.** The
+     ordering is not a municipal_burden artifact.
+   - **But the gap shrinks 38%** — non-metro minus new-metro averages 0.058 with
+     municipal_burden, 0.035 without it. Municipal_burden doesn't create the result, but it
+     inflates its size substantially.
+   - **Old-metropolitan vs. new-metropolitan is not stable** without municipal_burden — they
+     swap rank across years (e.g. 2018/2020 old-metro edges above new-metro; 2014/2016 the
+     reverse) — only "non-metro leads" is a stable finding across years and across LOCO,
+     not the full three-way ordering.
+   - **Reportable statement:** non-metropolitan cities score higher on the four-category
+     (production, land-use, external-input, market) headline index too, not only when
+     municipal burden is included — but roughly a third of the *size* of the full-index gap
+     traces to a category still carrying two unresolved Law 6360 confounds plus a partial
+     household-size correlation, so the *magnitude* should be reported with that caveat even
+     though the *direction* does not need it.
+
+5. ~~The DiD regression itself~~ — **done, 2026-09-22.** Two-way fixed effects (city + year),
+   `FSOI ~ Treated×Post`, cluster-robust SE by city, Track A (four categories, 2008–2024),
+   non-metropolitan-only control (old-metropolitan excluded from the primary spec — see
+   "Control groups" above). Executed clean, 94 cells, 0 errors.
+
+   **Primary estimate: −0.0373 (SE 0.0126, p = 0.0031, 95% CI [−0.062, −0.012]).** Pre-trends
+   clean on the (weak, two-point) test available: neither 2008 nor 2010 differs significantly
+   from 2012. Effect appears immediately in 2014, holds significant and roughly stable
+   (−0.04 to −0.05) through 2020, weakens by 2022, and is no longer significant by 2024.
+   Robust to pooling old-metropolitan into the control (−0.033, a small shift toward zero in
+   the expected direction).
+
+   **⚠️ THE ESTIMATE DOES NOT SURVIVE REMOVING MUNICIPAL_BURDEN — the single most important
+   qualifier on any DiD number from this pipeline so far.** Unlike the descriptive group-mean
+   result above (which survived LOCO, just smaller), the causal estimate does not survive it
+   at all: without `municipal_burden`, the DiD estimate is **+0.0085 (SE 0.0070, p = 0.224)**
+   — sign flips, significance disappears. **The entire significant effect is generated by
+   `municipal_burden` (waste, in Track A) alone; production, land-use and external-input show
+   no detectable treatment effect.** `municipal_burden` is exactly the category carrying two
+   unresolved Law 6360 confounds (coverage-boundary expansion, tariff waiver) plus the
+   Diagnostic 7 household-size correlation.
+
+   **Mechanism check (2026-09-22) — the onset doesn't discriminate; the fade does, and it
+   points toward the waiver, not away from it. Corrected 2026-09-23 after main agent
+   re-derived the waiver hypothesis more completely.** The original write-up here (09-22)
+   concluded "favours coverage-boundary expansion" from the sharp 2014 onset. That was
+   incomplete: it tested only "costs stay capped and invisible until the waiver lifts, effect
+   grows from 2020" and correctly rejected it — but a second waiver story ("cheap capped
+   costs encourage more use 2014–2019, usage recedes once prices normalize in 2020") predicts
+   the **same 2014 onset as boundary-expansion**, so onset timing cannot distinguish the two
+   mechanisms at all. What can distinguish them is the **fade**: −0.177 (2014) → −0.204 →
+   −0.233 (2018, peak, still inside the waiver) → −0.179 (2020) → −0.126 (2022) → −0.140
+   (2024), a ~27% decline from the 2014–2018 mean to 2020–2024. A permanent boundary
+   redefinition has no built-in reason to fade; a price cap that lifts in 2019/2020 does.
+   **Corrected reading: consistent with a price-driven waiver mechanism, not distinguishable
+   from boundary-expansion by onset alone.** Not settled either way: the fade lands exactly
+   on 2020, simultaneously the COVID year — an already-documented confound this design cannot
+   separate from a price-normalization effect. Three explanations (boundary expansion,
+   tariff waiver, COVID) now sit on this fade, on top of Diagnostic 7's household-size
+   correlation. Scope limit unchanged: Track A's municipal_burden is waste-only; the waiver's
+   headline provision targets water tariffs specifically. A direct test on `water_drainage`
+   (Track C, extended panel, 2008–2022) remains the natural next check, not built.
+
+   **Equal-weight-per-indicator robustness (2026-09-23, Orhan-requested, required).** Category
+   weighting gives `municipal_burden` and `external_input` 25% each alone in Track A (vs. 5%
+   per land-use indicator, a measured 5× disparity) — a plausible non-confound reason
+   `municipal_burden` dominates. Built `build_fsoi_flat()`: every indicator gets equal weight
+   (1/9 Track A, 1/14 Track C) instead of equal-category-then-equal-within. **Result:
+   strengthens the core finding rather than undermining it.** Group-ordering direction
+   survives (non-metro still highest, both weightings). Primary DiD shrinks but stays
+   significant under flat weighting: −0.027 (p = 0.0007) vs. −0.037 (p = 0.003) category-
+   weighted, about 28% smaller, consistent with municipal_burden's reduced weight. **LOCO
+   under flat weighting: −0.0082 (p = 0.174), not significant** — sign stays negative here
+   (unlike the category-weighted LOCO, which flipped positive), but significance still
+   disappears. **"No detectable treatment effect on production/land-use/external-input once
+   municipal_burden is removed" now holds under two independently-constructed weighting
+   schemes** — not an artifact of the specific choice to weight categories rather than
+   indicators. Category weighting remains the primary specification (consistent with the
+   settled equal-category-weight methodology and GFSI's convention); flat weighting is a
+   reported robustness check, not a rival headline. One further real difference worth
+   carrying forward: city-level rankings agree only moderately between the two schemes
+   (Spearman ρ = 0.681, Track A, all years) — the group direction is stable, individual city
+   rankings are more weighting-sensitive than that might suggest.
+
+   **What this licenses and what it doesn't.** "Law 6360 changed waste-per-household outcomes
+   in treated cities" is a defensible reading of this specification. **"Law 6360 reduced food
+   sovereignty" is not** — the categories that would make that a food-sovereignty claim show
+   nothing. Do not cite −0.037 as evidence about food sovereignty without this qualifier
+   attached; it is currently better described as a waste-specific finding riding inside a
+   food-sovereignty-labelled composite.
+
+   **Wild cluster bootstrap run (2026-09-22) — confirms the primary estimate's significance
+   is not a small-cluster artifact.** 14 treated clusters is exactly the regime where
+   asymptotic cluster-robust inference is unreliable (Cameron/Gelbach/Miller 2008;
+   Bertrand/Duflo/Mullainathan 2004), so this was treated as blocking, not optional, before
+   citing the primary number. Rademacher WCR bootstrap, 999 draws, restricted-residual
+   procedure: **p = 0.0040**, essentially identical to the asymptotic p = 0.0031. Net effect
+   on interpretation: this **confirms** the primary estimate is a statistically solid
+   finding — about waste collection specifically, per the LOCO result above, not about food
+   sovereignty. `statsmodels` (0.14.5) added to `requirements.txt` by `thesis_log_main_agent`.
+6. ~~Produce the primary FSOI composite + top/bottom cities~~ — done, see item 3 above.
+7. ~~Remaining robustness checks~~ — **done, 2026-09-23, run as one consolidated batch per
+   Orhan's request.** Wild cluster bootstrap already covered under item 5. Three more:
+
+   **TOPSIS vs. equal-weighted sum.** Same per-indicator weights as the primary spec (isolates
+   the aggregation-method choice from weighting), ideal points fixed from the full city panel.
+   City-level ranks agree closely with the primary (ρ = 0.917). **The causal finding gets its
+   sharpest confirmation yet:** DiD −0.025 (p = 0.002) vs. primary −0.037 (p = 0.003); without
+   municipal_burden, −0.0003 (p = 0.968) — not just insignificant, essentially exactly zero.
+   Now confirmed across three independent aggregation methods (category-weighted, flat-
+   weighted, TOPSIS).
+
+   **⚠️ But TOPSIS overturns a descriptive claim, not the causal one.** Group means:
+   equal-weighted-sum gives non-metro 0.507 > old-metro 0.484 > new-metro 0.466. **TOPSIS
+   gives old-metro 0.366 > non-metro 0.336 > new-metro 0.322 — old-metropolitan leads, not
+   non-metropolitan.** New-metropolitan stays lowest under both, which is all the DiD needs,
+   so the causal estimate is unaffected. But **"non-metropolitan scores highest" (from the
+   item-3 LOCO section) is method-specific, not aggregation-robust, and must not be reported
+   as a settled finding.** Correct framing: new-metro lowest under both methods tried; which
+   of the other two groups leads depends on aggregation choice.
+
+   **Benefit-framing vs. cost-framing.** No flips at all (every indicator's `_norm` used
+   directly). Sign flips as predicted: +0.031 (p = 0.008) vs. −0.037 cost-framed. **Not new
+   evidence** — mechanically expected, since benefit-framing directly re-signs the
+   municipal_burden indicators the whole result depends on. Confirms the sign is a direct
+   consequence of the cost/burden convention settled 2026-09-12; does not reopen it.
+
+   **Waiver-years exclusion.** Dropping 2014/2016/2018 entirely (n: 585 → 390): −0.034
+   (p = 0.042) vs. −0.037 (p = 0.003) full sample — similar magnitude, weaker significance
+   (smaller n), effect does not depend on the waiver years specifically. Without
+   municipal_burden: +0.003 (p = 0.746) — same story, a fourth confirmation.
+
+   **State of the causal claim after four independent robustness checks (category-weighted,
+   flat-weighted, TOPSIS, waiver-years-excluded), all reported side by side, none replacing
+   the primary:** the significant negative composite effect and its complete disappearance
+   without municipal_burden both replicate every time. Only two things are robust across all
+   specifications: **new-metropolitan cities score lowest**, and **the causal effect is a
+   municipal_burden (waste) effect with no detectable counterpart in production, land-use or
+   external-input.** The three-way group ordering is not robust and should not be reported as
+   settled.
+
+7a. **Does the original pre-rebuild "national decline, independent of Law 6360" finding
+    survive on the rebuilt index? (Orhan's question, 2026-09-24) — No, it does not
+    replicate at all, in either direction.** A different question from the robustness queue
+    above: the original finding was a common time trend across all three groups, exactly
+    what the DiD's year fixed effects net out, so nothing in items 5–7 tested it. Checked
+    directly via two independent operationalizations of "national," both on the full panel
+    (all three real groups, not the DiD's two-group subsample):
+    - **Cross-city pooled linear trend (city FE, cluster-robust SE):** WITH
+      municipal_burden, **+0.00195/year (p < 0.0001) — a significant INCREASE**, not a
+      decline. WITHOUT municipal_burden, flat and non-significant: −0.00007/year (p = 0.844).
+      Every group's raw 2008-to-2024 change increases when municipal_burden is included
+      (non-metro +0.030, new-metro +0.013, old-metro +0.010).
+    - **The `Türkiye` aggregate row itself:** same pattern — 0.487 → 0.510 (+0.023) with
+      municipal_burden; 0.472 → 0.463 (small, untested decline, consistent with the flat
+      pooled trend) without it.
+    - **This is stronger than "doesn't survive without municipal_burden."** The rebuilt Track
+      A composite shows no national decline in the first place — if anything a mild,
+      significant *increase* with municipal_burden included, and a flat trend without it.
+      Do not carry the original "national decline, independent of Law 6360" claim forward as
+      if it still holds; it needs to be reported as **not replicating on the rebuilt
+      pipeline**, not merely qualified.
+    - **Scope limit, stated plainly:** this is a comparison against a different, now-
+      superseded index construction — the original PDF's composite step "is not reproducible
+      from current repo code" and used "raw/untidy" variables (CLAUDE.md, Results-status).
+      This check cannot say *why* the two disagree (different variables, normalisation,
+      weighting, or a different definition of "decline" — e.g. raw production tonnage alone
+      — are all live possibilities, none tested here). What it *can* say: on the current,
+      validated pipeline, Track A shows no decline. A fact about this index, not necessarily
+      a refutation of whatever the original analysis measured.
+---
+
+## Moved from the top of the file on 2026-09-24 (note hygiene pass)
+
+The original 2026-09-20 HANDOVER section, fully superseded by everything since --
+kept for traceability of what the state was at that point in the project.
+
+# HANDOVER — session change 2026-09-20
+
+Written by `thesis_log_econometrics_agent` before Orhan starts a fresh session. Treat the incoming
+session as continuous with this one: same scope (`econometric_models_and_vars/`), same open items.
+`thesis_log_main_agent` has been notified.
+
+**Where the work stands.** Variable selection is finished and normalisation is implemented and
+verified. The notebook `fsoi_indicator_selection.ipynb` runs clean end to end; every change in this
+session was checked with a full `jupyter nbconvert --execute` run. Outputs are cleared, so the file
+sits at ~106 KB.
+
+**The immediate next task is aggregation**, in this order:
+1. Apply cost-direction flips (`1 − x` on the normalised columns) for water, waste, external input and
+   land-use-fallow. These were deliberately NOT applied during normalisation so the `_norm` columns
+   stay comparable and the flip stays visible.
+2. Build the **five** category sub-indices as means of their member indicators (water and waste
+   merged into one "municipal burden" category, 2026-09-22 — see "Category structure" in Part 1).
+3. Equal-weight the categories into the composite.
+4. Top/bottom cities, then the robustness checks.
+
+**Superseded by 2026-09-22 decisions, kept for the reasoning trail:** the rest of this HANDOVER
+section (written 2026-09-20) still describes a six-category structure and an unresolved external-input
+question. Both are now resolved — see "Category structure (SETTLED 2026-09-22)" in Part 1.
+
+**Build the index from the perHousehold columns only.** perArea is computed as a robustness track.
+Never put both tracks in one aggregation — equal-weighting all 28 normalised columns would average
+the two denominators by the back door, which is the collapse that was explicitly rejected.
+
+**Three things that must not be re-derived from scratch** (all proven in the notebook's Diagnostics
+section, all with live-computing cells):
+- `perArea` is ~99% population density across cities, but is the *clean* track within a city over
+  time; `perHousehold` is the reverse. They are contaminated in opposite dimensions.
+- TÜİK's per-person water series sits on a *municipal* population base that Law 6360 moved in 2014.
+  That is why the main panel's daily water series was dropped.
+- Refined (*arıtılan*) water measures whether a treatment plant exists, not water use.
+
+**Working practice this session settled on, worth keeping:** every analytical claim goes in the
+notebook as a cell that *computes* its numbers. An earlier version of the Diagnostics cells had
+results pasted in as hardcoded literals; Orhan caught it and it was rewritten. Don't restate
+numbers computed elsewhere — compute them where they are shown.
+
+**Open questions for Orhan are listed under "Open decisions" in Part 1 below.** The one that blocks
+aggregation is how to join the two panels (question 1).
