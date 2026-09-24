@@ -438,41 +438,42 @@ magnitude below municipal_burden's own −0.175 (p < 0.0001). "No detectable eff
 municipal_burden" should read "no *large* effect outside it; small, mostly-offsetting effects
 exist in land-use and external-input."
 
-**⚠️ perArea tension, unresolved, flagged prominently rather than folded into the robustness
-list:** perArea is the theoretically *cleaner* track for within-city DiD identification
-(Diagnostic 6 — perHousehold's own denominator drifts within a city over time, perArea's
-doesn't). Under perArea, **the DiD shows no significant effect at all, even with
-municipal_burden included** (−0.0003, p = 0.949, vs. perHousehold's significant −0.037). This
-is not just one more robustness check — it bears on whether the municipal_burden finding
-should be trusted as real, not just on how large it is. Not resolved; a judgement call for
-Orhan, not something a further test settles. Denominator-track Spearman correlations, for
-reference: perArea vs. perHousehold 0.778; flat vs. category-weighted 0.681; TOPSIS vs.
-category-weighted 0.917.
+**Correction 2 RESOLVED (2026-09-24) — the effect is real, and it is municipal coverage
+expansion.** Settled by a DiD on logs of the raw quantities (notebook: "Denominator
+decomposition"), where no normalisation can interfere and every denominator is additive:
+- **Raw waste collected rose +0.260 log (~30%)** in new-metro vs non-metro cities
+  (p < 0.0001). Per household +27%, per capita +23%, both significant. Under city FE, waste
+  per area *is* raw waste — so perArea's raw signal is the largest of all.
+- **The denominator is not the story:** household count +2% (p = 0.37), household size +3%
+  (p = 0.21). The per-capita track replicates perHousehold almost exactly (−0.0369 vs −0.0373).
+- **The perArea null was scale compression.** Pooled min-max on perArea is dominated by the
+  288× cross-city density spread: only **0.9%** of the perArea waste score's variation is
+  within-city (vs 34% perHousehold). Within-city SD 10.7× smaller; the `municipal_burden`
+  coefficient 10.9× smaller — the ratios match. `municipal_burden` alone is still significant
+  under perArea (−0.016, p < 0.001). **Normalised perArea is not a usable DiD track**;
+  Diagnostic 6 holds for *raw* perArea, the pooled normalisation removes the advantage.
+- **Waste = coverage, one-for-one.** Log DiD on waste (+0.260) equals the log DiD on the
+  implied municipal coverage share (+0.259), ratio 1.00, same year-by-year path (flat pre,
+  ~+0.25 from 2014 on). Independent series. **Waste per covered resident did not change** —
+  municipalities started recording waste from ~30% more people. Same mechanism as
+  confound (a), which removed the per-person water series; now found in waste's numerator.
+- **Headline, as it now stands:** Law 6360's clearest statistical footprint is the extension
+  of municipal service coverage — administrative reach, not household burden, not food
+  sovereignty. Production: no effect. Land-use (−0.023) and external input (+0.048): small,
+  opposite, real, replicated under per-capita.
 
-**Denominator jump check (2026-09-24, Orhan's suggestion) — the specific mechanical-artifact
-hypothesis is not supported, the broader question stays open.** Tested whether
-`Mean_Household_Count` (the perHousehold denominator) or `Mean_Household_Size` shows a
-discontinuous jump at 2014, mirroring the mechanism already confirmed for the dropped
-per-person water series. Same event-study design, applied to the denominator instead of the
-numerator. **Neither variable jumps at 2014.** `Mean_Household_Count` diverges smoothly and
-continuously across the *entire* 2008–2024 period, including *before* 2012 — an ordinary
-secular urban-growth trend, not a reform-triggered break. `Mean_Household_Size` shows no
-significant effect anywhere (all p > 0.15). This rules out the specific jump mechanism, not
-the broader perArea/perHousehold tension — and surfaces a separate, lower-grade concern:
-household count's pre-existing smooth divergence between treated and control is a mild
-parallel-trends complication of its own (city FE absorb levels, not differential trends),
-worth naming rather than folding into "ruled out."
+**Two of my own earlier readings, corrected by the same decomposition:**
+- The household-count "smooth divergence" (and the parallel-trends concern drawn from it)
+  came from an event study in raw levels, where large cities growing at the same *percentage*
+  still show a widening absolute gap. In logs household count shows no significant
+  differential trend in any year (all p > 0.3). Population shows a small (~5%) differential,
+  with one significant pre-period coefficient (2008: −0.027, p = 0.004) — minor.
+- The waiver-favouring "fade" (27% waste / 34% water) was largely the normalised scale. In
+  logs waste fades **3%** — a permanent level shift, which is what coverage expansion predicts
+  — and water fades 23%. Water's residual over coverage can't be cleanly tested, because the
+  coverage share is derived from the water total. **Waiver: possible for water, no longer
+  supported by waste.**
 
-**Mechanism (the tariff waiver vs. coverage-boundary expansion): now tested on two
-variables, same shape both times.** Event-study on `municipal_burden` (waste) and, directly
-(2026-09-24), on `water_drainage` itself (the variable the waiver actually targeted, via
-Track C's extended panel to 2022): both show a sharp onset at 2014, a peak in 2018 (still
-inside the 2014–2019 waiver), and a fade after 2019 (waste: −0.204→−0.148, 27%; water:
-−0.190→−0.126, 34%). Onset alone can't distinguish the two mechanisms (both predict an
-immediate 2014 jump); the fade favours the price-driven-waiver story, now corroborated on a
-second variable, though the fade also coincides with COVID and this design can't separate
-the two. Not settled — three explanations (boundary expansion, waiver, COVID) still sit on
-this fade.
 
 **The original pre-rebuild "national decline, independent of Law 6360" finding does not
 replicate.** Checked directly (pooled linear trend, city FE, all three real groups, plus the
@@ -484,18 +485,21 @@ why they disagree. Orhan confirmed 2026-09-24 the old index mixed perHousehold/p
 with weak weighting; the current perHousehold-headline, equal-weighted-primary track is the
 chosen path and doesn't need reconciling with it further.
 
-**Visualisations added 2026-09-24:** event-study charts (waste and water, with 95% CI bands
-and the waiver window shaded), group-trend chart (with vs. without municipal_burden, against
-the `Türkiye` reference line), and a top/bottom-10-cities chart. Consistent colour per
-treatment group across all three. **A geographic map was discussed and deliberately not
-built** — no province boundary/coordinate file exists in this repo (`geopandas` is
-installed, but there's nothing to plot with it), and acquiring one is a new external data
-dependency flagged to Orhan rather than added unprompted.
+**Visualisations (2026-09-24).** In `fsoi_indicator_selection.ipynb`: event studies with
+95% CI bands, group trends vs the `Türkiye` reference line, top/bottom-10 cities. **Maps are in
+a separate notebook, `fsoi_map.ipynb`,** which reads `fsoi_track_C_perHousehold.csv` /
+`fsoi_track_A_perHousehold.csv` (exported by the main notebook's last cells) rather than
+rebuilding the index. Four maps: treatment groups; Track C 2020 choropleth with new-metro
+outlined; the same scores as province-centroid points (marker shape = group); raw FSOI change
+2012→2024 on a zero-centred diverging scale, captioned as descriptive-only. Boundaries: HDX
+`cod-ab-tur` admin-1, original source **Harita Genel Müdürlüğü** (same agency as the area
+data), CC BY-IGO; downloaded, simplified (0.01°) and cached to `geo/tur_admin1_simplified.geojson`
+(0.37 MB) by code inside the notebook, so the provenance is in the repo. Province names are
+matched on a Turkish-folded key and asserted 81/81 both ways — the source's `adm1_name` is
+ASCII and its Turkish column carries a broken dotted-i.
 
-**What's still not done:** a direct significance test of the water_drainage waiver shape
-(the event-study coefficients are reported, not formally tested against the "flat vs. fading"
-alternatives); a wild cluster bootstrap for anything other than the primary category-weighted
-spec; and the map, pending a decision on sourcing boundary data.
+**Still not done:** a wild cluster bootstrap for specifications other than the primary one.
+Nothing else in this section is open.
 
 
 8. ~~Report the composite to `thesis_log_main_agent`~~ — done, 2026-09-22 (composite) and

@@ -781,3 +781,61 @@ numbers computed elsewhere — compute them where they are shown.
 
 **Open questions for Orhan are listed under "Open decisions" in Part 1 below.** The one that blocks
 aggregation is how to join the two panels (question 1).
+
+---
+
+## Moved from Part 1 on 2026-09-24 (superseded by the denominator decomposition)
+
+The perArea-tension paragraph, the raw-level household-count check, the waiver-
+favouring mechanism reading and the 'map not built' note, as they stood before the
+log-scale decomposition resolved or corrected each of them.
+
+**⚠️ perArea tension, unresolved, flagged prominently rather than folded into the robustness
+list:** perArea is the theoretically *cleaner* track for within-city DiD identification
+(Diagnostic 6 — perHousehold's own denominator drifts within a city over time, perArea's
+doesn't). Under perArea, **the DiD shows no significant effect at all, even with
+municipal_burden included** (−0.0003, p = 0.949, vs. perHousehold's significant −0.037). This
+is not just one more robustness check — it bears on whether the municipal_burden finding
+should be trusted as real, not just on how large it is. Not resolved; a judgement call for
+Orhan, not something a further test settles. Denominator-track Spearman correlations, for
+reference: perArea vs. perHousehold 0.778; flat vs. category-weighted 0.681; TOPSIS vs.
+category-weighted 0.917.
+
+**Denominator jump check (2026-09-24, Orhan's suggestion) — the specific mechanical-artifact
+hypothesis is not supported, the broader question stays open.** Tested whether
+`Mean_Household_Count` (the perHousehold denominator) or `Mean_Household_Size` shows a
+discontinuous jump at 2014, mirroring the mechanism already confirmed for the dropped
+per-person water series. Same event-study design, applied to the denominator instead of the
+numerator. **Neither variable jumps at 2014.** `Mean_Household_Count` diverges smoothly and
+continuously across the *entire* 2008–2024 period, including *before* 2012 — an ordinary
+secular urban-growth trend, not a reform-triggered break. `Mean_Household_Size` shows no
+significant effect anywhere (all p > 0.15). This rules out the specific jump mechanism, not
+the broader perArea/perHousehold tension — and surfaces a separate, lower-grade concern:
+household count's pre-existing smooth divergence between treated and control is a mild
+parallel-trends complication of its own (city FE absorb levels, not differential trends),
+worth naming rather than folding into "ruled out."
+
+**Mechanism (the tariff waiver vs. coverage-boundary expansion): now tested on two
+variables, same shape both times.** Event-study on `municipal_burden` (waste) and, directly
+(2026-09-24), on `water_drainage` itself (the variable the waiver actually targeted, via
+Track C's extended panel to 2022): both show a sharp onset at 2014, a peak in 2018 (still
+inside the 2014–2019 waiver), and a fade after 2019 (waste: −0.204→−0.148, 27%; water:
+−0.190→−0.126, 34%). Onset alone can't distinguish the two mechanisms (both predict an
+immediate 2014 jump); the fade favours the price-driven-waiver story, now corroborated on a
+second variable, though the fade also coincides with COVID and this design can't separate
+the two. Not settled — three explanations (boundary expansion, waiver, COVID) still sit on
+this fade.
+
+**Visualisations added 2026-09-24:** event-study charts (waste and water, with 95% CI bands
+and the waiver window shaded), group-trend chart (with vs. without municipal_burden, against
+the `Türkiye` reference line), and a top/bottom-10-cities chart. Consistent colour per
+treatment group across all three. **A geographic map was discussed and deliberately not
+built** — no province boundary/coordinate file exists in this repo (`geopandas` is
+installed, but there's nothing to plot with it), and acquiring one is a new external data
+dependency flagged to Orhan rather than added unprompted.
+
+**What's still not done:** a direct significance test of the water_drainage waiver shape
+(the event-study coefficients are reported, not formally tested against the "flat vs. fading"
+alternatives); a wild cluster bootstrap for anything other than the primary category-weighted
+spec; and the map, pending a decision on sourcing boundary data.
+
