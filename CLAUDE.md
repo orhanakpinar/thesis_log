@@ -1015,11 +1015,21 @@ session — keep it simple: point back at this file as the source of truth, plus
 currently open/mid-flight that isn't reflected here yet.
 
 If you are starting up in this repo and find `agent_note_main_agent_handoff.md` at the
-root, you are very likely the new main agent — read the note, read this file, fold
-anything from the note into `CLAUDE.md` yourself, then delete the note. This holds
-regardless of which surface/environment you're running in (local, remote, or cloud) — a
-session with GitHub connectivity that a purely local session lacked is exactly the kind of
-successor this mechanism exists for.
+root, you are *possibly* the new main agent — but **do not infer this from session
+signals** (a fresh session ID in `ListAgents`, a reset token count, "instructions were
+re-read") **and do not delete the note on that basis.** Confirmed 2026-09-25: those signals
+don't reliably mean a successor took over — a session can restart (rename, restore, a
+Remote-Control artifact) while remaining, in every way that matters to Orhan, the *same*
+agent relationship as before, with no real handoff having occurred. A prior instance
+deleted this note on exactly that inference and was wrong; the note had to be reconstructed
+from the deleting session's own recent context, which only worked because it happened to
+still be in that session's window — it would not have been recoverable otherwise, since
+`git` isn't on PATH here (see Environment above). **Ask Orhan directly whether a handoff has
+actually happened.** Only once he confirms it: read the note, read this file, fold anything
+from the note into `CLAUDE.md` yourself, then delete the note. This holds regardless of
+which surface/environment you're running in (local, remote, or cloud) — a session with
+GitHub connectivity that a purely local session lacked is exactly the kind of successor this
+mechanism exists for, once a real handoff is confirmed.
 
 The same pattern applies to strand agents: when a strand-agent session nears context
 limits and Orhan starts a fresh one to continue, use the strand's own
