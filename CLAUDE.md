@@ -386,7 +386,8 @@ maps reference only known indicators, merge validated `one_to_one`).
 metropolitan 0.500, old-metropolitan 0.433, new-metropolitan 0.424.** Non-metros score
 highest **under this one aggregation method** — see the CORRECTION further below: this
 specific ordering is **not** robust to aggregation choice (TOPSIS reverses which of
-non-metro/old-metro leads). What *is* robust: new-metro lowest, either way.
+non-metro/old-metro leads). What *is* robust: new-metro lowest or tied-lowest in every
+view tried (see the 2026-09-26 clarification below the CORRECTION).
 ⚠️ **This is a plain descriptive group mean — not a DiD estimate.** No pre-trend
 adjustment, no controls, not even a difference calculation. It must **not** be cited as a
 treatment effect or as evidence that Law 6360 harmed new-metropolitan cities. The direction
@@ -453,6 +454,18 @@ category removal, unstable under aggregation-method change. This does **not** to
 group is non-metro-only and its estimate is separately robust across four specifications
 (see below) — this correction is to the **descriptive** group-ranking claim only.
 
+**Clarification (2026-09-26, computed in-notebook, "Claims-ledger checks" cell).** The
+sets of numbers above are different things from the same build, not competing builds:
+0.500/0.433/0.424 = full index (C), **2020 only**, EW; 0.507/0.484/0.466 = long-panel (A),
+**pooled 2008–2024**, EW; TOPSIS 0.366/0.336/0.322 = long-panel pooled, order **old/non/new**.
+So the correction above compared unlike objects. Like-for-like (full 2020, TOPSIS): old
+0.313, non 0.306, new 0.276 — old-metro still leads, correction stands, margin only 0.007.
+**And "new-metro always lowest" is slightly too strong:** full index pooled 2008–2020 EW
+gives non 0.511, new 0.453, old 0.451 — old lowest by 0.002, a tie. New-metro is lowest in
+the other five views. Wording: **"new-metro is lowest or tied-lowest in every view tried."**
+Also: production-alone DiD 95% CI [−0.0225, +0.0220] — a **tight** null (±0.18 SD of the
+production score), not merely non-significant.
+
 **Robustness queue CLOSED (2026-09-23) — four independent specifications now agree on the
 causal finding.** Final batch: TOPSIS vs. equal-weighted, benefit- vs. cost-framing,
 waiver-years exclusion — all run together, all executed clean.
@@ -466,8 +479,8 @@ waiver-years exclusion — all run together, all executed clean.
   full sample — similar magnitude, weaker significance from smaller n. Without
   `municipal_burden`: +0.003 (p=0.746) — same null, a fourth time.
 - **Bottom line, across all four specifications now run (category-weighted primary,
-  flat-weighted, TOPSIS, waiver-years-excluded):** new-metropolitan scores lowest every
-  time, and `municipal_burden` is by far the dominant driver of the causal effect every
+  flat-weighted, TOPSIS, waiver-years-excluded):** new-metropolitan scores lowest or
+  tied-lowest every time (see the 2026-09-26 clarification above), and `municipal_burden` is by far the dominant driver of the causal effect every
   time (see CORRECTION 1, 2026-09-24, for the precise — not "zero" — size of the other
   three categories' individual effects). **The three-way ordering of non-metro vs. old-metro
   is NOT robust** and must not be reported as settled (see the CORRECTION above). **Separately,
@@ -731,6 +744,14 @@ item: bootstrap for the non-primary specifications. Track C has no DiD of its ow
 A is the designated causal track per the settled two-track structure, so this is by design,
 not a gap.
 
+**Size-matched control check (2026-09-26, Orhan-approved):** control limited to the 14
+largest non-metros by 2012 population. **No size overlap exists** — all 14 (Afyonkarahisar
+704k … Yozgat 453k) sit below the smallest treated province (Ordu 741k); median gap narrows
+3.02x → 1.76x. DiD −0.0351 (p=0.013, bootstrap p=0.016, 28 clusters) vs. −0.0373 full
+sample; coverage ratio holds (1.06 vs. 1.00). Population differential persists (+0.071 log)
+and stays a stated limitation. Write-up: size alone doesn't produce the result, and the
+threshold makes a genuinely overlapping control group impossible — say both.
+
 **Process note, because it is exactly the failure this repo's compute-in-place convention
 exists to prevent, caught before publication:** a summary cell was drafted describing the
 LOCO-DiD result as "smaller but does not flip sign or lose significance," extrapolating
@@ -829,9 +850,9 @@ data sources or scraping that fall outside this.
   now. See `agent_note_agroministrynews_FSOI.md` for
   current pipeline status (structured Part 1 Current State / Part 2 Reference / Part 3
   Process History — Part 1 wins on any disagreement).
-- `writing_drafts/` — `thesis_plan.md`, `thesis_draft.md`, `discussion_topics.md`, and
-  versioned draft exports in `TezRapor/*.docx` (higher numbers are more recent — don't
-  delete old versions without asking).
+- `writing_drafts/` — `thesis_plan.md`, `thesis_draft.md`, `discussion_topics.md`, the
+  provisional PDF, and `advisor_comments.md` (Ali Hoca's seven Jan-2025 comments, verbatim).
+  The `TezRapor/*.docx` weekly reports were removed by Orhan on 2026-09-26.
 
 Several folders have duplicated or superseded files sitting alongside current ones (this is
 a known, ongoing cleanup problem, not a one-time fix) — when a file's status is unclear,
