@@ -839,3 +839,15 @@ dependency flagged to Orhan rather than added unprompted.
 alternatives); a wild cluster bootstrap for anything other than the primary category-weighted
 spec; and the map, pending a decision on sourcing boundary data.
 
+
+
+---
+
+## 2026-09-28 — notebook correction banners removed
+
+Per Orhan, the markdown in `fsoi_indicator_selection.ipynb` and `fsoi_map.ipynb` now states
+final positions only, and "Track C / Track A" became "full index / long-panel index" in all
+visible text. The in-notebook "SUPERSEDED / CORRECTED" banners were deleted. The correction
+trail they summarised is recorded in the sections above: the mechanism-check onset-vs-fade
+reversal, the "no detectable effect" overclaim and its isolation-check fix, the TOPSIS
+group-ranking correction, and the perArea tension resolved by the log decomposition.
