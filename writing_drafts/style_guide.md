@@ -21,7 +21,7 @@ here freely. Changing it here is the only place it needs changing.
 | non-metropolitan / old-metropolitan / new-metropolitan provinces | the three groups | treated/untreated as group names in prose |
 | Law No. 6360 (Metropolitan Municipality Law) | first mention, then "Law 6360" | Metropol Law, Büyükşehir Law |
 | Food Sovereignty Index (FSOI) | first mention, then FSOI | FSoI |
-| **full index** | five categories, 14 indicators, 2008–2020; the descriptive index | Track C |
+| **full index** | five categories, 13 indicators, 2008–2020; the descriptive index | Track C |
 | **long-panel index** | four categories, 9 indicators, 2008–2024; the causal estimator | Track A |
 | per household / per area | the two denominators; per household is the headline | perHousehold, perArea (code names) |
 | municipal burden | category: water + waste | water category, waste category |
