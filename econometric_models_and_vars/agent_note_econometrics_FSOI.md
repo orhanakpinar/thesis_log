@@ -38,6 +38,77 @@ summary below was checked against a fresh run on 2026-09-28. The history file is
 - Notebooks: edit through JSON scripts (the Read tool can't open the main notebook, it's too
   large), execute with `jupyter nbconvert --execute --inplace`, then clear outputs.
 
+# Update 2026-10-01 (new session; notebook section "Further checks and thesis outputs")
+
+New session took over 2026-10-01 (previous one is `_old_03`, agreed not to edit). Full re-run and
+review of both notebooks: **0 errors, every headline number reproduced.** Main notebook now 179
+cells, map notebook 15. Added cells, all computing in place:
+
+1. **Wild cluster bootstrap for every spec** (Orhan approved): primary 0.004, size-matched 0.016,
+   flat 0.002, TOPSIS 0.005, per capita 0.007, waiver-years-excluded **0.025** (asymptotic 0.042).
+   6 of 6 significant. Open item 2 of the handoff is closed.
+2. **Market currency check** (Orhan approved; result not yet reviewed with him).
+   - **Coverage break in TÜİK provincial animal-product value:** the 81 provinces sum to the
+     national total in 2008/2010 but only 38–60% of it from 2012 on. Crop and livestock value sum
+     exactly, as do all other summable series. This break produces the 2010 "peak" in market.
+   - Full-index decline 2008→2020: USD as built −0.021; USD without animal products −0.014;
+     relative-to-national (currency- and inflation-free) −0.003; relative without animal products
+     +0.004. **The decline is a national-level USD movement plus the series break, not provincial
+     divergence.** National crop value 2012→2020: nominal TL 280, USD 77 (2012 = 100).
+   - New-metro is lowest in 2020 under all four versions.
+   - A real-terms TL version needs a price index that isn't in the repo.
+3. **Data quality:** one-year spike scan. Animal products 26 cases in 2010 (= the break); fallow,
+   greenhouse and agricultural electricity are noisy near zero; waste has 1 case (Kırıkkale 2012:
+   128, 133, **41**, 74; Kırşehir 2012 **143** looks off too). Kırıkkale's fertiliser per household
+   rises 6.5× 2008→2024. Hakkari's 2020–24 fertiliser is zero-filled. Dropping Kırıkkale,
+   Kırşehir and Hakkari (all controls): DiD −0.0370 vs −0.0373. No effect on the causal result.
+4. **Writing-strand answers:** r 0.988/0.048 = **drawn water**, Pearson, raw levels, pooled
+   province-years n = 648 (2008–2022); waste gives 0.995/0.163. Greenhouse 85.3%/79.0% = share of
+   **province-years** (n = 729) with normalised per-household value < 0.05. Exchange rates: the code
+   uses a hand-typed table, one rate per year; it cannot verify the first/last-day derivation.
+   Data appendix → `thesis_outputs/table_data_appendix_indicators.csv` (TÜİK columns asserted
+   against the CSV header).
+5. **Thesis figures** in `thesis_outputs/`: `fig_4_3_per_area_vs_per_household.png`,
+   `fig_5_1_full_index_2020_map.png` (from `fsoi_map.ipynb`), `fig_5_2_group_means_over_time.png`.
+
+**Second round, same day (cells "Chapter 6 outputs and the animal-product break"; 186 cells, 0
+errors):**
+- **Figures and tables:** Figure 6.1 (event study, long-panel index) with
+  `table_6_1_event_study_long_panel.csv`; Figure 6.2 (log waste vs log coverage, coverage derived
+  from water, said on the figure) with `table_6_2_...csv`.
+- **Why the composite fades while log waste doesn't** (exact decomposition: the FSOI event
+  coefficients equal the sum of the category contributions, asserted):
+  - From 2014–18 to 2022–24 the composite moves +0.0117 toward zero (27%). Municipal burden alone
+    contributes +0.0178; production and land use drift further negative (−0.0124); external input
+    adds +0.0062.
+  - Within municipal burden, the score effect fades 35% but log waste only 7% over those windows
+    (3% if 2020 is included in the late window, as in the decomposition cell). The cause is that
+    `log1p` is effectively linear at these units (max gap from x is 0.13%), and treated waste per
+    household fell (0.00144 → 0.00118). The same percentage jump therefore becomes a smaller
+    absolute score gap.
+- **`log1p` is ~linear (Pearson > 0.99 with raw) for 14 of 28 normalised columns.** Skew is
+  essentially unchanged for all the per-household land-use columns and for waste. The methods text
+  must not claim the log step reduces skew across the board. Whether to change units or use
+  `log(x)` is Orhan's call; it is rank-preserving either way.
+- **Animal-product break:**
+  - The PROVINCIAL series is the one that breaks. 2010→2012: national ×1.06 and live animals
+    ×1.12, but the provincial sum ×0.41.
+  - Lead (unverified on TÜİK itself): Kırklareli Governorate yearbook footnote, citing TÜİK, says
+    that from 2011 animal-product value excludes red meat, white meat, eggs and hides.
+  - The break is not uniform: per-province ratio p10 0.25 to p90 0.57. Hardest hit are poultry
+    provinces (Bolu 0.05, Manisa 0.10, Sakarya 0.13, Bilecik, Balıkesir). Groups differ (Kruskal–
+    Wallis p = 0.025): old-metro mean 0.36, new-metro 0.43, non-metro 0.46.
+- **Figure 1 retitled** (it was the superseded "fade after 2019" reading).
+
+**Correction to this note:** the "Winsorising: why 1st/99th" table below gives 74.6% (1/99) for
+greenhouse output *per area*. The current notebook prints 49.4% for that indicator; 74.6% is
+*waste* per area. The table is stale and mislabelled; the notebook cell "Choosing the winsorising
+bounds" is authoritative.
+
+**Still open:** more maps (Orhan: later, during writing); whether the thesis keeps animal products
+in market given the break (Orhan's call); Figure 1's title in the main notebook still says "fade
+after 2019", the superseded score-scale reading. Fine as a working figure, not for the thesis.
+
 # Writing-ready summary (verified 2026-09-28)
 
 Full end-to-end run of `fsoi_indicator_selection.ipynb` on 2026-09-28: **168 cells, 0 errors,

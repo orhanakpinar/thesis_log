@@ -1,0 +1,19 @@
+﻿indicator,category,direction,panel,source,source table,source column,transformation
+total_agro_production_ton,production,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tahıllar ve diğer bitkisel ürünlerin üretim miktarı (ton),Toplam,tonnes
+agro_greenhouse_prod_ton,production,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Örtü altı sebze ve meyve üretimi (ton),Toplam,tonnes
+landuse_core,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tahıllar ve diğer bitkisel ürünlerin hasat edilen alanı (hektar),Toplam,hectares to km2; mean of the two after min-max scaling (r = 0.99)
+landuse_core,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,İşlenen tarım alanı / Ekilen (hektar),hectares to km2; mean of the two after min-max scaling (r = 0.99)
+landuse_fallow_km2,land use,cost,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,İşlenen tarım alanı / Nadas (hektar),hectares to km2
+landuse_greenhouse_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Niteliklerine göre örtü altı tarım alanları (dekar),Toplam,decares to km2
+landuse_longtermCrops_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,Toplam uzun ömürlü bitkilerin alanı (hektar),hectares to km2
+landuse_vegetables_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,İşlenen tarım alanı / Sebze (hektar),hectares to km2
+wasteCollected_1000ton,municipal burden,cost,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Belediye atık istatistikleri,Toplanan atık miktarı (1000 ton),1000 tonnes
+water_drainage,municipal burden,cost,extended (to 2022),TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),İçme ve kullanma suyu şebekesi ve arıtma tesisleri,Toplam çekilen su miktarı (1000 m3/yıl),1000 m3
+fertilizer_use,external input,cost,main,"Tarım ve Orman Bakanlığı, TOB_fertilizer_cities.xlsx, sheet 'BİTKİ BESİN MADDESİ TÜKETİMİ'",,TOPLAM BİTKİ BESİN MADDESİ,"tonnes of plant nutrient; Hakkari 2020-2024 absent, set to 0"
+electricity_agriculture_mwh,external input,cost,extended (to 2022),TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Kullanım yerlerine göre elektrik tüketimi,Tarımsal faaliyetler (MWh),MWh
+agro_crop_1000USD,market,benefit,extended (to 2020),TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tarımsal üretim değeri,Bitkisel üretim değeri  (1000 TL),1000 TL / USD-TRY rate
+agro_livestock_1000USD,market,benefit,extended (to 2020),TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tarımsal üretim değeri,Canlı hayvanlar değeri (1000 TL),1000 TL / USD-TRY rate
+agro_animalproducts_1000USD,market,benefit,extended (to 2020),TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tarımsal üretim değeri,Hayvansal ürünler değeri (1000 TL),1000 TL / USD-TRY rate; provinces sum to the national total only in 2008-2010 (section 2)
+(denominator) households,-,-,all,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Adrese Dayalı Nüfus Kayıt Sistemine göre yaş grubu ve cinsiyete göre nüfus,Toplam,population / mean household size
+(denominator) households,-,-,all,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Ortalama hanehalkı büyüklüğü,Ortalama hanehalkı büyüklüğü,population / mean household size
+(denominator) area,-,-,all,"Harita Genel Müdürlüğü, İl ve ilçe yüzölçümleri (Türkiye_Municipal_Areas.xlsx)",,ALAN (km²),"km2, province level, constant over time"
