@@ -520,6 +520,66 @@ about this index, not necessarily a refutation of whatever the original analysis
 state it that way. **Consequential for `writing_drafts/`: if any prose already drafted the
 old national-decline claim as a finding, it needs to be held pending Orhan's review, the
 same as the group-ordering reversal in Result 1 above.**
+**Scope — the full index (C) DOES decline (found by `thesis_log_writingdrafts_agent`
+2026-10-01, `writing_drafts/scripts/descriptive_tables.py`; reproduced by the main agent
+from `fsoi_track_C_perHousehold.csv`).** Provincial mean 0.494 (2008) → 0.474 (2020), 68%
+of 81 provinces end lower. Category contributions (Δ/5, summing to −0.021): **market
+−0.025** (0.466 → 0.342, peaking 2010), external input −0.010, land-use −0.004, offset by
+municipal burden +0.012 and production +0.006. So market alone is larger than the net fall;
+the other four net to about +0.004. (Municipal burden is cost-framed: its *score* rising
+means measured burden per household fell.) Market is USD-valued, so lira depreciation is a
+plausible driver — **an inference, not tested** (no deflated/TL-terms check has been run).
+Correct statement: **no decline on the long-panel index; the full index declines, driven by
+the USD-valued market category.** It also offers one candidate reason the PDF's old
+"national decline" appeared, since that index included dollar-valued output — untested.
+**Explained (2026-10-01, econometrics notebook, "Further checks and thesis outputs"):** the
+full-index decline is **the dollar plus a TÜİK series break, not provinces diverging.**
+TÜİK's provincial **animal-product value** series has a coverage break — provinces sum to
+the national total in 2008/2010 but only to 38–60% of it from 2012 on (crop and livestock
+value sum exactly) — which manufactures market's 2010 "peak". Full-index change 2008→2020:
+USD as built −0.021; USD without animal products −0.014; relative to the national value
+each year (currency- and inflation-free) −0.003; relative without animal products +0.004.
+**Do not describe the full-index decline as a food-sovereignty decline.** New-metro is
+lowest in 2020 under all four versions. A real-terms TL check would need a price index not
+in the repo. The animal-product break is a data-quality issue the market category carries
+in every full-index use — state it in the measurement chapter.
+**Break characterised (2026-10-01, notebook "Chapter 6 outputs and the animal-product
+break"):** the **provincial** series is under-counted (national row grows ×1.06 2010→2012,
+provincial sum falls to ×0.41). **Not uniform:** per-province ratio p10 0.25 / median 0.45
+/ p90 0.57, poultry provinces hit hardest (Bolu 0.05, Manisa 0.10, Sakarya 0.13); group
+means old-metro 0.36, new-metro 0.43, non-metro 0.46 (Kruskal–Wallis p=0.025) — **it
+penalises old-metro most**, which bears on the aggregation-dependent non/old-metro ordering.
+Candidate explanation (a footnote that meat, poultry, eggs and hides are excluded from 2011
+on, quoted from a governorate yearbook citing TÜİK) is **unverified at TÜİK — don't cite
+until checked.**
+**DECIDED (Orhan, 2026-10-02): animal-product value is DROPPED from the index** (market =
+crop + livestock value only); it may go to an annex. Every full-index number above that
+includes animal products (Result 1 group means, the 0.494→0.474 decline, TOPSIS orderings,
+Result 2 rank convergence) predates this decision and is **superseded** by the rebuild below.
+Long-panel index and DiD are unaffected (no market category).
+**Rebuilt full index, 13 pairs (2026-10-02, notebook re-run clean, 188 cells) — CURRENT:**
+2020 EW non 0.511 / old 0.446 / new 0.439; pooled 2008–2020 EW non 0.521 / new 0.466 /
+old 0.462 (old lowest by 0.004 → "new-metro lowest or tied-lowest" holds); TOPSIS 2020 old
+0.322 / non 0.318 / new 0.289 (old still leads). 2008→2020 change −0.014. Full vs.
+long-panel rank convergence mean ρ 0.761 (0.675–0.826). Descriptive LOCO: non−new gap
+shrinks 42% without municipal burden. With-vs-without-animal-products provincial ranks
+agree at ρ 0.983–0.989 every year (Appendix B tables B1/B2 in `thesis_outputs/`). Figures
+5.1/5.2 regenerated. **Flat weighting (1/13) on the rebuilt full index:** 2020 non 0.467 /
+old 0.414 / new 0.412; rank agreement with category weighting ρ 0.934–0.952.
+**"Lowest or tied-lowest" is SUPERSEDED by this precise wording:** "new-metro is lowest in
+every 2020 and long-panel view; in the full index averaged over 2008–2020, old-metro is
+marginally lowest (0.004 equal-weighted, 0.010 flat)." The flat gap is not a tie.
+**Open, Orhan deciding (2026-10-02) — either would change the long-panel index and DiD
+too, so hold final DiD prose:** (1) Hakkari's external-input score (0.999, ranks it 14th
+of 81 in 2020) comes from zero-filled missing fertiliser years — treat missing as missing,
+or measure fertiliser per km² cultivated. (2) `log1p` is near-linear for 14 of 28 columns —
+keep and describe honestly, or switch to a true log (rescale units or log(x + c)).
+**Methods caveat:** `log1p` is effectively linear (Pearson >0.99 with raw) for 14 of 28
+normalised columns because their units are tiny; don't write that the log step reduces skew
+across the board. The same linearity is why the composite DiD fades 27% (2014–18 →
+2022–24) while log waste fades only 7%: the municipal-burden *score* effect fades 35% as
+waste per household falls. State which late window a fade figure uses (3% = 2020–24,
+7% = 2022–24).
 
 **Parked, not pursued (2026-09-23):** the hypothesis that city-level production/land
 aggregates mask a smallholder-specific effect (large-farm output diluting a real
@@ -739,8 +799,12 @@ distinct — worth a sentence in the limitations section regardless of how Corre
 ultimately resolved.
 
 DiD section status (2026-09-25): **defensible first pass.** Correction 1 is a settled
-refinement; Correction 2 is resolved (real effect, coverage expansion). Only remaining open
-item: bootstrap for the non-primary specifications. Track C has no DiD of its own — Track
+refinement; Correction 2 is resolved (real effect, coverage expansion). **Bootstrap for all
+specifications done 2026-10-01** (wild cluster p): primary 0.004, size-matched 0.016, flat
+0.002, TOPSIS 0.005, per capita 0.007, waiver-years-excluded 0.025 — significant in 6/6.
+Data-quality spikes (Kırıkkale/Kırşehir waste 2012, Kırıkkale fertiliser 6.5×, Hakkari
+zero-filled fertiliser 2020–24, all control provinces): dropping them gives −0.0370 vs.
+−0.0373 — no effect. No open DiD items remain. Track C has no DiD of its own — Track
 A is the designated causal track per the settled two-track structure, so this is by design,
 not a gap.
 
