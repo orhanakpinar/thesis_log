@@ -1,7 +1,7 @@
 ﻿"""Descriptive tables for Chapter 5, computed from the FSOI exports of the econometrics notebook.
 
-Reads econometric_models_and_vars/fsoi_track_{C,A}_perHousehold.csv (full index = C,
-long-panel index = A). Descriptive only: no inference.
+Reads econometric_models_and_vars/fsoi_full_index_perHousehold.csv and
+fsoi_long_panel_index_perHousehold.csv. Descriptive only: no inference.
 """
 from pathlib import Path
 import pandas as pd
@@ -12,8 +12,8 @@ ECON = ROOT / "econometric_models_and_vars"
 GROUPS = ["Non-metropolitan", "Old-metropolitan", "New-metropolitan (2012)"]
 CATS_FULL = ["production", "land_use", "market", "external_input", "municipal_burden"]
 
-full = pd.read_csv(ECON / "fsoi_track_C_perHousehold.csv")
-long = pd.read_csv(ECON / "fsoi_track_A_perHousehold.csv")
+full = pd.read_csv(ECON / "fsoi_full_index_perHousehold.csv")
+long = pd.read_csv(ECON / "fsoi_long_panel_index_perHousehold.csv")
 prov_full = full[full["Treated_Label"].isin(GROUPS)]
 prov_long = long[long["Treated_Label"].isin(GROUPS)]
 
@@ -67,6 +67,15 @@ cat_trend = prov_full.groupby("Year")[CATS_FULL + ["FSOI"]].mean()
 contrib = (cat_trend.loc[2020, CATS_FULL] - cat_trend.loc[2008, CATS_FULL]) / len(CATS_FULL)
 assert abs(contrib.sum() - (cat_trend.loc[2020, "FSOI"] - cat_trend.loc[2008, "FSOI"])) < 1e-9
 
+# Rank shifts between the full and long-panel index, 2020 (Chapter 4, Section 4.3.1)
+def _rank2020(df):
+    return df[df["Year"] == 2020].set_index("Location_Name")["FSOI"].rank(ascending=False)
+
+
+rank_shift = pd.DataFrame({"full": _rank2020(prov_full), "long": _rank2020(prov_long)})
+rank_shift["shift"] = (rank_shift["full"] - rank_shift["long"]).abs()
+n_shift_over_25 = int((rank_shift["shift"] > 25).sum())
+
 # Category profiles of the bottom 10 and the national median, full index 2020
 bottom_profile = y20.tail(10).set_index("Location_Name")[CATS_FULL + ["FSOI"]]
 median_2020 = y20[CATS_FULL + ["FSOI"]].median()
@@ -90,4 +99,7 @@ if __name__ == "__main__":
     print("Contribution to FSOI change 2008-2020:\n", contrib.round(4).to_string(),
           "\n total", round(contrib.sum(), 4), "\n")
     print("Bottom 10 profiles, 2020\n", bottom_profile.to_string(float_format=fmt))
-    print("Median 2020\n", median_2020.to_string(float_format=fmt))
+    print("Median 2020\n", median_2020.to_string(float_format=fmt), "\n")
+    print("Rank shifts full vs long-panel, 2020 (top 5):\n",
+          rank_shift.sort_values("shift", ascending=False).head(5).to_string())
+    print("Provinces moving more than 25 places:", n_shift_over_25)

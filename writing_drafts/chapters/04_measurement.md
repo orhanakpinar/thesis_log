@@ -360,15 +360,18 @@ typical province. On a plain 0–1 scale they would sit near 1 while almost ever
 sat near 0. Taking the logarithm compresses these extremes. I use log(1 + x) so that zero
 values remain defined. The logarithm never changes a province's rank within an indicator; it
 only changes how far apart provinces are. I applied it to all indicators rather than only to the
-most skewed ones, so that no cutoff for "skewed enough" had to be chosen and defended. Averaged
-over all 28 indicator columns, it reduced the mean absolute skewness from 3.25 to 1.81. Its
-effect is uneven, however. For values much smaller than 1, log(1 + x) is almost equal to x, and
-many per-household values are of that size (waste per household, for example, is measured in
-thousands of tons). For 14 of the 28 columns the transformed values correlate above 0.99 with the
-raw ones, and their skewness is unchanged: for these, the logarithm does nothing, and winsorizing
-and scaling do all the work. Chapter 6 shows one consequence of this for reading the causal
-results. [VERIFY: recompute the skewness figures and the "14 of 28" count for the 26 columns
-left after animal products were dropped]
+most skewed ones, so that no cutoff for "skewed enough" had to be chosen and defended. Across
+the 26 indicator columns of the full index, it reduced the mean absolute skewness from 3.07 to
+1.87 (from 2.64 to 1.84 for the per-household columns alone). Its effect is uneven, however. For
+values much smaller than 1, log(1 + x) is almost equal to x, and many indicators are measured in
+units that make their values that small (waste per household, for example, is in thousands of
+tons). For 14 of the 26 columns, including 8 of the 13 per-household ones, the transformed values
+correlate above 0.99 with the raw values. For these indicators the logarithm is close to linear,
+so their scaling is in effect min-max scaling of winsorized raw values. The pattern follows the
+size of the values: the logarithm does real work for indicators with large values (production,
+market, agricultural electricity, and water per area), and is close to linear for every land-use
+indicator and for waste per household. Appendix C (Table C.1) reports the figures for each
+indicator. Chapter 6 shows one consequence of this for reading the causal results.
 
 **Step 2: winsorizing.** Values below the 1st percentile or above the 99th percentile of each
 indicator are set to those percentiles. This limits the influence of the few outliers the
@@ -509,7 +512,7 @@ flowchart LR
 ### 4.3.1 Two indices: full and long-panel
 
 TÜİK does not publish every indicator for every year. The market indicators stop in 2020,
-because provincial crop, live animal and animal product values were not published for 2022 or
+because provincial crop and live animal values were not published for 2022 or
 2024. Water drawn and agricultural electricity stop in 2022. All other indicators run to 2024.
 This leaves a choice between a complete index over a shorter period and a longer index with
 fewer categories. Rather than choose, I built both from the same pipeline, with the same
@@ -535,16 +538,16 @@ and how it is distributed across provinces. The **long-panel index** exists for 
 analysis. Law 6360 took effect in 2014, and the full index has only four time points after it,
 one of which (2020) is the first year of the COVID-19 pandemic. The long-panel index has six,
 enough to follow the effect over time. Both share the same three time points before the law
-(2008, 2010, 2012), so neither improves the pre-reform comparison.
+(2008, 2010, 2012), so neither improves the pre-reform comparison. The causal analysis is also
+repeated on the full index as a robustness check (Section 6.5).
 
 The two indices are not identical measures. In the long-panel index, municipal burden is
 measured by waste alone and external input by fertilizer alone, which is why these two
 indicators carry a quarter of the index each (Section 4.2.4). Their province rankings agree
-reasonably but not closely: rank correlations between the two indices range from 0.72 to 0.83
-across the seven shared years (mean 0.78), and some provinces move more than 25 places. Siirt,
-for example, ranks 20th on the full index in 2020 and 58th on the long-panel index. The two are
-therefore reported side by side, never substituted for each other. [VERIFY: recompute the rank
-correlations and the Siirt example on the rebuilt 13-indicator full index]
+reasonably but not closely: rank correlations between the two indices range from 0.68 to 0.83
+across the seven shared years (mean 0.76), and in 2020 eight provinces differ by more than 25
+places. Siirt, for example, ranks 21st on the full index in 2020 and 58th on the long-panel
+index. The two are therefore reported side by side, never substituted for each other.
 
 Missing years were not filled in. The gaps come from publication decisions, not from random
 missingness, and imputed values in the years after the reform would enter the causal analysis

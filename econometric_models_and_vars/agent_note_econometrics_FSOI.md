@@ -4,928 +4,335 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
+*Rewritten 2026-10-05 as one current-state document. Every number below was checked against a
+fresh end-to-end run that day (main notebook 200 cells, map notebook 15, 0 errors). The dated
+trail of how each result was reached, and the previous body of this note, are in
+`agent_note_econometrics_FSOI_history.md` — read it only to reconstruct or defend a step.*
 
 ---
 
-# HANDOFF — session change 2026-09-28
+# 1. Status
 
-Written by `thesis_log_econometrics_agent` at ~88% context, before Orhan starts a fresh session.
-The incoming session is continuous with this one: same scope (`econometric_models_and_vars/`),
-same open items. Per CLAUDE.md, notify `thesis_log_main_agent` when you pick this up.
+- **Analysis complete; no open analytical items.** Orhan is writing. Writing-strand requests
+  arrive via `thesis_log_main_agent`; confirm each with Orhan in this chat before acting.
+- **Possible later work (Orhan's call):** more maps during writing (they go in `fsoi_map.ipynb`).
+- **Working habits that paid off — keep them:**
+  - Compute every number in the cell that shows it; never paste a number into prose or a note
+    without a cell that prints it. Make printed conclusions conditional on the computed values.
+  - Verify before claiming: re-run and read the output. Several corrections in this strand came
+    from re-checking earlier readings (raw vs log scale, normalised vs raw, unlike objects compared).
+  - Edit notebooks through JSON scripts with anchored, assert-exactly-once replacements (the Read
+    tool can't open the main notebook). Execute with `jupyter nbconvert --execute --inplace`, check
+    for error outputs, then clear outputs. Re-read any shared file immediately before writing it.
 
-**State at handoff.** Analysis is complete and verified. Orhan has started writing the
-econometrics section. `fsoi_indicator_selection.ipynb` (168 cells) and `fsoi_map.ipynb` (13 cells)
-both run clean end to end (0 errors, 4 figures each), with outputs cleared. Every number in the
-summary below was checked against a fresh run on 2026-09-28. The history file is final.
+# 2. Decisions in force
 
-**Open items (none blocking):**
-1. **More maps.** Orhan said there may be a few more and will specify them. They go in
-   `fsoi_map.ipynb`, which reads `fsoi_track_C/A_perHousehold.csv`. Re-run the main notebook
-   first if the index changes, since its last cells export those CSVs.
-2. **Wild cluster bootstrap for non-primary specifications** (flat, TOPSIS, waiver-excluded,
-   per capita). It has been run only for the primary and size-matched specs. Optional; it won't
-   change a conclusion.
-3. **Requests from the writing strand** come relayed through `thesis_log_main_agent`. Confirm
-   with Orhan in your own chat before acting on a second-hand request.
+| Decision | Date |
+|---|---|
+| Two indices: **full index** (`FSOI_C`, 5 categories, 2008–2020) and **long-panel index** (`FSOI_A`, 4 categories, 2008–2024, the DiD index). Thesis uses these names; code keeps C/A. | 2026-09-21/28 |
+| Headline denominator **per household**; per area is a robustness track; the two are never averaged together. | 2026-09-22 |
+| Equal-weighted sum primary (categories equal, then indicators equal within category); TOPSIS, flat weighting, benefit framing are robustness checks. | 2026-09-13 |
+| Cost-framed ("lower is better"): waste, water, fertiliser, agricultural electricity, land-use fallow. | 2026-09-21 |
+| **Animal-product value dropped** from the full index (TÜİK provincial series breaks in 2012). Market = crop + livestock value; full index = **13 indicator pairs**. Animal products still built; annex only. | 2026-10-02 |
+| **Fertiliser stays per household, zeros kept.** Hakkari's top external-input score is a real, discussable case, not a fix. | 2026-10-05 |
+| **log1p kept**, described as: "log1p is applied; for indicators in small units it is close to linear, so for those the scaling is effectively min-max on winsorised raw values." | 2026-10-05 |
+| Winsorising 1st/99th; floor-bunching documented, not engineered away. | 2026-09-20 |
+| Wild cluster bootstrap with **999 draws**, following Cameron, Gelbach & Miller (2008), *Bootstrap-based improvements for inference with clustered errors*, Review of Economics and Statistics 90(3). No 9,999-draw run (see §3.2). Optional citation for choosing B so that α(B+1) is an integer: Davidson & MacKinnon (2000), *Bootstrap tests: how many bootstraps?*, Econometric Reviews 19(1) — not yet checked against the paper; verify before citing. | 2026-10-05 |
+| The 6360 critique is attributed to **ZMO** (Ziraat Mühendisleri Odası, a TMMOB member chamber). | 2026-10-05 |
 
-**Working habits that paid off here, keep them:**
-- Compute every number in the cell that shows it; scan print strings for hard-typed literals.
-- Verify before claiming: re-run, then read the output. Several of this strand's corrections came
-  from re-checking its own earlier readings (raw-level vs log scale, normalised vs raw, mismatched
-  objects in comparisons).
-- Anchor-assert every scripted edit (exactly one match) and re-read a file before editing it.
-  Other sessions edit shared files.
-- Notebooks: edit through JSON scripts (the Read tool can't open the main notebook, it's too
-  large), execute with `jupyter nbconvert --execute --inplace`, then clear outputs.
+# 3. Results (verified 2026-10-05)
 
-# Update 2026-10-01 (new session; notebook section "Further checks and thesis outputs")
+## 3.1 Descriptive — full index (13 pairs, per household)
 
-New session took over 2026-10-01 (previous one is `_old_03`, agreed not to edit). Full re-run and
-review of both notebooks: **0 errors, every headline number reproduced.** Main notebook now 179
-cells, map notebook 15. Added cells, all computing in place:
+- **2020 group means, equal-weighted:** non-metro 0.511, old-metro 0.446, new-metro 0.439.
+- **Which group is lowest/highest depends on the view.**
 
-1. **Wild cluster bootstrap for every spec** (Orhan approved): primary 0.004, size-matched 0.016,
-   flat 0.002, TOPSIS 0.005, per capita 0.007, waiver-years-excluded **0.025** (asymptotic 0.042).
-   6 of 6 significant. Open item 2 of the handoff is closed.
-2. **Market currency check** (Orhan approved; result not yet reviewed with him).
-   - **Coverage break in TÜİK provincial animal-product value:** the 81 provinces sum to the
-     national total in 2008/2010 but only 38–60% of it from 2012 on. Crop and livestock value sum
-     exactly, as do all other summable series. This break produces the 2010 "peak" in market.
-   - Full-index decline 2008→2020: USD as built −0.021; USD without animal products −0.014;
-     relative-to-national (currency- and inflation-free) −0.003; relative without animal products
-     +0.004. **The decline is a national-level USD movement plus the series break, not provincial
-     divergence.** National crop value 2012→2020: nominal TL 280, USD 77 (2012 = 100).
-   - New-metro is lowest in 2020 under all four versions.
-   - A real-terms TL version needs a price index that isn't in the repo.
-3. **Data quality:** one-year spike scan. Animal products 26 cases in 2010 (= the break); fallow,
-   greenhouse and agricultural electricity are noisy near zero; waste has 1 case (Kırıkkale 2012:
-   128, 133, **41**, 74; Kırşehir 2012 **143** looks off too). Kırıkkale's fertiliser per household
-   rises 6.5× 2008→2024. Hakkari's 2020–24 fertiliser is zero-filled. Dropping Kırıkkale,
-   Kırşehir and Hakkari (all controls): DiD −0.0370 vs −0.0373. No effect on the causal result.
-4. **Writing-strand answers:** r 0.988/0.048 = **drawn water**, Pearson, raw levels, pooled
-   province-years n = 648 (2008–2022); waste gives 0.995/0.163. Greenhouse 85.3%/79.0% = share of
-   **province-years** (n = 729) with normalised per-household value < 0.05. Exchange rates: the code
-   uses a hand-typed table, one rate per year; it cannot verify the first/last-day derivation.
-   Data appendix → `thesis_outputs/table_data_appendix_indicators.csv` (TÜİK columns asserted
-   against the CSV header).
-5. **Thesis figures** in `thesis_outputs/`: `fig_4_3_per_area_vs_per_household.png`,
-   `fig_5_1_full_index_2020_map.png` (from `fsoi_map.ipynb`), `fig_5_2_group_means_over_time.png`.
+  | View | Non | New | Old | Lowest |
+  |---|---|---|---|---|
+  | Full, 2020, equal-weighted | 0.511 | 0.439 | 0.446 | new |
+  | Full, 2020, TOPSIS | 0.318 | 0.289 | 0.322 | new |
+  | Full, pooled 2008–2020, equal-weighted | 0.521 | 0.466 | 0.462 | **old** |
+  | Full, pooled 2008–2020, TOPSIS | 0.321 | 0.303 | 0.329 | new |
+  | Long-panel, pooled 2008–2024, equal-weighted | 0.507 | 0.466 | 0.484 | new |
+  | Long-panel, pooled 2008–2024, TOPSIS | 0.336 | 0.322 | 0.366 | new |
 
-**Second round, same day (cells "Chapter 6 outputs and the animal-product break"; 186 cells, 0
-errors):**
-- **Figures and tables:** Figure 6.1 (event study, long-panel index) with
-  `table_6_1_event_study_long_panel.csv`; Figure 6.2 (log waste vs log coverage, coverage derived
-  from water, said on the figure) with `table_6_2_...csv`.
-- **Why the composite fades while log waste doesn't** (exact decomposition: the FSOI event
-  coefficients equal the sum of the category contributions, asserted):
-  - From 2014–18 to 2022–24 the composite moves +0.0117 toward zero (27%). Municipal burden alone
-    contributes +0.0178; production and land use drift further negative (−0.0124); external input
-    adds +0.0062.
-  - Within municipal burden, the score effect fades 35% but log waste only 7% over those windows
-    (3% if 2020 is included in the late window, as in the decomposition cell). The cause is that
-    `log1p` is effectively linear at these units (max gap from x is 0.13%), and treated waste per
-    household fell (0.00144 → 0.00118). The same percentage jump therefore becomes a smaller
-    absolute score gap.
-- **`log1p` is ~linear (Pearson > 0.99 with raw) for 14 of 28 normalised columns.** Skew is
-  essentially unchanged for all the per-household land-use columns and for waste. The methods text
-  must not claim the log step reduces skew across the board. Whether to change units or use
-  `log(x)` is Orhan's call; it is rank-preserving either way.
-- **Animal-product break:**
-  - The PROVINCIAL series is the one that breaks. 2010→2012: national ×1.06 and live animals
-    ×1.12, but the provincial sum ×0.41.
-  - Lead (unverified on TÜİK itself): Kırklareli Governorate yearbook footnote, citing TÜİK, says
-    that from 2011 animal-product value excludes red meat, white meat, eggs and hides.
-  - The break is not uniform: per-province ratio p10 0.25 to p90 0.57. Hardest hit are poultry
-    provinces (Bolu 0.05, Manisa 0.10, Sakarya 0.13, Bilecik, Balıkesir). Groups differ (Kruskal–
-    Wallis p = 0.025): old-metro mean 0.36, new-metro 0.43, non-metro 0.46.
-- **Figure 1 retitled** (it was the superseded "fade after 2019" reading).
+  Flat weighting, full index: 2020 non 0.467 / old 0.414 / new 0.412; pooled old 0.428 < new 0.438.
+  **Wording:** "New-metro is lowest in 2020 and on the long-panel index; on the full index
+  averaged over 2008–2020, old-metro is marginally lowest (by 0.004 equal-weighted, 0.010 flat).
+  Which of non-metro and old-metro leads depends on the aggregation method."
+- **These are group means, not treatment effects.** The group spread sits mostly in municipal
+  burden (2020: non 0.744 / old 0.563 / new 0.536). Removing it, non-metro still leads every year
+  but the non−new gap shrinks 42% (0.055 → 0.032).
+- **Full-index change 2008→2020:** provincial mean 0.499 → 0.486 (−0.014); market contributes
+  −0.018. Re-expressed relative to the national value each year (no currency or inflation):
+  −0.003. **Not a food-sovereignty decline:** it is the dollar, and before the drop also the
+  animal-product break.
+- **No national decline on the long-panel index:** common trend +0.00195/yr (p < 0.0001) with
+  municipal burden; −0.00007/yr (p = 0.844) without.
+  - **Why it rises** (cell "Why does the long-panel index rise?"): the provincial mean goes
+    0.493 → 0.516 (+0.023) from 2008 to 2024.
+  - Contributions: municipal burden +0.0325, production +0.0072, land use −0.0046, external input
+    −0.0121.
+  - So the rise is municipal burden. Nationally, households grew +54.6% (household size 4.0 → 3.1)
+    against waste +32.5%, so waste per household fell 14.3% and the cost-framed score rose.
+  - **This is a household-size effect, not improving food sovereignty.** Excluding it, the index is
+    flat.
+  - **Waste is not falling** (cell "Is waste really falling?"). Türkiye 2008→2024: waste +32.5%,
+    population +19.8%, households +54.6%. Waste per person **+10.6%**, per household −14.3%.
+    Household growth (log 0.435) is 41% more people and 59% smaller households (size 4.0 → 3.1;
+    TÜİK gives 2008 as a whole number, so that split is coarse).
+  - **The trend depends on the denominator.** Long-panel index common trend: per household
+    +0.00195/yr (p < 0.001); per capita **−0.00096/yr (p = 0.051)**, borderline negative, with
+    municipal burden falling 0.626 → 0.568.
+  - **So the honest national statement is "no robust national trend"**: slightly up per household,
+    because households shrink; slightly down per capita, because waste per person rises. Never
+    "food sovereignty rose". The provisional PDF's "national decline" does
+  not replicate on this pipeline.
+- **Rank agreement:**
+  - Full vs long-panel index: Spearman mean 0.761 across 2008–2020 (0.675–0.826). Related, not
+    interchangeable.
+  - Category-weighted vs flat: 0.934–0.952 by year on the full index, but 0.681 on the long-panel
+    index. Flag this: long-panel rankings are more weighting-sensitive.
+  - With vs without animal products: 0.983–0.989. 2020 top-10 overlap 9/10, bottom-10 10/10.
+- **Hakkari** (notebook cell "Hakkari in the full index"): full-index rank 6th in 2008 and 2010,
+  then 9th, 16th, 13th, 21st, and 14th in 2020. Its external-input score is the highest of all
+  provinces in 6 of 7 years (3rd in 2010, 11th in 2018), while production (~0.2–0.3) and land use
+  (~0.3) are low. Fertiliser is zero or near-zero even in years the Ministry file reports it;
+  2020–24 are absent from the file and treated as zero.
 
-**Correction to this note:** the "Winsorising: why 1st/99th" table below gives 74.6% (1/99) for
-greenhouse output *per area*. The current notebook prints 49.4% for that indicator; 74.6% is
-*waste* per area. The table is stale and mislabelled; the notebook cell "Choosing the winsorising
-bounds" is authoritative.
+## 3.2 Causal — DiD on the long-panel index
 
-**Still open:** more maps (Orhan: later, during writing); whether the thesis keeps animal products
-in market given the break (Orhan's call); Figure 1's title in the main notebook still says "fade
-after 2019", the superseded score-scale reading. Fine as a working figure, not for the thesis.
+**Design:** two-way fixed effects (province + year), `FSOI ~ Treated×Post`, Post = 2014 onward
+(pre-period 2008/2010/2012), control = non-metro only (old-metro got a weaker version of the
+boundary change), cluster-robust SE by province, 14 treated / 51 control.
 
-# Writing-ready summary (verified 2026-09-28)
+- **Primary: −0.0373** (SE 0.0126, p = 0.0031, 95% CI [−0.062, −0.012], n = 585). Wild cluster
+  bootstrap p = 0.004.
+  *Approved thesis sentence (Orhan, 2026-09-29):* "Because only 14 provinces are treated,
+  conventional cluster-robust standard errors may overstate significance (Bertrand, Duflo &
+  Mullainathan, 2004); inference is therefore confirmed with a wild cluster bootstrap with
+  restricted residuals and Rademacher weights (Cameron, Gelbach & Miller, 2008), 999
+  replications, which yields p = 0.004."
+- **Every specification, wild-bootstrap p (all significant):**
 
-Full end-to-end run of `fsoi_indicator_selection.ipynb` on 2026-09-28: **168 cells, 0 errors,
-4 figures**; every number below is printed by a notebook cell. Details and caveats for each are
-in Part 1; this is the map.
+  | Spec | Coef | Bootstrap p |
+  |---|---|---|
+  | primary | −0.0373 | 0.004 |
+  | size-matched control (28 clusters) | −0.0351 | 0.016 |
+  | flat weighting | −0.0267 | 0.002 |
+  | TOPSIS | −0.0249 | 0.005 |
+  | per capita | −0.0369 | 0.007 |
+  | waiver years excluded (n = 390) | −0.0342 | 0.025 |
 
-**Names used in the thesis:** Track C = **full index** (5 categories, 14 indicator pairs,
-2008–2020); Track A = **long-panel index** (4 categories, 9 pairs, 2008–2024). Code keeps
-`FSOI_C` / `FSOI_A`. Categories: production, municipal burden (water + waste), external input
-(fertiliser + agricultural electricity), market, land use. Headline denominator: per household.
+  Monte Carlo error at 999 draws is about ±0.005 at p = 0.025, so 9,999 draws would change nothing.
+  Benefit framing flips the sign (+0.031) by construction; not new evidence.
+- ⭐ **ROBUST FINDING — the DiD is the same on both indices.** Long-panel −0.0373 and full index
+  −0.0375, built from different category sets (four vs five, with and without market and water)
+  over different years (2008–2024 vs 2008–2020). Both have clean pre-trends and are significant
+  under the wild bootstrap. The effect does not depend on which index definition is used.
+- **Full-index counterpart (robustness, Figure 6.1b, `table_6_1b`):** DiD −0.0375 (SE 0.0069,
+  p < 0.001; wild bootstrap: none of 999 draws as extreme, so p < 0.001), n = 455.
+  - Event study: 2008 −0.002 and 2010 −0.002 (pre-trends clean); 2014 −0.029, 2016 −0.039,
+    2018 −0.046, 2020 −0.040.
+  - Same size as the long-panel estimate.
+  - Its municipal burden includes water and waste, so the same coverage mechanism applies.
+- Figure y-axes read "DiD effect … (new-metro − non-metro gap, minus its 2012 value)".
+- **Event study** (relative to 2012; `table_6_1`): 2008 −0.009, 2010 −0.002 (pre-trends clean on a
+  two-point test); 2014 −0.041, 2016 −0.046, 2018 −0.045, 2020 −0.049, 2022 −0.038 (p = 0.015),
+  2024 −0.026 (p = 0.15).
+- **The effect is municipal burden.**
+  - Without municipal burden the estimate is +0.0085 (p = 0.224).
+  - Each category alone: municipal burden −0.175 (p < 0.0001); land use −0.023 (p = 0.003);
+    external input +0.048 (p = 0.004); production −0.0002, 95% CI [−0.0225, +0.0220], a tight null.
+  - **Not defensible:** "Law 6360 reduced food sovereignty."
+- **Mechanism: municipal coverage expansion, one-for-one.**
+  - Log DiD on raw waste collected +0.260 (~30%); on the implied coverage share +0.259
+    (ratio 1.00); size-matched ratio 1.06. Same year-by-year path.
+  - Household count +2% (p = 0.37), household size +3% (p = 0.21): the denominator is not the story.
+  - Waste per covered resident did not change: municipalities recorded waste for ~30% more people.
+  - Coverage is **derived from water** (annual water drawn ÷ (365 × water drawn per person per day
+    in municipalities), as a share of provincial population). It is an indicator, not a count;
+    say so wherever it is used (Figure 6.2's caption does).
+- **Why the composite fades while waste does not** (exact decomposition, asserted).
+  - **Window (decided by Orhan, 2026-10-07):** always 2014–18 (waiver years) vs 2020–24
+    (all post-waiver years). Never drop 2020; the earlier 2022–24 comparison was ungrounded.
+  - **Composite:** moves +0.0061 toward zero, a 14% fade. Municipal burden contributes +0.0140,
+    more than all of it; production (−0.0041) and land use (−0.0059) drift further negative;
+    external input +0.0021.
+  - **Cause:** the municipal-burden score fades 27% while log waste fades only 3%. log1p is
+    effectively linear at these units and treated waste per household fell, so the same percentage
+    jump becomes a smaller absolute gap.
+- **Land use (−0.0226), by indicator:**
+  - Score scale: fallow −0.0108 (about half; more fallow in treated; the only one significant
+    alone, p = 0.021), vegetables −0.0068, long-term crops −0.0039, greenhouse −0.0021, core
+    cropland +0.0009.
+  - Raw logs: nothing significant (fallow +26% p = 0.31, vegetables −11% p = 0.24, harvested area
+    −3% p = 0.67).
+  - **Reading:** no farmland loss; a weak, diffuse shift toward fallow. Too weak to carry the ZMO
+    argument as a finding.
+- **Water and the tariff waiver:** water-alone DiD −0.168 (p = 0.0001). In logs, water fades 23%
+  after 2019 against waste's 3%. So the waiver remains possible for water only; it is not testable
+  cleanly, because coverage is derived from water. 2020 is also COVID.
+- **Robustness to size:** the 14 largest non-metros (Afyonkarahisar 704k … Yozgat 453k, 2012) all
+  sit below the smallest treated province (Ordu 741k). The median size gap narrows from 3.02× to
+  1.76×. A truly size-overlapping control group is impossible; say so.
+- **Data-quality sensitivity:** dropping Kırıkkale (waste 2012 = 41 between 133 and 74), Kırşehir
+  (waste 2012 = 143) and Hakkari (zero fertiliser), all controls: −0.0370 vs −0.0373.
+- **Per area is not a usable DiD track once normalised.** Per-area DiD −0.0003 (p = 0.949) is
+  scale compression: only 0.9% of the per-area waste score's variance is within-province (34% per
+  household). Within-province SD is 10.7× smaller; the municipal-burden coefficient is 10.9× smaller.
 
-1. **Descriptive:** new-metropolitan provinces score lowest or tied-lowest in every view
-   tried. Which of non-metro / old-metro leads depends on the aggregation method (equal-weighted
-   sum: non-metro; TOPSIS: old-metro).
-2. **Causal (long-panel, DiD):** −0.0373 (p = 0.003; wild-cluster bootstrap p = 0.004), carried
-   entirely by municipal burden. Production: tight null, 95% CI [−0.022, +0.022]. Land use −0.023
-   and external input +0.048: small, opposite, real.
-   *Suggested thesis sentence (approved by Orhan, 2026-09-29):* "Because only 14 provinces are
-   treated, conventional cluster-robust standard errors may overstate significance (Bertrand,
-   Duflo & Mullainathan, 2004); inference is therefore confirmed with a wild cluster bootstrap
-   with restricted residuals and Rademacher weights (Cameron, Gelbach & Miller, 2008), 999
-   replications, which yields p = 0.004."
-3. **Mechanism:** raw waste collected +30% in treated provinces, equal to the jump in municipal
-   coverage (log DiD 0.260 vs 0.259). Law 6360's clearest footprint is the extension of municipal
-   service coverage — not household burden, not food sovereignty.
-4. **Robust to:** flat weighting, TOPSIS, waiver-years exclusion, per-capita denominator,
-   size-matched controls (though no true size overlap exists).
-5. **Does not replicate:** the provisional PDF's "national decline" — the long-panel index rises
-   slightly with municipal burden included and is flat without it.
-6. **Limitations to state:** three pre-treatment points; small population-growth differential;
-   treated and control never overlap in size; normalised per-area is unusable for DiD (scale
-   compression); water fades 23% in logs, so the tariff waiver remains possible for water only.
+**Limitations to state:** only three pre-treatment points; a small population-growth differential
+(log population DiD +0.051; one pre-period coefficient, 2008, significant); treated and control
+never overlap in size; old-metro contaminated as a control for municipal services (implied coverage
++0.089 at the reform vs +0.226 new-metro, −0.020 non-metro).
 
-**Notebook text (2026-09-28, per Orhan):** both notebooks now say "full index" / "long-panel
-index" in all visible text (markdown, printed output, plot titles, labels); code identifiers
-are unchanged. Markdown states final positions only, with no correction narration. The full
-trail of how each result was reached lives in `agent_note_econometrics_FSOI_history.md`.
-This note still uses "Track C/A" in places; the mapping above applies.
+# 4. Measurement facts the methods chapter needs
 
-**Two things never to re-derive:** (a) per area ≈ population density across cities but clean
-within a city; per household the reverse — never combine them in one aggregation. (b) Every
-claim is computed by the cell that shows it — no pasted numbers.
+**Diagnostics 1–8** (notebook section "Diagnostics"; each is printed by its own cell):
+1. **Why per area correlates and per household doesn't.** Population density spans 288× across
+   province-years; water per person 5.3× and waste per person 4.7×. Per area against density:
+   water 0.986, waste 0.995. Water against waste: 0.977 per area but 0.210 per household. A high
+   per-area correlation is therefore weak evidence of redundancy.
+2. **Coverage confound.** Implied municipal population share (water total ÷ per-person rate),
+   2012→2014: new-metro +0.226, old-metro +0.089, non-metro −0.020. This is the reason the
+   per-person water series was dropped and old-metro is not a clean control for municipal services.
+3. **Refined water is an infrastructure measure.** Provinces reporting exactly zero fell from 27
+   (2008) to 9 (2022), against 0 of 648 for drawn water. Refined was dropped; drawn kept.
+4. **Per household vs per capita.** Spearman between the two rankings: harvested land 0.959, crop
+   production 0.965, greenhouse output 0.996, waste 0.640, water 0.752. The choice matters only for
+   the municipal services; a per-capita robustness track replicates the DiD (−0.0369).
+5. **Water trajectory** (descriptive only). Treated provinces' drawn water per household breaks
+   upward at 2014, peaks in 2018, falls by 2022; controls stay flat. Confounded by COVID and by
+   coverage.
+6. **The two denominators are contaminated in opposite dimensions.** Across provinces, per area
+   tracks density (0.988) and per household doesn't (0.048). Within a province over time, per area
+   equals the raw total (r = 1.000, all provinces) while per household drifts (median r = 0.717).
+   Hence the denominators are never averaged together.
+7. **Household size vs score** (full index, 2020). Spearman with FSOI −0.267, with municipal burden
+   −0.504, within non-metros only −0.053. Mostly a between-group pattern. Household size shows no
+   differential trend in the DiD (log +0.029, p = 0.21).
+8. **Industrialisation does not explain high water use** (cell added 2026-10-05). Non-agricultural
+   electricity per household vs drawn water per household, n = 648: Pearson −0.045, Spearman
+   −0.025. *An older figure, "about −0.27", sat in the notebook's markdown with no computing cell;
+   it was wrong and has been replaced. The conclusion is unchanged.*
 
-# PART 1 — CURRENT STATE (read this first)
 
-*Structure of this file (reorganised 2026-09-19, per Orhan): **Part 1** is the live picture —
-open decisions and the current variable inventory. **Part 2** is stable reference material that
-is still true. **Part 3** is the dated process record, kept for traceability but not current.
-When these disagree, Part 1 wins.*
+- **Per area tracks density; per household doesn't.** Drawn water, pooled province-years (n = 648,
+  2008–2022), Pearson with population density: per area 0.988, per household 0.048 (waste:
+  0.995 / 0.163). Within a province over time the reverse holds: per area is the raw total rescaled
+  by a constant (r = 1.000), per household drifts with household size. Figure 4.3.
+- **Normalisation:** log1p → winsorise 1/99 (cities only) → pooled min-max 2008–2024, Türkiye placed
+  on the scale. Cost flips applied at aggregation.
+  - On the 26 index columns: mean |skew| 3.07 → 1.87. log1p is near-linear (Pearson > 0.99 with
+    raw) for 14 of 26: every land-use column and waste per household, because their units are tiny.
+  - It does real work for production, market, agricultural electricity and water per area.
+    Per-column table: `table_B3`.
+- **Greenhouse floor-bunching:** share of province-years (n = 729) with normalised value < 0.05 —
+  greenhouse land per household 85.3%, greenhouse output per household 79.0%, greenhouse land per
+  area 85.2%, waste per area 74.6%.
+- **Exchange rates:** one USD/TRY rate per year, typed into the Transformations cell (documented as
+  the average of the Central Bank's first- and last-day rates). The code cannot verify the
+  derivation, only its use.
+- **Animal-product break (annex):**
+  - Provinces sum to the national total in 2008/2010, then 0.385, 0.604, 0.436, 0.492, 0.554
+    (2012–2020).
+  - The provincial series is the one that breaks (national ×1.06, provincial sum ×0.41, 2010→2012).
+  - Per-province break ratio: p10 0.25, median 0.45, p90 0.57. Poultry provinces are hit hardest
+    (Bolu, Manisa, Sakarya). By group: old 0.36, new 0.43, non 0.46 (Kruskal–Wallis p = 0.025).
+  - Candidate explanation (meat, poultry, eggs and hides excluded from 2011, per a governorate
+    yearbook citing TÜİK) is **unverified at TÜİK**.
+- **Noisy indicators** (one-year spikes > 2×): fallow, greenhouse and agricultural electricity are
+  noisy near zero; waste has one case.
 
-## Where things stand (2026-09-19)
+# 5. Thesis outputs (`thesis_outputs/`)
 
-**Water is settled.** Refined (*arıtılan*) dropped — it records whether a treatment plant exists
-(27/81 cities reported exactly zero in 2008, 9/81 by 2022; drawn water has 0 zeros in 648
-city-years), so in a cost-framed category it would also point the wrong way. The main panel's
-per-person daily series is dropped too: TÜİK computes it per person *in municipalities*, and Law
-6360 moved that base for treated cities in 2014 (+0.226 vs −0.020 for non-metros), so it carried
-the reform in its own denominator. **Water is now the extended panel's annual drawn series alone,
-as a symmetric `water_drainage_perArea` / `water_drainage_perHousehold` pair.** This costs no
-coverage — both series were missing exactly 2024 — and it restores the main panel to **zero gaps**.
-Consequence: the main panel carries no water column; water sits in extended, as market already did.
-**Terminology: always "refined", never "treated"** (collides with the `Treated` status variable).
-
-**Process failure worth recording.** The first version of the Diagnostics cells contained numbers
-computed in an external scratch script and pasted in as hardcoded literals, with a static
-"CONFIRMED" string — the cells checked nothing and would have gone stale silently. Caught by Orhan,
-2026-09-19. They now compute everything from `diagnostic_raw`, a snapshot taken before the raw
-columns are dropped. Recomputed values matched. Both correlation heatmap cells were also deleted
-outright (not just their outputs) since the printed table carries the same information.
-
-**What `implied municipal population` is, and is not.** It inverts TÜİK's own published per-person
-rate — `annual total ÷ (daily rate × 365)` — to recover the population base TÜİK used, then
-expresses it as a share of provincial population. Validity checks pass: the share never exceeds
-1.003 (0 of 648 values above 1.05), and pre-reform it reads sensibly as a municipal-population
-share (non-metro 0.713, old-metro 0.888 — the more urbanised group is higher). **It says nothing
-about tariffs, and nothing about informal or private water use** (wells, boreholes, irrigation
-outside the municipal network), which sit outside both series entirely. Its usefulness as an
-urbanisation control is limited to the pre-2014 period: after the reform, metros saturate at ~1.0
-and it becomes purely a coverage indicator.
-
-**Household-count algebra — a correction worth keeping.** `Mean_Household_Count ~
-Mean_Household_Size` is only **−0.11** across the panel, not the ≈−0.99 the construction
-`Count = Population / Size` suggests: population varies 214× across cities while household size
-varies 3.4×, so Count tracks population (r = 0.992) and the inverse link is swamped. **But within a
-single city over time it *is* ≈−0.99** (Konya −0.991, Şırnak −0.990, Çanakkale −0.987). That matters
-because a DiD identifies off within-city variation, so the household-size trend is the dominant
-driver of the denominator in exactly the dimension the estimate uses — which is why the
-treated-vs-control household-size trend check mattered (gap −0.045, small; see Part 2 briefing).
-
-**The per-capita equity objection, measured and accepted.** Spearman between perHousehold and
-perCapita rankings: greenhouse output 0.996, crop production 0.965, harvested land 0.959 — but
-**waste collected 0.640, water drawn 0.752**. So the objection has little force for land/production
-indicators (where the household is anyway the farming unit) and real force for municipal-service
-indicators, which are consumption quantities experienced per person. **Agreed with Orhan
-(2026-09-19): keep perHousehold as the structural denominator and add a perCapita variant for
-water/waste to the robustness-check list.** Implemented 2026-09-24 as a full per-capita
-track; it replicates per household almost exactly (DiD −0.0369 vs −0.0373).
-
-## Denominators: the two tracks are contaminated in opposite dimensions (2026-09-19/20)
-
-The single most important structural fact for interpreting the index. `Area_km2` is **constant
-within a city** (0 of 81 vary; merged from HGM on name with no year key). `Mean_Household_Count`
-is **not** — households multiply as household size shrinks.
-
-| | across cities (ranking) | within a city over time (DiD) |
+| File | Content | Made by |
 |---|---|---|
-| **perArea** | ≈ population density, r = **0.988** ✗ | pure numerator, r = **1.000** with the raw total (100% of cities) ✓ |
-| **perHousehold** | free of density, r = **0.048** ✓ | drifts, r = **0.72** with the total (only 1% of cities above 0.99) ✗ |
+| `fig_4_3_per_area_vs_per_household.png` | per area vs per household against density | main nb |
+| `fig_5_1_full_index_2020_map.png` | full index 2020, new-metro outlined | `fsoi_map.ipynb` |
+| `fig_5_2_group_means_over_time.png` | group means, both indices, reform shaded | main nb |
+| `fig_6_1_event_study_long_panel.png` + `table_6_1_...csv` | DiD event study | main nb |
+| `fig_6_1b_event_study_full_index.png` + `table_6_1b_...csv` | DiD event study, full index (robustness) | main nb |
+| `fig_6_2_waste_and_coverage.png` + `table_6_2_...csv` | log waste vs log coverage | main nb |
+| `table_B1_full_index_with_without_animal_products.csv` | annex comparison | main nb |
+| `table_B2_animal_products_break.csv` | break characterisation | main nb |
+| `table_B3_skew_by_indicator.csv` | skew per index column | main nb |
+| `table_data_appendix_indicators.csv` | exact TÜİK/TOB/HGM source columns | main nb |
 
-Population density spans 288× across cities while the behaviour measured spans ~5×, which is why
-perArea collapses onto density. Within a city, density barely moves (CV 0.046) — it separates
-cities, not years.
+*(Renamed 2026-10-06 from `fsoi_track_C/A_perHousehold.csv`. The old files are left in place,
+identical, until the writing strand's `descriptive_tables.py` switches to the new names; then
+delete them.)*
+The main notebook also exports `fsoi_full_index_perHousehold.csv` and `fsoi_long_panel_index_perHousehold.csv`,
+which `fsoi_map.ipynb` reads; re-run the main notebook first whenever the index changes.
 
-**Which track for what.** In a DiD with city fixed effects, the between-city density that spoils
-perArea is *absorbed* by the fixed effects, whereas perHousehold's within-city denominator drift is
-*not* — so perArea is mechanically the cleaner causal track. But perArea is close to meaningless as
-a published level (it would rank cities by density), and food sovereignty is a household-level
-construct.
+**Map data source:**
+- Province boundaries: HDX "Türkiye — Subnational Administrative Boundaries" (`cod-ab-tur`,
+  admin-1, OCHA). The original source is **Harita Genel Müdürlüğü**, the same agency as the area
+  data. Licence CC BY-IGO.
+- `fsoi_map.ipynb` downloads the boundaries once, simplifies them (0.01°), and caches them at
+  `geo/tur_admin1_simplified.geojson`.
+- Province names are matched on a Turkish-folded key, asserted 81/81 both ways.
+- The map values come from the exported index CSVs.
+- `fsoi_map.ipynb` also holds the provinces-by-group map, a province-centroid version of the 2020
+  map, and a 2012→2024 raw-change map (long-panel index, descriptive only).
 
-**Recommendation (revised 2026-09-20, supersedes an earlier lean toward perArea):** use
-**perHousehold as the headline index** and perArea as the robustness track. The reason this is
-affordable is that perHousehold's one weakness has been *measured* and is small — the treated-vs-
-control differential in household-size trend is −0.045 on a base of ~3.2, about 1.4%. Taking the
-mechanically-cleaner track at the cost of an uninterpretable headline number would be a bad trade.
-**Settled with Orhan (2026-09-22): per household is the headline.**
+# 6. Pipeline reference
 
-**Never put both tracks into one aggregation.** Equal-weighting all 28 normalised columns together
-would average the two tracks by the back door — the same collapse that was rejected explicitly
-(Orhan spotted this, 2026-09-20). Each index is built from its own 14 columns.
+**Data.**
+- `TÜİK_Agro_Summary.csv`: TÜİK regional statistics, read as latin-1 in the notebook; the true
+  encoding is cp1254.
+- `TOB_fertilizer_cities.xlsx`: fertiliser.
+- `Türkiye_Municipal_Areas.xlsx`: HGM province area, constant over time.
+- Analysis years are biennial, 2008–2024. 81 provinces plus a `Türkiye` aggregate row.
+- `Treated`: 0 non-metro (51), 1 new-metro 2012 (14), 2 old-metro (16), 3 Türkiye.
+  `Treated_Label` carries the readable text.
 
-## Normalisation implemented (2026-09-20)
+**Two panels.**
+- `data_official_Türkiye` (main, gap-free 2008–2024): production (total crop tonnage, greenhouse
+  output); land use (core = harvested + sown collapsed, r = 0.99; fallow; greenhouse land; long-term
+  crops; vegetables); waste; fertiliser.
+- `data_official_Türkiye_extended`: crop, livestock and animal-product value (USD, to 2020); drawn
+  water and agricultural electricity (to 2022); a non-agricultural electricity covariate (not an
+  indicator). Each indicator is a `_perArea` + `_perHousehold` pair; normalised columns have
+  `_norm`, cost-flipped scores `_score`. A per-capita track exists for the long-panel index.
 
-`log1p` → winsorise (1st/99th) → pooled min-max, each indicator independently, raw columns kept and
-normalised versions written with a `_norm` suffix. Thresholds computed from **cities only** (the
-`Türkiye` aggregate is placed on the scale, not used to define it) and **pooled across 2008–2024**,
-not per-year, so a score change means the city changed rather than its peers being different that
-year. Cost-direction flips are deliberately deferred to aggregation (`1 − x`) so these columns stay
-comparable and the flip stays visible.
+**Categories.**
 
-- 28 indicators normalised (18 main, 10 extended). Verified: every `_norm` column lies in [0, 1],
-  Spearman rank within each indicator is preserved (log1p and min-max are both monotonic), and NaN
-  counts are unchanged.
-- `log1p` applied to all 28 via `LOG1P_SKEW_THRESHOLD = 0.0`; raising that parameter switches to
-  selective transformation. Uniform was chosen to avoid an arbitrary cutoff needing defence, and it
-  is harmless since log1p is monotonic — it never reorders a city within an indicator, it only
-  changes how much weight extremes carry when indicators are averaged. Mean |skew| fell 3.25 → 1.81.
-- No indicator contains negative values, so log1p is safe throughout.
-
-**Open issue found during normalisation — floor-bunching.** `log1p` cannot fix zero-inflation, and
-four indicators still have most cities pressed against the floor: `landuse_greenhouse_km2_perHousehold`
-85.3% below 0.05, `landuse_greenhouse_km2_perArea` 85.2%, `agro_greenhouse_prod_ton_perHousehold`
-79.0%, `wasteCollected_1000ton_perArea` 74.6%. Greenhouse is genuinely concentrated (Antalya/Mersin)
-and ~12% of city-years are exact zeros; waste-perArea is the density skew again (0% exact zeros).
-Consequence: in an equal-weighted mean these contribute almost no discrimination — near-constants
-plus a couple of outliers. Options: accept and document; widen `WINSOR_LIMITS` to (0.05, 0.95) to
-spread the middle; or rank-normalise those indicators specifically. **Decided 2026-09-20: keep
-1/99 and document it** (see "Winsorising: why 1st/99th").
-
-## Variable selection is COMPLETE (2026-09-19)
-
-All open variable decisions are resolved. Final list — 14 indicator pairs, every one a symmetric
-`_perArea` + `_perHousehold` pair, 28 columns total. **Grouped into five categories, not six** — see
-"Category structure (SETTLED 2026-09-22)" below for the current grouping; the table historically
-shown here listed water and waste as separate categories, since merged.
-
-Final resolutions (all per Orhan, 2026-09-19 unless noted):
-- **Waste `_kg_daily` dropped**, both forms together (symmetry rule). The annual total already
-  supplies waste; the daily derivation was 0.999-correlated with it in perArea form. Waste is now a
-  single clean pair.
-- **Greenhouse split rather than collapsed.** `agro_greenhouse_prod_ton_*` → production,
-  `landuse_greenhouse_km2_*` → land-use. Its two inputs belonged to different categories, so a
-  combined index belonged cleanly to neither and mixed tonnes with km². They keep their units.
-  Consequence to note in the write-up: the two remain ~0.94 correlated, so greenhouse activity is
-  reflected in two of the five categories — defensible (a greenhouse-heavy city genuinely has both
-  more output and more land under glass) but worth stating rather than leaving implicit.
-- **Water and waste are separate *indicators*, merged into one *category* (revised 2026-09-22).**
-  At perHousehold they correlate only ~0.2 — correctly ruling out *indicator-level collapse* (folding
-  them into one variable, the way harvested/sowed were collapsed below). That is a different question
-  from *category-level grouping*: equal category weighting gave each of these two lone-indicator
-  categories up to 5x the per-indicator weight of land-use's 5-indicator category, an artifact of how
-  categories were carved rather than a judgement of importance. Grouping them as "municipal burden"
-  fixes the weight without touching either indicator, and the category has a real construct behind
-  it: both are municipal household services (not agricultural), both cost-framed, both inside the
-  Law 6360 coverage confound. See "Category structure" below.
-- **`landuse_core_*` remains the one collapsed indicator** (harvested ≈ sowed, r = 0.99 in *both*
-  tracks — a genuine same-construct case, unlike the perArea-artifact ones).
-
-**Structural fact to settle before construction: the categories do not span the same years.**
-Main panel is gap-free 2008–2024. Extended is missing 2024 (water, agricultural electricity) and
-2022 + 2024 (market). **Resolved 2026-09-21/22 — see "Two-track index structure" in Part 1.**
-
-**Do not impute the missing years.** They are publication gaps, not random missingness, and
-fabricating post-treatment observations is precisely where invented data does most damage in a
-causal design. The main/extended split exists to quarantine them.
-
-## Standing measurement concerns (not blocking, but must reach the thesis text)
-
-- **Law 6360 boundary expansion (2026-09-19, the most serious one).** From 2014 metropolitan
-  municipalities serve the whole province, so municipal-service statistics may cover populations
-  they did not before. Waste per household shows a +19.7% treated-vs-control DiD gap and the annual
-  water total +17.6%, while the per-person water rate moves −9.6% and a non-municipal control
-  (harvested land) moves −21.4%. A coverage change explains that split (totals rise as territory
-  grows; per-head rates fall as lower-usage rural population is absorbed). **Confirmed 2026-09-24:**
-  the log DiD on waste collected (+0.260) equals the log DiD on municipal coverage (+0.259) — see
-  "Correction 2 RESOLVED" below. Affects municipal burden (water and waste).
-- **Law 6360 water-tariff waiver (2014–2019).** An open confound on water only — the earlier
-  "volume, not price" dismissal was wrong (the variable is household drinking water, exactly what
-  the waiver capped). In logs waste shows no waiver-shaped fade; water fades 23%. See Part 2.
-- **perHousehold denominator and household size.** Safe against the non-metropolitan control (DiD
-  gap −0.045 on a ~3.2 base) but drifts ~6% against old-metropolitan. Household size is a **west–east
-  regional gradient, not a rural/urban one** (Şırnak 4.9 … Eskişehir 2.6, with urban and rural cities
-  at both ends). Distributional consequence worth documenting: for equal per-capita resources, large
-  household cities score *higher* on perHousehold benefit indicators and *worse* on cost-framed ones,
-  so the bias does not run in one direction across categories.
-- **perArea is largely a scale artifact.** `perArea = quantity / km²`, and city area is an
-  administrative boundary varying ~50× that is unrelated to the indicator, so any two
-  population-proportional quantities correlate at r > 0.95 in that form (water ~ waste: 0.977
-  perArea vs 0.208 perHousehold). Tested and rejected the alternative explanation that
-  industrialisation drives it — a non-agricultural-electricity proxy correlates only −0.27 with
-  water per household, the wrong sign for that story. **A high perArea correlation is therefore weak
-  evidence of redundancy; the perHousehold number is the informative one.**
-
-## Current variable inventory (corrected 2026-09-21 — the 09-19 version was stale)
-
-*The previous version of this section listed `greenhouse_intensity_*`, `waste_collected_kg_daily_*`,
-`water_drainage_litre_daily_*`, `water_supply_perArea` and `water_refined_perHousehold`, all of
-which were subsequently dropped or split. Verified against a live notebook run.*
-
-**`data_official_Türkiye`** (main, 738 rows, 22 columns pre-normalisation, **no gaps**) — 9
-indicator pairs, each with a `_perArea` and a `_perHousehold` form:
-`agro_greenhouse_prod_ton_*`, `total_agro_production_ton_*`, `landuse_core_*`,
-`landuse_fallow_km2_*`, `landuse_greenhouse_km2_*`, `landuse_longtermCrops_km2_*`,
-`landuse_vegetables_km2_*`, `wasteCollected_1000ton_*`, `fertilizer_use_*`
-— plus `Year`, `Location_Name`, `Treated`, `Treated_Label`.
-Categories present here: production, land-use, municipal burden (waste only), external input (fertiliser only).
-
-**`data_official_Türkiye_extended`** — 5 indicator pairs: `agro_crop_1000USD_*`,
-`agro_livestock_1000USD_*`, `agro_animalproducts_1000USD_*`, `water_drainage_*`,
-`electricity_agriculture_mwh_*` — plus raw source columns and denominators (`Area_km2`,
-`Mean_Household_Count`, `Water_Drainage_1000m3PerYear`, `Water_Refined_1000m3PerYear`,
-`Electric_Energy_Use_*`) and the `nonagri_electricity_mwh_perHousehold` covariate, which is a
-control, **not** an FSOI indicator (it is excluded via `EXTENDED_EXCLUDE`).
-Categories present here: market, municipal burden (water), external input (agricultural electricity).
-
-14 indicator pairs in total, 28 columns. After the normalisation cell each also has a `_norm`
-twin, so the notebook carries both raw and normalised values throughout.
-
-## Winsorising: why 1st/99th, evidenced (2026-09-20)
-
-Four schemes were priced against real indicators rather than assumed (notebook: "Choosing the
-winsorising bounds"). On greenhouse output perArea, the worst-behaved indicator:
-
-| scheme | % below 0.05 | % at exactly 0 | % at exactly 1 | IQR |
-|---|---|---|---|---|
-| none | 79.1 | 0.1 | 0.1 | 0.033 |
-| **1/99 (chosen)** | 74.6 | 1.1 | 1.1 | 0.039 |
-| 5/95 | 22.5 | 5.1 | 5.1 | 0.268 |
-| rank | 4.9 | 0.0 | 0.1 | 0.500 |
-
-5/95 fixes the floor-bunching but at an unacceptable price: Antalya, Mersin, Adana and Muğla all
-collapse to exactly 1.000 in greenhouse — indistinguishable in the one category where they are the
-entire story. Rank-normalisation separates them but discards magnitude (Antalya lands 0.010 above
-Mersin despite producing far more), the wrong thing to throw away in an index about quantity of
-production.
-
-**1/99 stands, and the floor-bunching is documented rather than engineered away.** It is
-substantively real — most Turkish provinces genuinely have negligible greenhouse agriculture. The
-consequence to state in the thesis: an indicator where most cities sit near the floor contributes
-little discrimination to an equal-weighted mean, so its practical weight is below its nominal share
-of its category. A property to disclose, not a fault to fix.
-
-## Control groups: which is clean, and for which variables (2026-09-20)
-
-Reading the old-metropolitan coverage finding as a blanket disqualification would throw away a
-useful comparison group. Precisely: Law 6360 extended metropolitan boundaries to the whole province
-for **existing** metros as well as new ones. Implied municipal coverage across 2012→2014:
-non-metropolitan **−0.020** (flat), new-metropolitan **+0.226**, old-metropolitan **+0.089**.
-
-- **Municipal-service variables (water, waste): non-metropolitan is the only clean control.**
-  Old-metros received a weaker version of the same boundary treatment, so a treated-vs-old-metro
-  comparison understates the effect — both groups moved.
-- **Non-municipal variables (land use, production, fertiliser): old-metropolitan remains usable.**
-  Agricultural statistics are collected province-wide regardless of municipal status, so the
-  boundary change does not mechanically move harvested hectares or crop tonnage. Evidence already
-  in the notebook: the harvested-land control moved −21.4% across the reform, the *opposite*
-  direction to the municipal services.
-
-Keep all three groups, but state which control serves which category. Do not report a single
-treated-vs-old-metro estimate across all five categories as though it were uniformly valid.
-
-## The two Law 6360 confounds — see CLAUDE.md
-
-Both confounds, the distinction between them, and the rule against stating the tariff-waiver
-story as a finding are specified in `CLAUDE.md` → **Law 6360 confounds**. That is canonical;
-it is not restated here, because a restatement is a future stale copy.
-
-One operational consequence for this folder: the measurement confound was **resolved by
-deletion** — `Water_Drainage_LitrePerPersonPerDay` is dropped and must not be re-added, since
-its denominator is municipal population, which the reform moved in 2014. Water is carried by
-the extended panel's annual drawn series instead.
-
-## Exact year coverage per category (verified 2026-09-21)
-
-City rows with data, by year — measured, not assumed:
-
-| Year | main panel | water (drawn & refined) | external input (agri. elec.) | market |
-|---|---|---|---|---|
-| 2008–2020 | 81 | 81 | 81 | 81 |
-| 2022 | 81 | 81 | 81 | **0** |
-| 2024 | 81 | **0** | **0** | **0** |
-
-**No water variable covers 2024 at all** — drawn and refined both stop at 2022. Water is therefore
-2008–2022 (8 points), market is 2008–2020 (7 points), the main panel is complete 2008–2024.
-
-**The binding constraint on the full index is MARKET, not water.** Market is the only
-category missing 2022.
-
-2020 is the only post-waiver observation *for the full index*, which market caps at 2020. Water
-itself has **two** post-waiver points, **2020 and 2022** (the waiver ran 2014–2019).
-
-**Practical consequence worth carrying into the next session:** the tariff-waiver question is a
-*water* question and does not need the composite. It can be studied directly on the water series
-across 2008–2022 with two post-waiver observations, independent of whatever is decided about
-joining the panels. Don't let the composite's year constraint truncate that analysis.
-
-## Category structure (SETTLED 2026-09-22) — five categories, not six
-
-Water and waste, previously separate categories, are merged into one: **municipal burden**.
-Both indicators are unchanged — this is category-level grouping (shared weight), not
-indicator-level collapse (folding into one variable); see the "Variable selection is
-COMPLETE" section above for why that distinction matters. Motivated by weight, not just
-construct: equal category weighting means a lone-indicator category gets the same share as
-a five-indicator category, so water and waste alone were each carrying up to 5x the
-per-indicator weight of land-use. Grouping them is also independently motivated: both are
-municipal household services (not agricultural), both cost-framed, both sit inside the same
-Law 6360 coverage confound.
-
-**Five categories:** production, municipal burden (water + waste), external input
-(fertiliser + agricultural electricity), market, land-use.
-
-**Market and production were considered for a similar merge and explicitly kept separate.**
-Both measure output (value vs. tonnage) but market is extended-panel (caps 2020) and
-production is main-panel (runs 2024) — merging them would strip track A of its only output
-category.
-
-## Two-track index structure (SETTLED with Orhan 2026-09-21/22)
-
-Supersedes the former "Open decision — joining the two panels". There is **no single FSOI
-series** — do not write as if there were. Both tracks run the *same* pipeline: same 28
-normalised columns, same cost flips, same equal-weighted mean. They differ only in the
-category list passed in and the years kept. One set of code, two runs.
-
-| | Track C — the index | Track A — the estimator |
+| Category | Full index | Long-panel index |
 |---|---|---|
-| Years | 2008–2020 (7 points, 3 pre / 4 post) | 2008–2024 (9 points, 3 pre / 6 post) |
-| Categories | **5** — all | **4** — main panel only |
-| Indicator pairs | 14 | 9 |
-| Answers | *what* food sovereignty is and how it is distributed | *did Law 6360 change it* |
-| Used for | levels, city rankings, distribution — the descriptive core | the DiD regression |
-
-**Track A's four categories** are production, municipal burden (waste only — water is
-extended-panel and drops out), external input (fertiliser only — see resolution below),
-land-use. Market (3 pairs) drops entirely; it has no main-panel component to fall back on,
-unlike municipal burden and external input.
-
-**Why two tracks rather than one.** The index definition is a theoretical claim; the
-estimator is an empirical one, and they need not be the same object. Track C is the FSOI *as
-the literature review defines it* — five categories because that is what the framework
-argues food sovereignty consists of. Letting TÜİK's publication schedule pick the categories
-would make the construct an artifact of data availability. But C is a weak estimator: its
-post-treatment years are 2014/2016/2018/2020 and 2020 is COVID, leaving effectively three
-clean post-treatment points — not enough for an event study with credible leads and lags. A
-has six.
-
-**The 2020 cap is market alone.** Crop, livestock and animal-product value in USD are
-unpublished by TÜİK for both 2022 and 2024. Water is a separate, later constraint (runs to
-2022); the main panel is complete to 2024. Verified by counting city rows per year per
-category (table above). **Not** the water measurement confound — that was a separate matter
-and cost no years, both water series having been missing exactly 2024 anyway.
-
-**The pre-period is identical in both tracks** (2008, 2010, 2012). Nothing in this structure
-improves the pre-trend, and three pre-treatment points is thin either way — a limitation of
-the panel, not of the track choice. State it as such.
-
-**A five-category 2008–2022 middle track was considered and explicitly dropped** as an index.
-Water is instead analysed to 2022 **at variable level** — which is where the tariff-waiver
-question gets answered, with two post-waiver observations (2020, 2022) — not as a third
-index. Don't let the composite's year limit truncate that analysis.
-
-**RESOLVED 2026-09-22 — external input is option (a).** Fertiliser-only in track A, mean of
-fertiliser + agricultural electricity in track C. Each track is internally consistent across
-its own years, which is the property a DiD needs — but the between-track difference (A
-measures fertiliser alone, C measures the mean of two indicators) is real and must be stated
-in the write-up, not smoothed over. This is the same asymmetric pattern now also used for
-municipal burden (waste-only in A, water+waste in C) — not a one-off special case.
-
-**No remaining open items in the category/track structure.** Everything above is settled;
-what's left is implementation (see below).
-
-## Next implementation steps
-
-1. ~~Resolve open decisions 1–6 above~~ — done; see "Category structure" and "Two-track
-   index structure" above.
-2. `log1p` skewed indicators, then normalise — **pooled 2008–2024 only, no per-year variant**
-   (Orhan, 2026-09-17), winsorised min-max. **Done, verified 2026-09-20.**
-3. ~~Aggregate into the five category sub-indices, applying cost-direction flips~~ — **done
-   and executed clean, 2026-09-22.** Cost flips, `CATEGORY_MAP_C`/`CATEGORY_MAP_A`, and
-   `build_fsoi()` are now in the notebook (after the normalisation-verification cell), and
-   both `FSOI_C` (5 categories, 2008–2020, 574 rows) and `FSOI_A` (4 categories, 2008–2024,
-   738 rows) are built, along with their `_perArea` robustness mirrors, top/bottom-city
-   tables, and a Track C vs. Track A rank-convergence check. Verified with a full
-   `jupyter nbconvert --execute` run, zero errors across 78 cells, then outputs cleared.
-   **First descriptive result:** in Track C 2020, mean FSOI by group is non-metropolitan
-   0.500, old-metropolitan 0.433, new-metropolitan 0.424 — non-metros score highest on the
-   headline index. This is a plain group-mean comparison, not a DiD estimate; don't cite it
-   as a treatment effect. **Convergence check:** Track C and Track A ranks agree at Spearman
-   ρ = 0.72–0.83 across the seven shared years (mean 0.778) — same direction, not identical,
-   so Track A's 2022/2024 extension is reasonably licensed but the two are not
-   interchangeable; report both trend and the divergence, don't quietly pick one.
-
-## Aggregation, DiD, and robustness — current state (as of 2026-09-24)
-
-*The full blow-by-blow (every intermediate specification, every corrected conclusion, in the
-order it happened) moved to `agent_note_econometrics_FSOI_history.md` on 2026-09-24 — read
-there only to reconstruct how a number was found or to defend the process. What follows is
-the current, settled picture, corrections already folded in rather than narrated.*
-
-**Track A's DiD-ready structure is built and stress-tested more than any other part of this
-pipeline:** flips, `CATEGORY_MAP_C`/`CATEGORY_MAP_A`, `build_fsoi()`, both tracks, top/bottom
-cities, and a full DiD section, all executed clean in `fsoi_indicator_selection.ipynb`
-(168 cells as of 2026-09-28, zero errors, outputs cleared).
-
-**Descriptive result.** Under the primary aggregation (equal-weighted sum), non-metropolitan
-cities score highest (Track C 2020: non-metro 0.500, old-metro 0.433, new-metro 0.424).
-**This is robust to removing any single category** (municipal_burden, production, land_use,
-external_input, or market — all five tested) **but not to changing the aggregation method**:
-under TOPSIS on the same object (full index, 2020), old-metropolitan leads instead (old 0.313,
-non 0.306, new 0.276). What holds in every view tried is that **new-metropolitan provinces
-score lowest or tied-lowest** (the one tie: full index pooled 2008–2020, equal-weighted, old
-0.451 vs new 0.453). Do not report "non-metro scores highest" as settled.
-
-**Causal result (primary): −0.0373 (SE 0.0126, p = 0.0031, 95% CI [−0.062, −0.012])**,
-two-way fixed effects, Track A, non-metropolitan-only control (old-metropolitan is a
-contaminated control for a composite containing `municipal_burden`). Pre-trends clean on a
-weak two-point test. Confirmed by wild cluster bootstrap (p = 0.0040 vs. asymptotic 0.0031 —
-not a small-treated-cluster artifact, 14 treated cities).
-
-**The entire significant effect is generated by `municipal_burden` (waste)** — without it,
-the estimate flips to +0.0085 (p = 0.224). Confirmed under **four independent
-specifications** (category-weighted primary, flat-weighted 1/9-per-indicator, TOPSIS,
-waiver-years-excluded) — every one shows the same pattern: significant with
-municipal_burden, null without it. **Refined by isolation (2026-09-24):** `production` is
-genuinely null (p = 0.98) but `land_use` (−0.023, p = 0.003) and `external_input` (+0.048,
-p = 0.004) each carry their own small, significant, partly-offsetting effect — an order of
-magnitude below municipal_burden's own −0.175 (p < 0.0001). "No detectable effect outside
-municipal_burden" should read "no *large* effect outside it; small, mostly-offsetting effects
-exist in land-use and external-input."
-
-**Correction 2 RESOLVED (2026-09-24) — the effect is real, and it is municipal coverage
-expansion.** Settled by a DiD on logs of the raw quantities (notebook: "Denominator
-decomposition"), where no normalisation can interfere and every denominator is additive:
-- **Raw waste collected rose +0.260 log (~30%)** in new-metro vs non-metro cities
-  (p < 0.0001). Per household +27%, per capita +23%, both significant. Under city FE, waste
-  per area *is* raw waste — so perArea's raw signal is the largest of all.
-- **The denominator is not the story:** household count +2% (p = 0.37), household size +3%
-  (p = 0.21). The per-capita track replicates perHousehold almost exactly (−0.0369 vs −0.0373).
-- **The perArea null was scale compression.** Pooled min-max on perArea is dominated by the
-  288× cross-city density spread: only **0.9%** of the perArea waste score's variation is
-  within-city (vs 34% perHousehold). Within-city SD 10.7× smaller; the `municipal_burden`
-  coefficient 10.9× smaller — the ratios match. `municipal_burden` alone is still significant
-  under perArea (−0.016, p < 0.001). **Normalised perArea is not a usable DiD track**;
-  Diagnostic 6 holds for *raw* perArea, the pooled normalisation removes the advantage.
-- **Waste = coverage, one-for-one.** Log DiD on waste (+0.260) equals the log DiD on the
-  implied municipal coverage share (+0.259), ratio 1.00, same year-by-year path (flat pre,
-  ~+0.25 from 2014 on). Independent series. **Waste per covered resident did not change** —
-  municipalities started recording waste from ~30% more people. Same mechanism as
-  confound (a), which removed the per-person water series; now found in waste's numerator.
-- **Headline, as it now stands:** Law 6360's clearest statistical footprint is the extension
-  of municipal service coverage — administrative reach, not household burden, not food
-  sovereignty. Production: no effect. Land-use (−0.023) and external input (+0.048): small,
-  opposite, real, replicated under per-capita.
-
-**Two of my own earlier readings, corrected by the same decomposition:**
-- The household-count "smooth divergence" (and the parallel-trends concern drawn from it)
-  came from an event study in raw levels, where large cities growing at the same *percentage*
-  still show a widening absolute gap. In logs household count shows no significant
-  differential trend in any year (all p > 0.3). Population shows a small (~5%) differential,
-  with one significant pre-period coefficient (2008: −0.027, p = 0.004) — minor.
-- The waiver-favouring "fade" (27% waste / 34% water) was largely the normalised scale. In
-  logs waste fades **3%** — a permanent level shift, which is what coverage expansion predicts
-  — and water fades 23%. Water's residual over coverage can't be cleanly tested, because the
-  coverage share is derived from the water total. **Waiver: possible for water, no longer
-  supported by waste.**
-
-
-**The original pre-rebuild "national decline, independent of Law 6360" finding does not
-replicate.** Checked directly (pooled linear trend, city FE, all three real groups, plus the
-`Türkiye` aggregate row on its own): with municipal_burden, the trend is **positive and
-significant** (+0.00195/year, p < 0.0001) — an increase, not a decline. Without it: flat,
-not significant. This is a fact about the rebuilt index, not a verdict on the old one — the
-two use different, non-comparable variable sets and constructions, and this check can't say
-why they disagree. Orhan confirmed 2026-09-24 the old index mixed perHousehold/per-capita
-with weak weighting; the current perHousehold-headline, equal-weighted-primary track is the
-chosen path and doesn't need reconciling with it further.
-
-**Visualisations (2026-09-24).** In `fsoi_indicator_selection.ipynb`: event studies with
-95% CI bands, group trends vs the `Türkiye` reference line, top/bottom-10 cities. **Maps are in
-a separate notebook, `fsoi_map.ipynb`,** which reads `fsoi_track_C_perHousehold.csv` /
-`fsoi_track_A_perHousehold.csv` (exported by the main notebook's last cells) rather than
-rebuilding the index. Four maps: treatment groups; Track C 2020 choropleth with new-metro
-outlined; the same scores as province-centroid points (marker shape = group); raw FSOI change
-2012→2024 on a zero-centred diverging scale, captioned as descriptive-only. Boundaries: HDX
-`cod-ab-tur` admin-1, original source **Harita Genel Müdürlüğü** (same agency as the area
-data), CC BY-IGO; downloaded, simplified (0.01°) and cached to `geo/tur_admin1_simplified.geojson`
-(0.37 MB) by code inside the notebook, so the provenance is in the repo. Province names are
-matched on a Turkish-folded key and asserted 81/81 both ways — the source's `adm1_name` is
-ASCII and its Turkish column carries a broken dotted-i.
-
-**Size-matched control check (2026-09-26, Orhan-approved; question relayed from
-writingdrafts).** Answers "aren't treated provinces just bigger?": control group limited to
-the 14 largest non-metros by 2012 population. **No size overlap exists** — the largest
-non-metro (Afyonkarahisar, 704k) is below the smallest treated (Ordu, 741k); the median gap
-narrows from 3.02× to 1.76×. With 28 clusters instead of 65: DiD **−0.0351 (p = 0.013)**
-vs −0.0373; SE +12%; wild bootstrap p = 0.016. Coverage decomposition holds (log waste
-+0.283 vs coverage +0.266, ratio 1.06). The ~5% population differential does not shrink
-(+0.071 vs +0.051); its 2008 pre-coefficient keeps its size (−0.029) but loses significance
-(p = 0.060), mostly from fewer clusters. **Size alone doesn't produce the result**, but a
-true size-overlapping control group can't be built here — state that plainly.
-
-**Claims-ledger checks (2026-09-26, notebook cell "Claims-ledger checks").** Thesis naming:
-Track C = "full index", Track A = "long-panel index".
-- Production-alone DiD: −0.0002, 95% CI **[−0.0225, +0.0220]** — half-width 0.18 SD of the
-  production score, ~8× smaller than the municipal_burden effect. A reasonably tight null.
-- The two group-mean sets are **different objects from the same build, both current**:
-  0.500/0.433/0.424 (non/old/new) = full index, **2020**, equal-weighted; 0.507/0.484/0.466
-  (non/old/new) = long-panel index, **pooled 2008–2024**, equal-weighted; the TOPSIS
-  0.366/0.336/0.322 = long-panel pooled, in **old/non/new** order. The 09-23 TOPSIS
-  correction therefore compared a different object from Result 1. Re-run like-for-like on
-  full index 2020: TOPSIS still puts old-metro ahead (0.313 vs non 0.306, new 0.276) — the
-  correction stands, but the margin is small.
-- **"New-metro lowest in every specification" needs a qualifier:** in the full index pooled
-  2008–2020, equal-weighted, old-metro (0.451) sits just below new-metro (0.453) — a
-  0.002 tie. New-metro is lowest in the other five views.
-- municipal_burden 2020 group means 0.744/0.563/0.536 (non/old/new): still current.
-
-**Still not done:** a wild cluster bootstrap for specifications other than the primary and
-size-matched ones. Nothing else in this section is open.
-
-
-
----
-
-# PART 2 — REFERENCE (stable)
-
-## Standing limitation — Law 6360 water-tariff transitional waiver (2026-09-13; reasoning corrected 2026-09-21)
-
-**The waiver.** Reported by `thesis_log_main_agent` from a SETA analysis (Çelikyay, 2014):
-villages converted to *mahalle* status under Law 6360 received a 5-year transitional waiver,
-**2014–2019** — no taxes, fees or participation shares collected, and drinking/usage water
-tariffs capped at **25% of the lowest municipal tariff**. In this panel's biennial years that
-window covers **2014, 2016 and 2018**.
-
-**Why it matters here.** Water is cost/burden-framed ("lower is better", 2026-09-12). If
-converted villages in treated cities had artificially suppressed water costs across three
-post-treatment panel years, a treated-vs-control comparison on water could partly reflect the
-waiver rather than anything about food sovereignty.
-
-**CORRECTION (2026-09-21) — the previous dismissal of this confound does not hold.** The
-position recorded here from 2026-09-17 was that the waiver was probably not a real confound,
-because our water indicators sit on the *production-cost* side (how much a city draws to serve
-agricultural and municipal need) rather than the *household-billing* side, and so would not be
-price-elastic in the relevant sense. **That argument rests on a misreading of what the variable
-measures.** The raw TÜİK source column is:
-
-> `İçme ve kullanma suyu şebekesi ve arıtma tesisleri : Toplam çekilen su miktarı (1000 m³/yıl)`
-
-— *drinking and utility water network and treatment facilities*. This is **municipal household
-supply**. It contains no irrigation water and no agricultural abstraction. The waiver capped
-**drinking and usage water tariffs** specifically. The indicator therefore measures the volume
-of exactly the water whose price was capped: the same category, not a different one. There is no
-production-side/billing-side separation to appeal to.
-
-**What is actually still open.** The correction removes the *dismissal*, not the question. A
-household tariff cap plausibly raises metered volume, but by how much — and whether detectably
-against a coverage change landing in the same year — is unmeasured. Two mechanisms remain, and
-neither was ever addressed by the production-side argument:
-- **Behavioural** — cheaper water, more use.
-- **Metering/reporting** — a municipality not billing a waived village may meter and report it
-  less diligently, biasing measured volume regardless of actual use.
-
-**Working rule.** Treat the waiver as an **open, unquantified confound on the water category**,
-not a dismissed one. Water can still proceed (it is not a hard blocker on the category or the
-DiD), but thesis text must not assert that the waiver is irrelevant because the indicators are
-production-side — that sentence is wrong and would not survive a reader who checks the source
-column. See also `CLAUDE.md` → Law 6360 confounds (b), which carries the same correction.
-
-**This is testable without the composite.** Water runs to **2022** with two post-waiver
-observations (2020, 2022); only market caps the full index at 2020.
-
-**Update (2026-09-24, log decomposition).** Waste tracks municipal coverage one-for-one and fades
-only 3% after 2019 — no waiver signature. Water fades 23% in logs, so the waiver stays possible
-for water specifically; water's residual over coverage can't be tested cleanly because the
-coverage share is itself derived from the water total.
-
-**Method note worth keeping:** this error was found by reading the raw source column instead of
-reasoning from the variable's name. The same check settled the category question the same day
-(water is municipal, so it is not an off-farm agricultural input). Check the source column.
-
-## Briefing for Orhan — household vs. per-capita denomination (2026-09-18)
-
-Orhan asked for a critical check on his own long-standing pipeline choice: every `_perHousehold`
-indicator in this pipeline is `Total / Mean_Household_Count`, never `Total / Population_Total`
-(per-capita). Requested as an explicit, attributed briefing, not just a passing chat answer — so
-recorded here in full.
-
-**Why household-based denomination is a reasonable, defensible choice:**
-1. **Theoretical fit.** This project's own lit-review framing of food sovereignty centers
-   household/family-level provisioning capacity and burden (land access, water/waste burden), as
-   distinct from GFSI's more atomized per-capita "consumer" framing — household denomination
-   matches FSOI's own theoretical stance better than per-capita would.
-2. **Internal consistency.** Essentially every indicator in both dataframes already uses
-   `Mean_Household_Count`; switching to per-capita for isolated variables would break the
-   composite's internal uniformity for no clear gain.
-3. **Practical/behavioral fit.** Many of the underlying burdens (a water bill, a waste bin, a
-   farm plot) are organized at the household level, not the individual level, so dividing by
-   household count can be more behaviorally meaningful than dividing by raw headcount.
-
-**Where the choice carries real risk — the actual critique, not just validation:**
-1. **Compositional confound risk for the DiD (the important one).** `Mean_Household_Count` is
-   derived as `Population_Total / Mean_Household_Size`, and `Mean_Household_Size` is not constant
-   across cities or years. If average household size changed *differently* between treated and
-   control cities after 2012 (e.g. from migration or demographic shifts tied to the metro-status
-   change itself), every `_perHousehold` indicator would partly reflect that compositional shift
-   rather than a real change in burden/capacity — structurally the same *kind* of risk as the
-   Law 6360 water-tariff-waiver flag above: plausible, not yet checked, checkable in principle
-   (compare `Mean_Household_Size` trends by `Treated` group over 2008–2024). **Done 2026-09-24:**
-   household size shows no differential trend (log DiD +0.029, p = 0.21; event study p > 0.15 in
-   every year).
-2. **Derived, not primary, denominator.** `Mean_Household_Count` is itself computed from an
-   averaged, estimated figure (`Mean_Household_Size`), while `Population_Total` is a more directly
-   measured administrative count (TÜİK/ADNKS). Every `_perHousehold` indicator inherits whatever
-   estimation noise sits in `Mean_Household_Size`, on top of the underlying indicator's own noise
-   — a per-capita denominator would avoid this extra layer. **Checked 2026-09-24:** the
-   per-capita track replicates per household almost exactly.
-3. ~~**Comparability to GFSI.**~~ **Withdrawn (Orhan, 2026-09-18)** — this critique point doesn't
-   apply. FSOI is never numerically compared to GFSI in the first place: FSOI is city-level, GFSI is
-   national-level, so the comparison is at the level of **categories and construct framing**, not
-   numbers. The denominator choice therefore has no bearing on GFSI comparability. Left here rather
-   than deleted so the reasoning trail stays visible.
-
-**Bottom line:** the choice is defensible and consistent, not an error — but it's a choice, not a
-neutral default, and a reviewer could reasonably ask why. Both empirical checks above have
-now been run and neither changes the result.
-
-# FSOI Working Dataframes: Variable Split
-
-`fsoi_indicator_selection.ipynb` builds two separate city-year panels rather than one. This
-note documents why, and exactly which variables live where, so the split doesn't need to be
-re-derived from the notebook each time.
-
-## Why two dataframes
-
-TÜİK has not published municipal-level agricultural production *value* (crop/livestock/animal
-products, in TL) for 2022 or 2024 yet, and municipal water/agricultural-electricity stats are
-missing for 2024. Rather than carry `NaN`s for those years into the main FSOI panel, these
-indicators are kept in a separate dataframe and analysed on their own — this maps onto the
-Economic conditions / Ecological conditions categories from the literature review (see
-`Variable_Analysis_Methods/variables_agrolife_econometrics.md`).
-
-## Shared columns
-
-`Year`, `Location_Name`, `Treated`, `Treated_Label` — identical values in both dataframes by
-design, so either can be grouped/filtered on `Treated` without a join. No other column names
-overlap.
-
-## `Treated`
-
-`pandas.Categorical`, ordered, four-valued:
-
-| Value | `Treated_Label` | Meaning |
-|---|---|---|
-| 0 | Non-metropolitan | Non-metropolitan city |
-| 1 | New-metropolitan (2012) | Became metropolitan via Law No. 6360 (2012) |
-| 2 | Old-metropolitan | Already metropolitan before 2012 |
-| 3 | Türkiye | The national-aggregate row, not a real city |
-
-There are 81 real cities + 1 `Türkiye` aggregate row = 82 `Location_Name` values, matching the
-panel's `82 locations × 9 years = 738 rows`.
-
-`Treated` is kept as the numeric-coded categorical (0/1/2/3) for logic/filtering; `Treated_Label`
-carries the same information as readable strings so plots (matplotlib/seaborn `hue`/legend) show
-"Non-metropolitan" etc. automatically — no manual legend needed.
-
-## New Data — Fertilizer Use (added 2026-09-12)
-
-**Source:** `TOB_fertilizer_cities.xlsx` (Ministry of Agriculture and Forestry, TOB), sheet
-`BİTKİ BESİN MADDESİ TÜKETİMİ` — total plant-nutrient/fertilizer consumption per city per year,
-in tons, 2000–2025. 81 cities, zero missing values in the raw file overall — actually more
-complete than several existing TÜİK-sourced indicators. Loaded and merged directly into
-**`data_official_Türkiye` (main)**, not extended — this indicator has no TÜİK-style publication
-gap, so the full-coverage dataframe is the right home for it, not the partial-coverage one.
-
-**City-name matching:** the source file uses ALL-CAPS Turkish city names (`AFYONKARAHİSAR`,
-`ADIYAMAN`); Python's default `.upper()`/`.lower()`/`.title()` mishandle Turkish's two distinct
-"I"s (dotted İ/i vs. dotless I/ı — e.g. `"I".lower()` gives `"i"` in Python, but Turkish
-requires `"ı"`), so a custom `tr_title()` function does the case-folding explicitly via
-`str.maketrans({'İ': 'i', 'I': 'ı'})` before re-capitalizing. Verified against the panel's full
-81-city set before merging — exact match, zero unmatched names either direction (only
-`Türkiye`, the aggregate row, is absent from the fertilizer file, as expected). The merge cell
-asserts both this match and the absence of duplicate Year/Location_Name rows, so a future
-change to the source file that breaks either assumption fails loudly rather than silently
-producing wrong values.
-
-**Known gap:** `Hakkari` has no fertilizer records at all for 2020, 2022, or 2024 in the source
-file (3 of 738 city-years, 0.4%) — confirmed as a genuine source-data gap (the other analysis
-years for Hakkari are present, including legitimate zeros in 2012/2014/2016), not a
-name-matching or merge bug. Small enough not to need a decision now, but don't be surprised by
-those 3 `NaN`s downstream.
-
-**New columns:** `fertilizer_use_perArea`, `fertilizer_use_perHousehold` — folded into the
-**external input** category as a **cost** indicator, per Yilmaz (2025)'s Entropy-TOPSIS precedent
-treating Fertilizer Intensity as a cost criterion, and per the cost/burden framing decided for
-the rest of external input/water/waste (2026-09-12, see Status section above). `data_official_Türkiye`
-is now `(738, 26)`.
-
-## Composite Index Construction — Continuity Note (2026-09-11)
-
-Written because Orhan flagged this session's context is getting large. This section is the
-single place to catch up on the composite-index-methodology discussion without re-reading the
-whole conversation — read this before anything else if picking this up fresh.
-
-### Reference literature — now the working methodological anchors
-
-- **Yilmaz (2025), "Provincial Agricultural Performance in Türkiye: An Integrated Entropy–TOPSIS
-  Approach"** (*Int. J. Agric. Environ. Food Sci.* 9(4)). Entropy method for objective,
-  data-driven criterion weights (more cross-provincial variability → higher weight); TOPSIS for
-  ranking via distance to an ideal/negative-ideal solution. Two *different* normalizations are
-  used at different steps: min-max (for the entropy weight calculation) and vector normalization
-  `x/√Σx²` (for the TOPSIS distance calculation itself) — don't conflate the two if implementing
-  TOPSIS. Uses **ratio/proportional criteria** (e.g. GDP/Area), explicitly rejecting raw absolute
-  values as "not a direct performance criterion... misleading due to structural disparities" —
-  this validates the pipeline's existing `_perArea`/`_perHousehold` design. Notably keeps two
-  criteria correlated at r=0.97 on purpose, since they're theoretically distinct constructs
-  (economic output vs. an environmental-pressure criterion) — correlation alone isn't automatic
-  grounds for collapsing if the two things mean different things; this doesn't override the
-  near-tautological pairs we're collapsing (harvested≈sowed is the same land measured twice) but
-  is worth citing if a future collapse decision needs defending on theoretical grounds instead.
-  Weights and rankings computed **separately per year**, with year-over-year comparison done via
-  **rank change**, not raw score change — doesn't fit our DiD need (see normalization below).
-
-- **Economist Impact (2022), "Global Food Security Index 2022"** (GFSI). 113 countries, 4
-  pillars (affordability, availability, quality & safety, sustainability & adaptation), 68
-  indicators, hierarchical structure: indicator → composite indicator → pillar → overall score
-  (0–100) — directly analogous to our indicator → category sub-index → FSOI structure, five
-  categories instead of four pillars. Two weighting options offered: **neutral (equal) weights**
-  and **expert-panel-averaged weights** — validates Orhan's "equal weights for categories"
-  preference as a standard, legitimate option, not a shortcut. **Normalization: min-max with
-  fixed upper/lower thresholds applied identically across all years 2012–2022**, explicitly
-  so "data outliers do not skew the scores" and "scores can be compared directly across years" —
-  this is the precedent for the pooled-normalization approach recommended below, and it's a
-  closer methodological fit to our DiD need than the Entropy-TOPSIS paper's per-year approach.
-  Every one of GFSI's 68 indicators has a documented one-line "indicator rationale" — the
-  convention to copy for our own indicator documentation (in-notebook comments + agent note).
-
-- **Positioning FSOI relative to GFSI** (Orhan, 2026-09-11): **the FSOI is a critical comparative
-  index to GFSI.** GFSI operationalizes food *security* — nationally aggregated, expert/
-  institutionally weighted, oriented around affordability/availability/safety/adaptation as
-  experienced by consumers and national systems. FSOI operationalizes food *sovereignty* — a
-  city-level, producer/land-access-oriented framework grounded in the lit-review's own critique
-  (`Variable_Analysis_Methods/variables_agrolife_econometrics.md`) that mainstream food-security
-  indices reduce sovereignty concerns to minor consumption proxies rather than prioritizing them.
-  Worth stating this explicitly and early in the thesis methodology section, not just implicitly
-  through variable choice.
-
-### Resolved — benefit/cost direction and aggregation method (2026-09-12)
-
-Both decided by Orhan on 2026-09-12, superseding the "build both and compare" open item below
-(kept for its reasoning/table, but no longer the live plan):
-
-- **Cost/burden framing** for water, waste, external input, and land-use fallow — the primary model
-  treats "lower is better" for all four. Fertilizer (new indicator, folded into external input) uses
-  this same framing by construction.
-- **Equal-weighted sum is the primary aggregation method**, not TOPSIS.
-
-**Comparison scope — not 4 co-equal models.** A full 2×2 factorial (direction × aggregation)
-produces 4 composite variants, but running all 4 as equally-weighted headline results would
-read as indecisive in the thesis. Structure instead: **one primary specification** (equal
-weight + cost framing, decided above) reported as the main FSOI result, with the other 3
-cells of the 2×2 grid (TOPSIS+cost, equal-weight+benefit, TOPSIS+benefit) reported as
-**appendix-level robustness/sensitivity checks** — do the rankings and the Law 6360 DiD
-result hold up across all 4, or does methodology choice change the substantive conclusion?
-Either answer is a reportable finding; treat it as a sensitivity analysis, not four parallel
-theses.
-
-### Cross-strand note — political category — see CLAUDE.md
-
-The decision that FSOI adds **no seventh category** for political commitment, and that GFSI's
-"political commitment to adaptation" pillar is approximated for discussion only by combining
-`resmi_gazete/` and `agro_ministry_news/` (both national-level, so modelled as uniform across
-cities in a year), is specified in `CLAUDE.md` → **FSOI vs. GFSI — political commitment**,
-together with the caveats that must accompany it. Canonical there; not restated here.
-
-## Coordination and scope — see CLAUDE.md
-
-This folder's agent is `thesis_log_econometrics_agent`: full read/write in
-`econometric_models_and_vars`, read-only elsewhere, never edits `CLAUDE.md`. Everything else
-— the messaging protocol, relay titling, `ListAgents` staleness, the no-commits rule, and the
-handover convention — is specified in `CLAUDE.md` → **Multi-Agent Coordination**, which is
-canonical. Previously restated here in full; replaced with this pointer 2026-09-21, because a
-restatement drifts and a pointer cannot.
-
----
-
-# PART 3 — PROCESS HISTORY (moved out 2026-09-21)
-
-The dated process record now lives in **`agent_note_econometrics_FSOI_history.md`** in this
-folder. It was split out so a fresh session doesn't load it by default — it is traceability
-material (how each decision was reached, which variable was dropped and why), not working
-state. Read it when defending a methods choice or reconstructing why something was dropped;
-otherwise Part 1 is what you need. Nothing was deleted in the split.
+| production | greenhouse output, total crop tonnage | same |
+| land use | core, fallow (cost), greenhouse land, long-term crops, vegetables | same |
+| municipal burden | waste + water (cost) | waste only |
+| external input | fertiliser + agricultural electricity (cost) | fertiliser only |
+| market | crop value + livestock value | — (no main-panel member) |
+
+- Indicator weight = 1/(categories × members): long-panel waste and fertiliser 25% each, each
+  land-use indicator 5%. The flat-weighting check equalises this.
+- Water was merged with waste into one category because, as lone categories, each got up to 5× the
+  per-indicator weight of a land-use indicator; in the full index this cut water's weight
+  1/6 → 1/10. Water's absence from the long-panel index is a separate cause: panel coverage.
+- Market and production deliberately stay separate.
+
+**Dropped, and why — don't re-add:**
+- Per-person water series: its denominator is municipal population, which Law 6360 moved.
+- Refined water: records whether a treatment plant exists, not usage.
+- Daily waste rate: 0.999-correlated with the annual total.
+- Animal-product value: series break.
+
+**Confounds** (canonical text in CLAUDE.md → *Law 6360 confounds*):
+- (a) Coverage expansion: the main mechanism above.
+- (b) The 2014–2019 tariff waiver: possible for water, not supported by waste.
+
+**Control groups:** non-metro is the only clean control for municipal-service variables; old-metro
+is usable for agricultural variables, since land use and production are collected province-wide.
+
+**Reference literature:**
+- Yilmaz (2025): Entropy–TOPSIS provincial ranking; ratio criteria; fertiliser intensity as a cost.
+- Economist Impact GFSI (2022): hierarchical structure, equal-weight option, fixed min-max
+  thresholds across years (the precedent for pooled normalisation).
+- FSOI is positioned as a critical counterpart to GFSI, compared at the level of categories and
+  construct, not numbers (CLAUDE.md → *FSOI vs. GFSI*).
+
+**Coordination:** `thesis_log_econometrics_agent` owns this folder, is read-only elsewhere, and never
+edits `CLAUDE.md`. Protocol: CLAUDE.md → *Multi-Agent Coordination*.

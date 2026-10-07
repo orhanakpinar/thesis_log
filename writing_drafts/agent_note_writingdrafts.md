@@ -1,7 +1,14 @@
 # Agent note: writing_drafts/ status (AI-authored)
 
+> **Main rule (Orhan's gold rule), for every paragraph, every chapter:**
+> **Do I agree? Can I defend it? Is that all there is to say?**
+
 Working note for `thesis_log_writingdrafts_agent` sessions. Status and next steps only; no
 thesis content lives here. `CLAUDE.md` governs anything about result validity.
+
+**Writing rule (Orhan, 2026-10-02):** chapter drafts stay clean and focused. Process history,
+data-problem explanations and side material go here (agent note) or into an appendix file, not
+into chapter prose.
 
 ## How Orhan and this agent work
 
@@ -34,16 +41,46 @@ history).
 Ledger → measurement chapter → causal results (Orhan writes) → discourse → Law 6360 context →
 literature review → discussion → introduction.
 
-## ⚠ Open as of 2026-10-01: animal products dropped
+## Resolved 2026-10-05
+
+Orhan's decisions: fertilizer per household with zeros kept (Hakkari discussed as a case);
+log1p kept with approved wording; no larger bootstrap. Index unchanged. Ch. 4 skew text updated
+(3.07 → 1.87, 14 of 26); Ch. 6 land-use breakdown added; **Ch. 5 rewritten as v2 on the rebuilt
+13-indicator index** (HOLD lifted). Appendix B drafted with tables B.1/B.2.
+
+**Appendix map (thesis letter → econometrics file):** Appendix A = 184-indicator table
+(`writing_drafts/tables/indicator_attrition_draft.xlsx`); Appendix B = animal products
+(`thesis_outputs/table_B1…`, `table_B2…`); **Appendix C, Table C.1 = skew by indicator, from
+`thesis_outputs/table_B3_skew_by_indicator.csv`** (file name says B3; thesis calls it C.1 because
+Appendix B is about animal products). Data appendix = `table_data_appendix_indicators.csv`. **Figure map:** thesis Figure 6.3 =
+`thesis_outputs/fig_6_1b_event_study_full_index.png` (full-index DiD robustness).
+**Sources for numbers (from 2026-10-05):** `econometric_models_and_vars/agent_note_econometrics_FSOI.md`
+(rewritten as one verified current-state document) plus `CLAUDE.md`. Check new numbers there
+first.
+**Fade window rule (Orhan, 2026-10-07):** fades are always 2014–18 vs 2020–24; never drop 2020;
+the 2022–24 window is retired. Log waste −3%, municipal-burden score −27%, composite −14%.
+**Old export names deleted 2026-10-07:** only `fsoi_full_index_perHousehold.csv` and
+`fsoi_long_panel_index_perHousehold.csv` exist now.
+**Attribution rule (Orhan, 2026-10-05):** cite the Law 6360 critique as ZMO (Ziraat Mühendisleri
+Odası, a TMMOB member chamber), never "TMMOB".
+
+## (History) Open as of 2026-10-01: animal products dropped
 
 Orhan dropped the animal-product value indicator (data break) and moved it to Appendix B. Ch. 4
 text updated to 13 indicators. **The econometrics notebook must rebuild the full index without it
-and re-export `fsoi_track_C_perHousehold.csv`, Figures 5.1/5.2, the TOPSIS and rank-convergence
+and re-export `fsoi_full_index_perHousehold.csv` (formerly `fsoi_track_C_perHousehold.csv`), Figures 5.1/5.2, the TOPSIS and rank-convergence
 checks, and an Appendix B comparison (with vs. without).** Then rerun
 `scripts/descriptive_tables.py` (its asserts on 0.500/0.433/0.424 and 0.744 will fail and must be
 updated) and rewrite Ch. 5. Rebuild request sent to the main agent 2026-10-02 (five items:
 rebuild + export, re-run descriptive checks, re-export Figs 5.1/5.2, Appendix B with/without
 comparison, recompute skew figures for 26 columns).
+
+**When rewriting Ch. 5 (after Hakkari/log1p decisions):** use the C1 wording in the ledger
+("lowest in every 2020 and long-panel view; old-metro marginally lowest in the 2008–2020 full-index
+average, by 0.004 EW / 0.010 flat"); move the animal-product decline story to Appendix B (file
+exists, tables B.1/B.2 filled); add the Hakkari point (low input use ≠ sovereignty where there is
+little agriculture). Check that the "two routes to the bottom" still holds with rebuilt numbers
+(it does in the 2026-10-02 rerun).
 
 ## Chapter progress
 
