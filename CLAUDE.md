@@ -508,6 +508,16 @@ sample, which can't speak to "all groups"):
 - **So on the rebuilt Track A composite there is no national decline in either
   specification** — if anything a mild significant increase when `municipal_burden` is
   included.
+- **Why it rises (2026-10-07, corrected same day): a denominator effect, not improving
+  sovereignty — and waste is NOT falling.** Provincial mean 0.493 (2008) → 0.516 (2024):
+  municipal burden +0.0325, production +0.0072, land use −0.0046, external input −0.0121.
+  Türkiye 2008→2024: waste +32.5%, population +19.8%, households +54.6% (size 4.0 → 3.1);
+  waste per person **+10.6%**, per household −14.3%. Common trend per household +0.00195/yr
+  (p<0.001) but **per capita −0.00096/yr (p=0.051)**. Correct statement: **"no robust
+  national trend in the long-panel index — slightly up per household because households
+  shrink, slightly down per capita because waste per person rises."** Never write that food
+  sovereignty rose nationally. With the full index falling on the dollar, **neither index
+  shows a real national food-sovereignty trend.**
 **Scope limit, stated deliberately rather than glossed over: this is a comparison across
 two genuinely different index constructions, not an apples-to-apples robustness check.**
 The original finding came from the PDF composite `CLAUDE.md` already flags as unreproducible
@@ -522,7 +532,7 @@ old national-decline claim as a finding, it needs to be held pending Orhan's rev
 same as the group-ordering reversal in Result 1 above.**
 **Scope — the full index (C) DOES decline (found by `thesis_log_writingdrafts_agent`
 2026-10-01, `writing_drafts/scripts/descriptive_tables.py`; reproduced by the main agent
-from `fsoi_track_C_perHousehold.csv`).** Provincial mean 0.494 (2008) → 0.474 (2020), 68%
+from the full-index export, now `fsoi_full_index_perHousehold.csv`).** Provincial mean 0.494 (2008) → 0.474 (2020), 68%
 of 81 provinces end lower. Category contributions (Δ/5, summing to −0.021): **market
 −0.025** (0.466 → 0.342, peaking 2010), external input −0.010, land-use −0.004, offset by
 municipal burden +0.012 and production +0.006. So market alone is larger than the net fall;
@@ -569,17 +579,34 @@ old 0.414 / new 0.412; rank agreement with category weighting ρ 0.934–0.952.
 **"Lowest or tied-lowest" is SUPERSEDED by this precise wording:** "new-metro is lowest in
 every 2020 and long-panel view; in the full index averaged over 2008–2020, old-metro is
 marginally lowest (0.004 equal-weighted, 0.010 flat)." The flat gap is not a tie.
-**Open, Orhan deciding (2026-10-02) — either would change the long-panel index and DiD
-too, so hold final DiD prose:** (1) Hakkari's external-input score (0.999, ranks it 14th
-of 81 in 2020) comes from zero-filled missing fertiliser years — treat missing as missing,
-or measure fertiliser per km² cultivated. (2) `log1p` is near-linear for 14 of 28 columns —
-keep and describe honestly, or switch to a true log (rescale units or log(x + c)).
+**DECIDED (Orhan, 2026-10-05) — no index change, all current numbers stand:**
+(1) Fertiliser stays per household with zeros kept; Hakkari's top external-input score
+(14th of 81 in 2020) is treated as a real, discussable case — it reports near-zero
+fertiliser even in reported years. (2) `log1p` is KEPT. Approved methods wording: "log1p is
+applied; for indicators in small units it is close to linear, so for those the scaling is
+effectively min-max on winsorised raw values." On the 26 full-index columns: mean |skew|
+3.07 → 1.87; near-linear (r>0.99) for 14 of 26 (8 of 13 per-household). (3) No 9,999-draw
+bootstrap — p=0.025's Monte Carlo error at 999 draws is ~±0.005.
+**Land-use DiD (−0.023) decomposed (2026-10-05):** fallow −0.011 (more fallow in treated;
+the only indicator significant alone, p=0.021), vegetables −0.007, long-term crops −0.004,
+greenhouse −0.002, core cropland +0.001 (null). Raw areas in logs: nothing significant
+(fallow +26% p=0.31, vegetables −11% p=0.24, harvested −3% p=0.67). Wording: "no evidence
+of farmland loss; the small land-use effect is a diffuse shift towards fallow and away from
+vegetable area, too weak on its own to carry the ZMO argument about village land." ZMO
+stays a discussion-chapter contrast, not a finding this panel supports. **Attribution
+(Orhan, 2026-10-05): cite the 6360 critique as ZMO** (Ziraat Mühendisleri Odası, a member
+chamber of TMMOB), not "TMMOB". Per-indicator skew table for the appendix:
+`thesis_outputs/table_B3_skew_by_indicator.csv` — log1p does real work only for
+large-valued columns (production, market, agricultural electricity, water per area); it is
+near-linear for every land-use column and for waste per household.
 **Methods caveat:** `log1p` is effectively linear (Pearson >0.99 with raw) for 14 of 28
 normalised columns because their units are tiny; don't write that the log step reduces skew
-across the board. The same linearity is why the composite DiD fades 27% (2014–18 →
-2022–24) while log waste fades only 7%: the municipal-burden *score* effect fades 35% as
-waste per household falls. State which late window a fade figure uses (3% = 2020–24,
-7% = 2022–24).
+across the board. The same linearity is why the composite DiD fades while log waste
+barely does. **Fade window DECIDED (Orhan, 2026-10-07): always 2014–18 (waiver years) vs.
+2020–24 (all post-waiver years); never drop 2020; the 2022–24 window and its 7%/35%/27%
+figures are retired.** On that window: log waste fades 3% (0.257 → 0.249); municipal-burden
+score effect fades 27%; whole long-panel index fades 14% (+0.0061 toward zero: municipal
+burden +0.0140, production −0.0041, land use −0.0059, external input +0.0021).
 
 **Parked, not pursued (2026-09-23):** the hypothesis that city-level production/land
 aggregates mask a smallholder-specific effect (large-farm output diluting a real
@@ -773,7 +800,8 @@ equal % growth show widening absolute gaps); **in logs there is no significant d
 trend in any year (p>0.3)**. Only population shows a small ~5% differential, with one
 pre-period coefficient (2008) significant. (b) The waiver-favouring "fade" was mostly the
 normalised scale: **in logs waste fades only 3% (a permanent level shift, as coverage
-predicts), water 23%**. Water vs. coverage isn't cleanly testable (coverage is derived from
+predicts), water 23%** (windows differ: waste 2014–18 vs. 2020–24; water 2014–18 vs.
+2020–22, its last published year — confirmed 2026-10-07; never write "same windows"). Water vs. coverage isn't cleanly testable (coverage is derived from
 water). Waiver: still possible for water, **no longer supported by waste.** The paragraphs
 below and the water_drainage "moves the needle toward waiver" update above are superseded.
 
@@ -804,9 +832,12 @@ specifications done 2026-10-01** (wild cluster p): primary 0.004, size-matched 0
 0.002, TOPSIS 0.005, per capita 0.007, waiver-years-excluded 0.025 — significant in 6/6.
 Data-quality spikes (Kırıkkale/Kırşehir waste 2012, Kırıkkale fertiliser 6.5×, Hakkari
 zero-filled fertiliser 2020–24, all control provinces): dropping them gives −0.0370 vs.
-−0.0373 — no effect. No open DiD items remain. Track C has no DiD of its own — Track
-A is the designated causal track per the settled two-track structure, so this is by design,
-not a gap.
+−0.0373 — no effect. No open DiD items remain. Track A stays the designated causal track.
+**Full-index DiD added as robustness (Orhan, 2026-10-07; Figure 6.1b):** −0.0375 (SE
+0.0069, p<0.001; wild bootstrap p<0.001), n=455 — same size as the long-panel −0.0373.
+Event study: pre 2008 −0.002, 2010 −0.002; post 2014 −0.029, 2016 −0.039, 2018 −0.046,
+2020 −0.040. Its municipal burden is water+waste, so the coverage reading applies equally.
+Figure y-axes read "DiD effect … (new-metro − non-metro gap, minus its 2012 value)".
 
 **Size-matched control check (2026-09-26, Orhan-approved):** control limited to the 14
 largest non-metros by 2012 population. **No size overlap exists** — all 14 (Afyonkarahisar
@@ -881,7 +912,8 @@ data sources or scraping that fall outside this.
   the current dataframe/variable structure (`data_official_Türkiye` vs.
   `data_official_Türkiye_extended`, the `Treated` categorical, etc.). **Maps (built
   2026-09-25, Orhan agreed to a separate notebook):** `fsoi_map.ipynb` reads
-  `fsoi_track_C/A_perHousehold.csv` exported by the main notebook. Boundaries: HDX
+  `fsoi_full_index_perHousehold.csv` / `fsoi_long_panel_index_perHousehold.csv` (renamed
+  from `fsoi_track_C/A_perHousehold.csv`, 2026-10-06) exported by the main notebook. Boundaries: HDX
   `cod-ab-tur` admin-1, original source Harita Genel Müdürlüğü (same agency as the area
   data), CC BY-IGO; download+simplify code in the notebook, cached at
   `geo/tur_admin1_simplified.geojson` (0.37 MB). Province names matched on a Turkish-folded
