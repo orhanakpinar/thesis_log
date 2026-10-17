@@ -3,6 +3,14 @@
 One page of fixed decisions so every chapter reads the same, whoever drafts it. Change anything
 here freely. Changing it here is the only place it needs changing.
 
+## Voice prompt (preliminary)
+
+From Orhan's writing advisor, saved verbatim (2026-10-15). It applies to all drafting and is the
+reference for the final proofreading pass:
+
+> "Use a clear, concise, and natural academic English. Avoid overly complex vocabulary or
+> robotic phrasing. Keep it close to an advanced non-native scholar's natural tone."
+
 ## Language and voice
 
 - American English. Prose is English; Turkish source quotes stay in Turkish with an English gloss.

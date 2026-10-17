@@ -29,7 +29,7 @@ Genel Müdürlüğü), CC BY-IGO; author's calculations.
 
 **The top of the distribution.** Nine of the ten highest-scoring provinces in 2020 are
 non-metropolitan: Iğdır, Amasya, Burdur, Bayburt, Kastamonu, Tokat, Muş, Çanakkale and Ardahan.
-The tenth is Antalya, an old-metropolitan province with Türkiye's largest greenhouse sector.
+The tenth is Antalya, an old-metropolitan province and one of Türkiye's main greenhouse regions.
 [INT] Most of the nine are small, predominantly rural provinces where agriculture carries a large
 share of household life and municipal service loads per household are light.
 
@@ -78,8 +78,9 @@ sovereignty.
 between 6th and 21st in every panel year. It reaches these ranks through external input: it has
 the highest external-input score of all provinces in six of the seven years, because it reports
 almost no fertilizer use in every year for which it reports at all. Its production and land-use
-scores, by contrast, are low (around 0.2–0.3 and 0.3). [INT] Hakkari is mountainous and has little crop
-agriculture, so its low input use reflects how little it farms, not how independently it farms.
+scores, by contrast, are low (around 0.2–0.3 and 0.3). [INT] Hakkari is mountainous and has
+little crop agriculture, so its low input use reflects how little it farms, not how
+independently it farms.
 Low dependence on inputs indicates sovereignty only where there is agriculture to depend on them.
 The index cannot tell these two situations apart, and Chapter 8 returns to what this means for
 the concept.

@@ -6,6 +6,15 @@
 Working note for `thesis_log_writingdrafts_agent` sessions. Status and next steps only; no
 thesis content lives here. `CLAUDE.md` governs anything about result validity.
 
+**Voice prompt (Orhan, 2026-10-15, preliminary):** saved verbatim at the top of
+`style_guide.md`: clear, concise, natural academic English; no overly complex vocabulary or
+robotic phrasing; close to an advanced non-native scholar's natural tone. Apply to all new
+drafting; Orhan may also use it for a final proofreading or rewrite pass.
+
+**Voice pass done 2026-10-15** on Ch. 4, 5, 6: light edits (long sentences split, rhetorical or
+meta phrases removed, project history removed, settled B24 note replaced, line wraps fixed,
+reading rule 4 on Hakkari added to §4.3.2). No full rewrite was needed.
+
 **Writing rule (Orhan, 2026-10-02):** chapter drafts stay clean and focused. Process history,
 data-problem explanations and side material go here (agent note) or into an appendix file, not
 into chapter prose.

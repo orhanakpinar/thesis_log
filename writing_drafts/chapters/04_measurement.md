@@ -41,19 +41,18 @@ more recent, and they work mostly at the national level [CITE: Ruiz-Almeida & Ri
 sovereignty below the national level, where differences in land, production and rural
 livelihoods actually play out.
 
-Turning a contested concept into numbers involves a chain of decisions: from the broad
-background concept, to a specific systematized definition, to indicators that can be observed,
-to the scores those indicators produce [CITE: Adcock & Collier 2001]. Each step can lose part of
-the concept. The rest of this section traces that chain for the Food Sovereignty Index (FSOI)
+Turning a contested concept into numbers takes several steps: from the broad idea, to a precise
+definition, to indicators that can be observed, and finally to scores [CITE: Adcock & Collier
+2001]. Each step can lose part of the concept. The rest of this section traces that chain for the Food Sovereignty Index (FSOI)
 and records what is lost at each step. [INT] I treat that loss not only as a limitation but as
 a finding about what official statistics make visible.
 
 ### 4.1.2 Grounded extraction from Turkish studies
 
-Rather than adopting indicators from global indices, whose content is shaped by what
-international databases collect, I built the candidate list from research on Türkiye. The aim
-was to cast a broad net for agricultural and rural indicators that Turkish researchers consider
-relevant, and then to narrow that list toward food sovereignty. [INT] Starting from local
+I did not take indicators from global indices, because their content depends on what
+international databases collect. Instead, I built the candidate list from research on Türkiye.
+The aim was to collect a wide range of agricultural and rural indicators that Turkish
+researchers consider relevant, and then to narrow the list toward food sovereignty. [INT] Starting from local
 studies grounds the index in the conditions of Turkish agriculture rather than in the
 availability of global data.
 
@@ -121,14 +120,13 @@ each candidate during the data search; the full list is in Appendix A.
 
 The losses are not spread evenly. Nearly a quarter of the production and land indicators
 survive (17 of 72). From the core of sovereignty, one survives (1 of 37), and it is an
-agroecology indicator about the effect of agricultural waste, not a measure of control.
-[VERIFY: that the one surviving core indicator is "Waste production affects of agricultural
-lands/products"] Land security, autonomy, seed sovereignty and cooperatives all go to zero.
+agroecology indicator about the regional distribution of agricultural waste, not a measure of
+control. Land security, autonomy, seed sovereignty and cooperatives all go to zero.
 
 The core does not fail for lack of sources. It has the highest match rate of the three blocs:
 27 of its 37 candidates (73%) could be linked to a potential source, against 24 of 72 (33%)
-for production and land (Figure 4.1). Information about the core exists. It exists in surveys,
-legal texts and program documents, not as a yearly series for every province.
+for production and land (Figure 4.1). The information exists, but in surveys, legal texts and
+program documents, not as a yearly series for every province.
 
 The reasons differ, too. Many core indicators fail because they would need survey data:
 information about who owns land, who decides what to plant, or who belongs to a cooperative is
@@ -151,9 +149,8 @@ Two cautions apply to Table 4.1. First, the largest group, 100 indicators where 
 found but coverage was incomplete, is a broad category. It covers missing years, missing
 provinces and series that changed definition over time, and I did not record the exact reason
 for every indicator. Second, "no official source" means that I did not find one during the data
-search, not that none exists anywhere. Both cautions point to the same conclusion: the table
-shows what a researcher can build from open official statistics, which is the question this
-chapter asks.
+search, not that none exists anywhere. In other words, the table shows what a researcher can
+build from open official statistics, and that is the question of this chapter.
 
 ### 4.1.4 From 24 indicators to 13
 
@@ -180,8 +177,7 @@ denominators), so they form a single core land-use indicator.
 
 **Split or replaced.** Greenhouse activity is split between two categories: greenhouse output
 (tons) belongs to production, and greenhouse area (km²) to land use. The two are strongly
-correlated (about 0.94), so greenhouse activity is reflected in two categories. I state this
-rather than leave it implicit. Municipal water enters as the annual volume drawn into the
+correlated (about 0.94), so greenhouse activity is reflected in two categories. Municipal water enters as the annual volume drawn into the
 drinking and utility network. The volume of refined water was dropped because it records
 whether a treatment plant exists rather than how much water is used: 27 of 81 provinces
 reported exactly zero in 2008. TÜİK's per-person daily water series was also dropped, for a
@@ -269,19 +265,16 @@ animals, a gap in the index worth stating.
 combines fertilizer use and agricultural electricity use, both cost indicators. [INT] Input
 autonomy, meaning the ability to farm without depending on purchased inputs, is central to food
 sovereignty and to the agroecological literature it draws on [CITE: agroecology and input
-autonomy, e.g. from your Chapter 2 sources]. An earlier version of the index called this
-category "energy". The new name reflects what the two indicators share: fertilizer contains no
-energy unit, but both are purchased off-farm inputs.
+autonomy, e.g. from your Chapter 2 sources]. The name "external input" describes what the two
+indicators share: both are inputs bought from outside the farm.
 
 **Municipal burden** asks how much municipal service load falls on a household. It combines
 water drawn into the municipal drinking and utility network and waste collected, both cost
 indicators. Unlike the other four categories, this one is not agricultural. It enters the index
-as the cost side of rural life [INT], and its two indicators are grouped for three reasons: both
-are municipal household services, both are cost indicators, and both are affected by the same
-change in municipal boundaries under Law 6360. [INT — open decision for you and your advisor
-(ledger B24). Current recommendation: keep it inside the index, because water and waste were in
-the index before any causal result existed, and make the category-by-category decomposition
-the headline of Chapter 6. Settle before Chapter 6 is written.]
+as the cost side of rural life [INT]. Its two indicators are grouped for three reasons: both are
+municipal household services, both are cost indicators, and both are affected by the same change
+in municipal boundaries under Law 6360. Chapter 6 shows that this category carries the whole
+measured effect of the reform, and reports every result with and without it.
 
 **How the indicators relate.** Grouping follows content, but correlations were checked so that
 no category double-counts the same signal. Harvested and sown area were merged because they are
@@ -310,8 +303,8 @@ about 288-fold between Turkish provinces, while the behavior the indicators are 
 varies about fivefold, so any population-related quantity divided by area ends up tracking
 density. For drawn water, for example, per-area values correlate with population density at
 r = 0.988 across all province-years from 2008 to 2022, and per-household values at r = 0.048;
-for waste the figures are 0.995 and 0.163. Within a
-single province over time, the relation reverses. Area never changes, so a per-area indicator
+for waste the figures are 0.995 and 0.163. Within a single province over time, the relation
+reverses. Area never changes, so a per-area indicator
 moves only when the underlying total moves (r = 1.000 with the total). The number of households
 does change, because households have been getting smaller, so a per-household indicator can
 move even when the total does not (r = 0.72 with the total).
@@ -354,24 +347,22 @@ which maps every indicator onto a range from 0 to 1, a standard choice for compo
 [CITE: OECD & JRC 2008]. Min-max scaling is sensitive to extreme values, however, so two steps
 come before it.
 
-**Step 1: logarithm.** Most indicators are strongly skewed. A few provinces, such as Konya for
+**Step 1: logarithm.** Most indicators are strongly skewed: a few provinces, such as Konya for
 cultivated land or Antalya for greenhouse production, have values many times larger than the
-typical province. On a plain 0–1 scale they would sit near 1 while almost every other province
-sat near 0. Taking the logarithm compresses these extremes. I use log(1 + x) so that zero
-values remain defined. The logarithm never changes a province's rank within an indicator; it
-only changes how far apart provinces are. I applied it to all indicators rather than only to the
-most skewed ones, so that no cutoff for "skewed enough" had to be chosen and defended. Across
-the 26 indicator columns of the full index, it reduced the mean absolute skewness from 3.07 to
-1.87 (from 2.64 to 1.84 for the per-household columns alone). Its effect is uneven, however. For
-values much smaller than 1, log(1 + x) is almost equal to x, and many indicators are measured in
-units that make their values that small (waste per household, for example, is in thousands of
-tons). For 14 of the 26 columns, including 8 of the 13 per-household ones, the transformed values
-correlate above 0.99 with the raw values. For these indicators the logarithm is close to linear,
-so their scaling is in effect min-max scaling of winsorized raw values. The pattern follows the
-size of the values: the logarithm does real work for indicators with large values (production,
-market, agricultural electricity, and water per area), and is close to linear for every land-use
-indicator and for waste per household. Appendix C (Table C.1) reports the figures for each
-indicator. Chapter 6 shows one consequence of this for reading the causal results.
+typical province. On a plain 0–1 scale they would sit near 1 and almost every other province
+near 0. The logarithm compresses these extremes without changing any province's rank. I use
+log(1 + x) so that zero values remain defined, and I apply it to all indicators, so that no
+cutoff for "skewed enough" has to be chosen. On average, it reduces the absolute skewness of the
+26 indicator columns from 3.07 to 1.87.
+
+The effect is uneven, however. For values much smaller than 1, log(1 + x) is almost the same as
+x, and some indicators are measured in units that make their values that small (waste per
+household, for example, is in thousands of tons). For 14 of the 26 columns the logged values
+correlate above 0.99 with the raw values, so for these indicators the scaling is in practice
+min-max scaling of winsorized raw values. The logarithm does real work only for indicators with
+large values: production, market, agricultural electricity and water per area. It is close to
+linear for every land-use indicator and for waste per household. Appendix C (Table C.1) gives the
+figures for each indicator, and Chapter 6 shows what this means for the causal results.
 
 **Step 2: winsorizing.** Values below the 1st percentile or above the 99th percentile of each
 indicator are set to those percentiles. This limits the influence of the few outliers the
@@ -400,12 +391,11 @@ aggregate for Türkiye is placed on the same scale but does not define it.
 **A property to disclose.** Some activities are concentrated in a few provinces. Greenhouse
 agriculture is the clearest case: 85% of province-years score below 0.05 on greenhouse area,
 and 79% on greenhouse production. Counted by province, 83% and 69% of provinces score below 0.05
-in every year. [INT] This
-reflects a real fact about Turkish agriculture, not a flaw in the method: most provinces have
-very little greenhouse production. But it means these two indicators separate provinces less
-than the others do, so their practical weight in the index is smaller than their nominal share.
-I report this rather than correct it, since any correction would exaggerate differences that do
-not exist.
+in every year. [INT] This reflects a real fact about Turkish agriculture, not a flaw in the
+method: most provinces have very little greenhouse production. But it means that these two
+indicators separate provinces less than the others, so their real weight in the index is smaller
+than their nominal share. I report this rather than correct it, because a correction would
+exaggerate differences that do not exist.
 
 Cost indicators are not reversed at this stage. They are flipped at aggregation (Section
 4.2.4), so that all normalized values keep the same meaning (higher means more of the measured
@@ -451,10 +441,10 @@ one of the two weighting options the Global Food Security Index offers [CITE: Ec
 **What equal category weights imply for single indicators.** Because categories hold different
 numbers of indicators, each indicator's effective weight is $1/(K \times n_k)$. In the full
 index, each land-use indicator carries 4% of the total (1/25), and each production, market,
-external input and municipal burden indicator 10% (1/10). In the
-long-panel index, each land-use indicator carries 5% (1/20) and each production indicator 12.5%
-(1/8), while municipal burden holds only waste and external input holds only fertilizer, so each
-of these two single indicators carries 25% of the index. [INT] This concentration matters for
+external input and municipal burden indicator 10% (1/10). In the long-panel index, each land-use
+indicator carries 5% (1/20) and each production indicator 12.5% (1/8). Municipal burden holds
+only waste and external input holds only fertilizer, so each of these two indicators carries 25%
+of the index on its own. [INT] This concentration matters for
 interpreting the causal results in Chapter 6, and it is why an alternative weighting is reported
 alongside.
 
@@ -512,8 +502,8 @@ flowchart LR
 ### 4.3.1 Two indices: full and long-panel
 
 TÜİK does not publish every indicator for every year. The market indicators stop in 2020,
-because provincial crop and live animal values were not published for 2022 or
-2024. Water drawn and agricultural electricity stop in 2022. All other indicators run to 2024.
+because provincial crop and live animal values were not published for 2022 or 2024. Water drawn
+and agricultural electricity stop in 2022. All other indicators run to 2024.
 This leaves a choice between a complete index over a shorter period and a longer index with
 fewer categories. Rather than choose, I built both from the same pipeline, with the same
 normalization, directions and weighting, differing only in which categories enter and which
@@ -562,10 +552,9 @@ still agricultural intensity"; "aspiring to be a food sovereignty index but we n
 level data"). It is almost entirely [INT]. Rewrite it most carefully of all: it is the answer to
 the jury's first question. -->
 
-[INT] A jury member might ask whether the FSOI measures food sovereignty at all, or simply
-agricultural intensity per household. The honest answer is that its content is close to
-agricultural intensity, and this section explains what that means for the claims the thesis can
-make.
+[INT] Does the FSOI measure food sovereignty at all, or only agricultural intensity per
+household? Its content is close to agricultural intensity. This section explains what that means
+for the claims the thesis can make.
 
 **What the FSOI measures.** The index measures the material base of food sovereignty in a
 province: how much it produces, how much land it keeps in agricultural use, what value its
@@ -592,7 +581,7 @@ province level and repeated over time. [VERIFY: whether TÜİK's farm structure 
 İşletme Yapı Araştırması*) and the ministry's farmer registry (*Çiftçi Kayıt Sistemi*) are the
 right examples, and how often and at what level they are published]
 
-**Three rules for reading FSOI scores.**
+**Four rules for reading FSOI scores.**
 1. Scores are relative. Because of min-max scaling, a score of 0.5 means a province sits midway
    between the lowest and highest values observed, not that it is "half sovereign".
 2. Scores are provincial averages. They cannot show differences within a province, such as
@@ -600,6 +589,9 @@ right examples, and how often and at what level they are published]
    could be diluted in a provincial total.
 3. A change in the FSOI is a change in the material base. It is evidence about production, land,
    inputs and municipal load, not direct evidence about control.
+4. Low input use counts as independence only where there is agriculture to depend on inputs. A
+   province that farms very little also uses few inputs and can score high on external input
+   for that reason alone (Section 5.1 discusses Hakkari as an example).
 
 **Why keep the name.** The index is called a food sovereignty index because its indicators were
 drawn from research on the conditions of Turkish agriculture, organized by the categories that

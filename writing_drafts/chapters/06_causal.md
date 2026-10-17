@@ -12,8 +12,8 @@ category decomposition. Study aid: writing_drafts/did_walkthrough.md.
 
 This chapter tests the hypothesis set out in Chapter 1: that Law 6360 reduced food sovereignty
 in the provinces it turned into metropolitan municipalities. Chapter 5 showed that
-new-metropolitan provinces score lowest among the three groups in 2020 and moved from above to below
-old-metropolitan provinces around the time of the reform. Those patterns are descriptive. This
+new-metropolitan provinces score lowest among the three groups in 2020, and that they moved from
+above to below old-metropolitan provinces around the time of the reform. Those patterns are descriptive. This
 chapter asks whether they can be attributed to the law.
 
 The answer has three parts. The FSOI of new-metropolitan provinces fell after the reform
@@ -79,8 +79,9 @@ estimate.
 
 The outcome is the **long-panel index** (four categories, 2008–2024; Section 4.3.1), with the
 primary specification: per household, equal category weights, cost framing. The long-panel index
-is used because it has six time points after the reform, against four in the full index, one
-of which (2020) is the first year of the pandemic (Section 4.3.1). The sample is 65 provinces observed in 9 years, 585 province-years.
+is used because it has six time points after the reform, against four in the full index, one of
+which (2020) is the first year of the pandemic (Section 4.3.1). The sample is 65 provinces
+observed in 9 years, 585 province-years.
 
 ### 6.1.4 Inference
 
@@ -119,8 +120,8 @@ periods agree to the third decimal is the strongest single robustness result in 
 
 **Figure 6.1.** Event study of the long-panel FSOI. Each point is the gap between new-metropolitan
 and non-metropolitan provinces in that year, minus the same gap in 2012, with 95% confidence
-intervals. A negative value means new-metropolitan provinces fell behind relative to 2012. *Source:*
-author's calculations; coefficients in `thesis_outputs/table_6_1_event_study_long_panel.csv`.
+intervals. A negative value means new-metropolitan provinces fell behind relative to 2012.
+*Source:* author's calculations; coefficients in `thesis_outputs/table_6_1_event_study_long_panel.csv`.
 
 An event study, which estimates the difference separately for each year, shows the timing
 (Figure 6.1). Before the reform, the differences in 2008 (−0.009) and 2010 (−0.002) relative to
@@ -130,8 +131,8 @@ weakens: −0.038 in 2022 (p = 0.015) and −0.026 in 2024, when it is no longer
 significant (p = 0.15). Section 6.4 explains why the effect weakens even though the underlying
 change does not.
 
-Taken at face value, this would support the hypothesis. The rest of the chapter shows why it
-should not be taken at face value.
+On its own, this result would support the hypothesis. The next sections show why it should not be
+read that way.
 
 ## 6.3 Where the effect comes from
 
@@ -154,8 +155,7 @@ category removed in turn. Table 6.1 shows the first set of results.
 cost-framed: a negative estimate means the category score fell, that is, the measured quantity
 moved in the direction counted against sovereignty.
 
-The pattern is clear. Municipal burden moves by −0.175, an order of magnitude more than any other
-category. Without it, the FSOI estimate is +0.009 and not distinguishable from zero. **The whole
+Municipal burden moves by −0.175, about ten times more than any other category. Without it, the FSOI estimate is +0.009 and not distinguishable from zero. **The whole
 effect on the composite comes from municipal burden.**
 
 The other three categories need to be described precisely rather than summarized as "no
@@ -170,8 +170,8 @@ near zero. [INT] Neither is large enough to change the reading of the composite,
 opposite signs give no consistent picture of the reform's effect on agriculture.
 
 The land-use effect is worth a closer look, because critics of Law 6360, among them the Chamber
-of Agricultural Engineers (ZMO), argue that it weakened village control over land (Chapter 7). Broken down by indicator, the −0.023 is spread
-thinly: fallow land −0.011 (more fallow in new-metropolitan provinces; the only indicator
+of Agricultural Engineers (ZMO), argue that it weakened village control over land (Chapter 7).
+Broken down by indicator, the −0.023 is spread thinly: fallow land −0.011 (more fallow in new-metropolitan provinces; the only indicator
 significant on its own, p = 0.021), vegetable land −0.007, long-term crops −0.004, greenhouse
 land −0.002, and core cultivated land +0.001. Estimated on the raw areas in logarithms, none of
 these changes is statistically significant (fallow +26%, p = 0.31; vegetable land −11%, p = 0.24;
@@ -198,25 +198,27 @@ change in the number of households.
 **Table 6.2.** Difference-in-differences estimates on raw quantities (natural logarithms),
 new-metropolitan vs. non-metropolitan provinces.
 
-| Quantity | Estimate (log points) | Approximate % change | p |
+| Quantity | Estimate (log points) | Percentage change, exp(b) − 1 | p |
 |---|---:|---:|---:|
-| Waste collected (total) | +0.260 | +30% | < 0.001 |
-| Waste collected per household | | +27% | < 0.05 |
-| Waste collected per person | | +23% | < 0.05 |
-| Number of households | | +2% | 0.37 |
-| Mean household size | | +3% | 0.21 |
-| Municipal coverage share | +0.259 | +30% | [VERIFY] |
+| Waste collected (total) | 0.260 | +29.7% | < 0.001 |
+| Waste collected per household | 0.238 | +26.8% | < 0.001 |
+| Waste collected per person | 0.209 | +23.2% | < 0.001 |
+| Number of households | 0.023 | +2.3% | 0.37 |
+| Mean household size | 0.029 | +2.9% | 0.21 |
+| Population | 0.051 | +5.3% | 0.013 |
+| Municipal coverage share (2008–2022) | 0.259 | +29.6% | < 0.001 |
 
-*Note.* The municipal coverage share is the proportion of the provincial population counted as
-living in municipalities. There is no direct count of it; it is derived from TÜİK's drinking-water
-statistics, as the annual volume of water drawn divided by 365 times the published daily volume
-per person in municipalities, which gives the population TÜİK counted as municipal, expressed as
-a share of the provincial population. It is therefore measured independently of waste, but not
-independently of water. [VERIFY: log-point estimates and p-values for the per-household,
-per-person, household and household-size rows; and the p-value for coverage]
+*Note.* n = 585 province-years (65 provinces, 2008–2024), except the coverage share: n = 520
+(2008–2022), since water is not published for 2024. The municipal coverage share is the
+proportion of the provincial population counted as living in municipalities. There is no direct
+count of it; it is derived from TÜİK's drinking-water statistics, as the annual volume of water
+drawn divided by 365 times the published daily volume per person in municipalities, which gives
+the population TÜİK counted as municipal, expressed as a share of the provincial population. It
+is therefore measured independently of waste, but not independently of water.
 
-The change is in the numerator. Total waste collected rose by about 30% more in new-metropolitan
-provinces, while the number of households and their size did not change detectably. And the
+The change is in the numerator. Total waste collected rose by about 30% (29.7%) more in
+new-metropolitan provinces, while the number of households and their size did not change
+detectably. And the
 coverage share rose by almost exactly the same amount as waste: +0.259 against +0.260 log
 points, a ratio of 1.00, with the same year-by-year path (Figure 6.2).
 
@@ -224,21 +226,20 @@ points, a ratio of 1.00, with the same year-by-year path (Figure 6.2).
 
 **Figure 6.2.** Event study of waste collected and of the municipal coverage share (natural
 logarithms). Each point is the gap between new-metropolitan and non-metropolitan provinces in
-that year, minus the same gap in 2012, with 95% confidence intervals. The coverage share is derived from TÜİK water statistics (see the note to
-Table 6.2). *Source:* author's calculations; coefficients in
+that year, minus the same gap in 2012, with 95% confidence intervals. The coverage share is
+derived from TÜİK water statistics (see the note to Table 6.2). *Source:* author's calculations; coefficients in
 `thesis_outputs/table_6_2_event_study_waste_coverage.csv`.
 
-**Why the composite effect weakens after 2020.** Comparing the waiver years (2014–2018) with all
-post-waiver years (2020–2024), the waste effect is stable in percentage terms: in logs it falls
-only from 0.257 to 0.249, about 3%. The composite effect weakens by 14% over the same windows,
-for a mechanical reason. Waste per household is a very small number, and at that scale the
-log(1 + x) step of the normalization is effectively linear (Section 4.2.3), so municipal burden is
-scored on a raw, not a percentage, scale. As waste per household declined over the period in all
-provinces, the same percentage gap became a smaller absolute gap in scores, and the
-municipal-burden score effect shrank by 27%. This alone more than accounts for the composite's
-fade; production and land use, drifting slightly further negative, partly offset it.
-[INT] The fade is therefore a property of the scale, not evidence that the coverage change was
-reversed.
+**Why the composite effect weakens after 2020.** If we compare the waiver years (2014–2018) with
+all later years (2020–2024), the waste effect stays almost the same in percentage terms: in logs
+it moves only from 0.257 to 0.249, about 3%. Yet the composite effect weakens by 14% over the
+same years. The reason is mechanical. Waste per household is a very small number, and at that
+scale the log(1 + x) step is close to linear (Section 4.2.3), so municipal burden is scored on a
+raw scale, not a percentage scale. Waste per household declined in all provinces over the period,
+so the same percentage gap became a smaller gap in scores: the municipal-burden score effect
+shrank by 27%. This alone more than explains the composite's fade; production and land use, which
+moved slightly further down, partly offset it. [INT] The fade is therefore a property of the
+scale, not a sign that the coverage change was reversed.
 
 [INT] The simplest reading is that municipalities did not collect more waste per person they
 served; they served more people. Law 6360 turned villages into neighborhoods of metropolitan
@@ -260,11 +261,16 @@ for villages converted to neighborhoods and capped their drinking- and usage-wat
 quarter of the lowest municipal tariff [CITE: Çelikyay 2014; VERIFY against the law]. If the cap
 drove the effect, the effect should weaken once the cap ended. In logs, the effect on waste
 collected is stable: 0.257 on average over 2014–2018 against 0.249 over 2020–2024, a 3% decline,
-which is what a permanent extension of municipal coverage predicts, not a price effect. For
-water, the variable the provision targeted, the effect declines by 23% between 2014–2018 and
-2020–2022, the last year water is published, so a contribution of the tariff cap to water cannot
-be ruled out. It cannot be tested cleanly, because the coverage measure is itself derived from
-water statistics, and 2020 coincides with the COVID-19 pandemic.
+which is what a permanent extension of municipal coverage predicts, not a price effect.
+
+[INT — Orhan: new wording from the water decomposition; please review before treating as
+final.] For water, the variable the provision targeted, the effect declines by 23% between
+2014–2018 and 2020–2022, the last year water is published. Decomposing it in the same way as
+waste shows that the coverage jump persists, and that the decline comes entirely from lower water
+use per covered resident after 2019, the direction the end of the tariff cap would predict. The
+decline is not statistically significant, is concentrated in 2022, and coincides with the COVID-19
+pandemic, and use per covered resident did not rise detectably while the cap was in force. The
+evidence is therefore suggestive rather than conclusive.
 
 ## 6.5 Robustness
 
@@ -281,18 +287,18 @@ objection.
 | Per-capita denominator | the household denominator drives it | −0.037 | 0.007 | |
 | Waiver years excluded (2014–2018) | the tariff waiver drives it | −0.034 | 0.025 | +0.003 (p = 0.75) |
 | Largest 14 non-metropolitan provinces as controls | treated provinces are just larger | −0.035 | 0.016 | |
-| Data-quality outlier provinces dropped | a few provinces' data drive it | −0.037 | | |
+| Data-quality outliers dropped (Kırıkkale, Kırşehir, Hakkari) | a few provinces' data drive it | −0.037 | — | |
 | Full index (5 categories, 2008–2020) | the result depends on which index is used | −0.038 | < 0.001 | |
 
 *Note.* Same model and sample as Section 6.2 unless stated. "Without municipal burden" re-estimates
-the specification on the index without that category. Empty cells: not computed. [VERIFY: the
-outlier-provinces row (which provinces, and its p-value); the per-capita estimate is −0.0369]
+the specification on the index without that category. Empty cells and "—": not computed. The
+outlier row drops three comparison provinces with implausible spikes in their data (p = 0.003
+with clustered standard errors).
 
 The estimate is negative and statistically significant in every specification, and in every
 specification where it was checked, removing municipal burden removes the effect. Bootstrap
 p-values from 999 replications carry a simulation error of about ±0.005, which does not affect
-any of these conclusions. Three checks
-deserve comment.
+any of these conclusions. Four checks deserve comment.
 
 **Benefit framing.** If the cost indicators are not reversed, the estimate becomes +0.031
 (p = 0.008). This is not a contradiction: under benefit framing more waste per household counts
@@ -300,9 +306,9 @@ as more sovereignty, so the sign must flip. It confirms that the sign follows fr
 convention, not from the data.
 
 **Per area.** On the per-area version of the index, the estimate is −0.0003 (p = 0.95), which
-looks like no effect. It is not. Min-max scaling across all province-years spreads per-area
-values according to population density, which differs about 288-fold between provinces, and
-leaves almost no room for change within a province: only 0.9% of the variance of the per-area
+looks like no effect. It is not. On the per-area version, min-max scaling across all
+province-years spreads values according to population density, which differs about 288-fold
+between provinces, and leaves almost no room for change within a province: only 0.9% of the variance of the per-area
 waste score lies within provinces, against 34% for the per-household score. The municipal burden
 coefficient shrinks by the same factor (about 11-fold), and municipal burden alone remains
 significant on the per-area index (−0.016, p < 0.001). [INT] The normalized per-area index is
@@ -338,10 +344,16 @@ Five limits remain, and they should be read with the results.
 
 1. **Three pre-reform time points.** Parallel trends can be checked only on 2008, 2010 and 2012.
    The check passes, but it is a weak check.
-2. **A small difference in population growth.** Population grew about 5% faster in
-   new-metropolitan provinces (0.051 log points), with one significant pre-reform difference
-   (2008: −0.027, p = 0.004). This is small next to the 30% coverage change, but it means the
-   groups were not identical in their trends. [VERIFY: sign convention of the 2008 coefficient]
+2. **Population did not follow parallel trends.** New-metropolitan provinces were already
+   growing faster than non-metropolitan ones before the reform. The 2008 coefficient (−0.027,
+   p = 0.004) means that the population gap between the two groups was about 2.7% smaller in
+   2008 than in 2012; in other words, new-metropolitan provinces grew about 2.7% faster over
+   2008–2012. The gap kept widening afterwards (+0.015 in 2014, +0.054 in 2020, +0.060 in 2022),
+   and on average post-reform population is 5.3% higher (0.051 log points). This is a
+   parallel-trends caveat for population specifically. It is small next to the 30% change in
+   coverage, the number of households shows no differential trend in any year (all p > 0.3), and
+   the 2008 difference loses significance against the size-matched comparison group (−0.029,
+   p = 0.060).
 3. **No size overlap.** As Section 6.5 showed, the treated and comparison provinces never
    overlap in size.
 4. **The province is coarser than the reform.** Law 6360 acted on villages and districts, by
@@ -349,8 +361,8 @@ Five limits remain, and they should be read with the results.
    administrations. Province-level totals can dilute effects that are concentrated in particular
    villages or among particular producers, such as smallholders.
 5. **2020 and the tariff waiver.** The first post-waiver year coincides with the pandemic. For
-   waste the waiver reading is not supported (Section 6.4), but for water a contribution of the
-   tariff cap cannot be ruled out.
+   waste the waiver reading is not supported (Section 6.4). For water, the pattern points in the
+   direction the end of the cap would predict, but it is not statistically significant.
 
 ## 6.7 The hypothesis
 
@@ -378,9 +390,9 @@ local to appear in provincial totals.
 Using a difference-in-differences design that compares the 14 new-metropolitan provinces with 51
 non-metropolitan provinces over 2008–2024, this chapter found that the long-panel FSOI of
 new-metropolitan provinces fell by 0.037 points after Law 6360. The full index gives the same
-estimate (−0.0375), and the result holds under every alternative specification tried. Decomposition shows that the entire effect comes from municipal
-burden, and the raw data show that waste collection rose exactly as much as municipal coverage
-did. The law's measurable footprint is the extension of municipal services, not a change in
+estimate (−0.0375), and the result holds under every alternative specification tried.
+Decomposition shows that the entire effect comes from municipal burden, and the raw data show
+that waste collection rose exactly as much as municipal coverage did. The law's measurable footprint is the extension of municipal services, not a change in
 agricultural production, which shows no detectable change. Chapter 7 turns from what the state's
 statistics register to what the state says, and finds a parallel pattern: the state treated the
 reform as a municipal matter, not an agricultural one.
@@ -403,6 +415,6 @@ staggered adoption does not apply. Worth one sentence if asked; not needed in th
 
 ## Checks pending
 
-- `[VERIFY]` items: Table 6.2 per-household / per-person / household rows; the coverage p-value;
-  the outlier-provinces row; SD units for −0.037; the 2008 population coefficient sign; ledger
-  A4 (13 + Ordu); the waiver details against the law.
+- `[VERIFY]` items: SD units for −0.037 (pending econometrics, needs Orhan's approval of a new
+  cell); ledger A4 (13 + Ordu); the waiver details against the law.
+- `[INT]` for Orhan: the new water sentence in §6.4 (from the water decomposition).

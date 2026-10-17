@@ -32,15 +32,16 @@ to about 0.41 of its earlier level. The provincial series, not the national one,
 The crop and live-animal value series show no such break: their provincial values add up to the
 national total in every year.
 
-The undercount is not uniform across provinces. After 2012, the ratio of a province's value to
-what it would be at full coverage ranges from about 0.25 (10th percentile) through 0.45 (median)
-to 0.57 (90th percentile). Poultry-producing provinces are hit hardest, for example Bolu (0.05),
+The undercount is not uniform across provinces. To measure it for each province, I compare the
+change in its animal-product value between 2010 and 2012 with the change in its live-animal
+value over the same years, a series without a break: (AP₂₀₁₂ / AP₂₀₁₀) / (LS₂₀₁₂ / LS₂₀₁₀). A
+ratio of 1 means no break; 0.45 means the province kept 45% of the animal-product value its own
+live-animal value would predict. Because both series are converted at the same exchange rate
+within a year, the ratio is the same in lira and in dollars. Across the 81 provinces, it ranges
+from 0.25 (10th percentile) through 0.39 (25th) and 0.45 (median) to 0.52 (75th) and 0.57 (90th). Poultry-producing provinces are hit hardest, for example Bolu (0.05),
 Manisa (0.10) and Sakarya (0.13). The ratio also differs by group: 0.36 for old-metropolitan,
 0.43 for new-metropolitan and 0.46 for non-metropolitan provinces (Kruskal–Wallis test,
 p = 0.025).
-
-[VERIFY: the exact definition of the per-province ratio, so this paragraph describes it
-correctly]
 
 [CITE: TÜİK metadata, if the cause can be confirmed. A governorate yearbook footnote suggests
 that meat, poultry, eggs and hides were excluded from the provincial series from 2011; this is
