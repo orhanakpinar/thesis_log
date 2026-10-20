@@ -84,6 +84,9 @@ trail of how each result was reached, and the previous body of this note, are in
   - **The trend depends on the denominator.** Long-panel index common trend: per household
     +0.00195/yr (p < 0.001); per capita **−0.00096/yr (p = 0.051)**, borderline negative, with
     municipal burden falling 0.626 → 0.568.
+  - Per-capita long-panel index by group (same cell): all three groups ~0.47 in 2012; new-metro
+    lowest from 2014 on (2020: non 0.469 / old 0.428 / new 0.417). Per-capita DiD −0.0369
+    (bootstrap p = 0.007).
   - **So the honest national statement is "no robust national trend"**: slightly up per household,
     because households shrink; slightly down per capita, because waste per person rises. Never
     "food sovereignty rose". The provisional PDF's "national decline" does
@@ -170,6 +173,19 @@ boundary change), cluster-robust SE by province, 14 treated / 51 control.
     −3% p = 0.67).
   - **Reading:** no farmland loss; a weak, diffuse shift toward fallow. Too weak to carry the ZMO
     argument as a finding.
+- **Water decomposed like waste** (cell "Water decomposed like waste", 2026-10-14). In logs, total
+  water = coverage share + water per covered resident (TÜİK's per-person-in-municipalities rate)
+  + population, exactly.
+  - Coverage effect stays flat (2014–18 0.263 → 2020–22 0.253), a permanent jump.
+  - Water per covered resident: ~0 during the waiver (2014 −0.046, 2016 +0.063, 2018 +0.039,
+    all n.s.), then 2020 −0.029 and 2022 −0.122 (p = 0.17).
+  - So **the 23% water fade (2014–18 → 2020–22) is entirely a fall in water drawn per covered
+    resident, not a coverage reversal.** Its direction is what the waiver ending predicts, but it
+    is not significant, it is concentrated in 2022, and it overlaps COVID (2020). There was also
+    no detectable rise in usage *during* the waiver. **Suggestive, not established.**
+  - 2018 → 2020: total −0.059 = per covered resident −0.069, coverage −0.018, population +0.028.
+  - Nationally, water does not fall: 4.55 → 6.68 bn m³ (2008→2022); per person 63.6 → 78.3 m³;
+    per household ~flat (254 → 251 m³); per covered resident 215 → 229 L/day.
 - **Water and the tariff waiver:** water-alone DiD −0.168 (p = 0.0001). In logs, water fades 23%
   after 2019 against waste's 3%. So the waiver remains possible for water only; it is not testable
   cleanly, because coverage is derived from water. 2020 is also COVID.
@@ -186,6 +202,32 @@ boundary change), cluster-robust SE by province, 14 treated / 51 control.
 (log population DiD +0.051; one pre-period coefficient, 2008, significant); treated and control
 never overlap in size; old-metro contaminated as a control for municipal services (implied coverage
 +0.089 at the reform vs +0.226 new-metro, −0.020 non-metro).
+
+**SD units and internal structure (2026-10-18, Orhan-approved; notebook 212 cells, 0 errors):**
+- **DiD in SD units** (long-panel, Türkiye row excluded):
+  - across provinces in 2012: SD 0.0755, so −0.0373 = −0.49 SD
+  - pooled province-years: SD 0.0745, so −0.50 SD
+  - within province: SD 0.0363, so −1.03 SD
+  - "About half an SD" refers to between-province spread.
+- **Outlier-dropped DiD** (Kırıkkale, Kırşehir, Hakkari): −0.0370, wild bootstrap p = 0.005.
+- **Internal structure** of the full index; per-household scores, cost-flipped; 567 province-years;
+  Appendix C: `fig_C1`, `fig_C2`, `table_C1`–`C5`.
+  - (a) The mean indicator correlation within categories (+0.09) barely exceeds the mean between
+    categories (0.00). The strongest pairs cross category lines: greenhouse output ~ greenhouse
+    land 0.97; total production ~ core cropland 0.84; livestock ~ core cropland 0.68; fertiliser ~
+    crop value −0.60.
+  - (b) Categories: production, land use and market go together (0.38–0.60); external input
+    mirrors them (−0.44 to −0.47), since more farming means more fertiliser. Municipal burden is
+    nearly independent of all four (|r| ≤ 0.13).
+  - (c) Cronbach's alpha: external input 0.78, municipal burden 0.57, market 0.06, land use −0.28,
+    production −0.40. Negative alpha means the members pull in opposite directions (greenhouse vs
+    field-crop provinces). These are conceptual groupings, not reflective scales.
+  - (d) PCA: PC1 30%, PC2 20%, PC3 13%; 4 components with eigenvalue > 1.
+    - PC1: field-crop and livestock scale vs input intensity.
+    - PC2: greenhouse and horticulture.
+    - PC3: long-term crops and municipal water vs greenhouse.
+    - So the index is multi-dimensional, which supports equal category weights over a single
+      latent factor.
 
 # 4. Measurement facts the methods chapter needs
 
