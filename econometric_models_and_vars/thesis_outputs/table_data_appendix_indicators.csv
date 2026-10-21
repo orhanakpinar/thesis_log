@@ -1,8 +1,7 @@
 ﻿indicator,category,direction,panel,source,source table,source column,transformation
 total_agro_production_ton,production,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tahıllar ve diğer bitkisel ürünlerin üretim miktarı (ton),Toplam,tonnes
 agro_greenhouse_prod_ton,production,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Örtü altı sebze ve meyve üretimi (ton),Toplam,tonnes
-landuse_core,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tahıllar ve diğer bitkisel ürünlerin hasat edilen alanı (hektar),Toplam,hectares to km2; mean of the two after min-max scaling (r = 0.99)
-landuse_core,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,İşlenen tarım alanı / Ekilen (hektar),hectares to km2; mean of the two after min-max scaling (r = 0.99)
+landuse_harvested_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Tahıllar ve diğer bitkisel ürünlerin hasat edilen alanı (hektar),Toplam,"hectares to km2 (sown area, r = 0.99 with it, not used)"
 landuse_fallow_km2,land use,cost,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,İşlenen tarım alanı / Nadas (hektar),hectares to km2
 landuse_greenhouse_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Niteliklerine göre örtü altı tarım alanları (dekar),Toplam,decares to km2
 landuse_longtermCrops_km2,land use,benefit,main,TÜİK Bölgesel İstatistikler (biruni.tuik.gov.tr/bolgeselistatistik),Alan kullanımı,Toplam uzun ömürlü bitkilerin alanı (hektar),hectares to km2

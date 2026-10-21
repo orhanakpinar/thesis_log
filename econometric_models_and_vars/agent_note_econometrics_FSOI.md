@@ -4,8 +4,9 @@
 > review before citing or incorporating into the written thesis. Human draft notes live in
 > `Variable_Analysis_Methods/`.
 
-*Rewritten 2026-10-05 as one current-state document. Every number below was checked against a
-fresh end-to-end run that day (main notebook 200 cells, map notebook 15, 0 errors). The dated
+*Rewritten 2026-10-05 as one current-state document. **All numbers updated 2026-10-21 after the
+harvested-area rebuild** (core cropland = harvested area alone, km²; see §2), checked against a
+fresh end-to-end run (main notebook 214 cells, map notebook 15, 0 errors). The dated
 trail of how each result was reached, and the previous body of this note, are in
 `agent_note_econometrics_FSOI_history.md` — read it only to reconstruct or defend a step.*
 
@@ -39,39 +40,44 @@ trail of how each result was reached, and the previous body of this note, are in
 | Winsorising 1st/99th; floor-bunching documented, not engineered away. | 2026-09-20 |
 | Wild cluster bootstrap with **999 draws**, following Cameron, Gelbach & Miller (2008), *Bootstrap-based improvements for inference with clustered errors*, Review of Economics and Statistics 90(3). No 9,999-draw run (see §3.2). Optional citation for choosing B so that α(B+1) is an integer: Davidson & MacKinnon (2000), *Bootstrap tests: how many bootstraps?*, Econometric Reviews 19(1) — not yet checked against the paper; verify before citing. | 2026-10-05 |
 | The 6360 critique is attributed to **ZMO** (Ziraat Mühendisleri Odası, a TMMOB member chamber). | 2026-10-05 |
+| **Core cropland = harvested area alone** (km²), replacing a unitless average of min-max-scaled harvested and sown area (r = 0.99). Sown area dropped; every indicator now has a real unit. Index still 13 pairs (full) / 9 (long-panel). | 2026-10-21 |
+| Fade window: always 2014–18 (waiver years) vs 2020–24 (all post-waiver); never drop 2020. | 2026-10-07 |
 
-# 3. Results (verified 2026-10-05)
+# 3. Results (verified 2026-10-21, after the harvested-area rebuild)
 
 ## 3.1 Descriptive — full index (13 pairs, per household)
 
-- **2020 group means, equal-weighted:** non-metro 0.511, old-metro 0.446, new-metro 0.439.
+- **2020 group means, equal-weighted:** non-metro 0.509, old-metro 0.445, new-metro 0.438.
 - **Which group is lowest/highest depends on the view.**
 
   | View | Non | New | Old | Lowest |
   |---|---|---|---|---|
-  | Full, 2020, equal-weighted | 0.511 | 0.439 | 0.446 | new |
-  | Full, 2020, TOPSIS | 0.318 | 0.289 | 0.322 | new |
-  | Full, pooled 2008–2020, equal-weighted | 0.521 | 0.466 | 0.462 | **old** |
+  | Full, 2020, equal-weighted | 0.509 | 0.438 | 0.445 | new |
+  | Full, 2020, TOPSIS | 0.317 | 0.288 | 0.322 | new |
+  | Full, pooled 2008–2020, equal-weighted | 0.519 | 0.464 | 0.461 | **old** |
   | Full, pooled 2008–2020, TOPSIS | 0.321 | 0.303 | 0.329 | new |
-  | Long-panel, pooled 2008–2024, equal-weighted | 0.507 | 0.466 | 0.484 | new |
-  | Long-panel, pooled 2008–2024, TOPSIS | 0.336 | 0.322 | 0.366 | new |
+  | Long-panel, pooled 2008–2024, equal-weighted | 0.505 | 0.465 | 0.482 | new |
+  | Long-panel, pooled 2008–2024, TOPSIS | 0.336 | 0.322 | 0.365 | new |
 
-  Flat weighting, full index: 2020 non 0.467 / old 0.414 / new 0.412; pooled old 0.428 < new 0.438.
+  Flat weighting, full index: 2020 non 0.463 / old 0.412 / new 0.410; pooled old 0.425 < new 0.435.
   **Wording:** "New-metro is lowest in 2020 and on the long-panel index; on the full index
-  averaged over 2008–2020, old-metro is marginally lowest (by 0.004 equal-weighted, 0.010 flat).
+  averaged over 2008–2020, old-metro is marginally lowest (by 0.003 equal-weighted, 0.010 flat).
   Which of non-metro and old-metro leads depends on the aggregation method."
+- **Top and bottom 10, full index 2020:**
+  - Top 10: all non-metro except Antalya, with Iğdır first.
+  - Bottom 10: Şırnak and Batman lowest, then İstanbul, Şanlıurfa, Mardin, Hatay, …
 - **These are group means, not treatment effects.** The group spread sits mostly in municipal
   burden (2020: non 0.744 / old 0.563 / new 0.536). Removing it, non-metro still leads every year
-  but the non−new gap shrinks 42% (0.055 → 0.032).
-- **Full-index change 2008→2020:** provincial mean 0.499 → 0.486 (−0.014); market contributes
+  but the non−new gap shrinks 43% (0.054 → 0.031).
+- **Full-index change 2008→2020:** provincial mean 0.497 → 0.484 (−0.013); market contributes
   −0.018. Re-expressed relative to the national value each year (no currency or inflation):
-  −0.003. **Not a food-sovereignty decline:** it is the dollar, and before the drop also the
-  animal-product break.
-- **No national decline on the long-panel index:** common trend +0.00195/yr (p < 0.0001) with
-  municipal burden; −0.00007/yr (p = 0.844) without.
+  −0.003 with animal products, +0.005 without. **Not a food-sovereignty decline:** it is the
+  dollar, and before the drop also the animal-product break.
+- **No national decline on the long-panel index:** common trend +0.00199/yr (p < 0.0001) with
+  municipal burden; −0.00002/yr (p = 0.959) without.
   - **Why it rises** (cell "Why does the long-panel index rise?"): the provincial mean goes
-    0.493 → 0.516 (+0.023) from 2008 to 2024.
-  - Contributions: municipal burden +0.0325, production +0.0072, land use −0.0046, external input
+    0.490 → 0.514 (+0.024) from 2008 to 2024.
+  - Contributions: municipal burden +0.0325, production +0.0072, land use −0.0037, external input
     −0.0121.
   - So the rise is municipal burden. Nationally, households grew +54.6% (household size 4.0 → 3.1)
     against waste +32.5%, so waste per household fell 14.3% and the cost-framed score rose.
@@ -82,7 +88,7 @@ trail of how each result was reached, and the previous body of this note, are in
     Household growth (log 0.435) is 41% more people and 59% smaller households (size 4.0 → 3.1;
     TÜİK gives 2008 as a whole number, so that split is coarse).
   - **The trend depends on the denominator.** Long-panel index common trend: per household
-    +0.00195/yr (p < 0.001); per capita **−0.00096/yr (p = 0.051)**, borderline negative, with
+    +0.00199/yr (p < 0.001); per capita **−0.00096/yr (p = 0.051)**, borderline negative, with
     municipal burden falling 0.626 → 0.568.
   - Per-capita long-panel index by group (same cell): all three groups ~0.47 in 2012; new-metro
     lowest from 2014 on (2020: non 0.469 / old 0.428 / new 0.417). Per-capita DiD −0.0369
@@ -92,14 +98,16 @@ trail of how each result was reached, and the previous body of this note, are in
     "food sovereignty rose". The provisional PDF's "national decline" does
   not replicate on this pipeline.
 - **Rank agreement:**
-  - Full vs long-panel index: Spearman mean 0.761 across 2008–2020 (0.675–0.826). Related, not
+  - Full vs long-panel index: Spearman mean 0.757 across 2008–2020 (0.673–0.823). Related, not
     interchangeable.
-  - Category-weighted vs flat: 0.934–0.952 by year on the full index, but 0.681 on the long-panel
-    index. Flag this: long-panel rankings are more weighting-sensitive.
+  - Category-weighted vs flat: 0.935–0.954 by year on the full index (0.950 pooled), but 0.686 on
+    the long-panel index. Flag this: long-panel rankings are more weighting-sensitive.
   - With vs without animal products: 0.983–0.989. 2020 top-10 overlap 9/10, bottom-10 10/10.
 - **Hakkari** (notebook cell "Hakkari in the full index"): full-index rank 6th in 2008 and 2010,
-  then 9th, 16th, 13th, 21st, and 14th in 2020. Its external-input score is the highest of all
-  provinces in 6 of 7 years (3rd in 2010, 11th in 2018), while production (~0.2–0.3) and land use
+  then 9th, 16th, 12th, 20th, and 14th in 2020. Its external-input score is the highest of all
+  provinces in **5 of 7 years, sole top each time with no ties** (2008, 2012, 2014, 2016, 2020;
+  tie count printed by its own cell). In 2010 İstanbul is top, Hakkari 3rd; in 2018 Bingöl is top,
+  Hakkari 11th. *An earlier version of this note said "6 of 7"; that was a counting error.* while production (~0.2–0.3) and land use
   (~0.3) are low. Fertiliser is zero or near-zero even in years the Ministry file reports it;
   2020–24 are absent from the file and treated as zero.
 
@@ -109,43 +117,44 @@ trail of how each result was reached, and the previous body of this note, are in
 (pre-period 2008/2010/2012), control = non-metro only (old-metro got a weaker version of the
 boundary change), cluster-robust SE by province, 14 treated / 51 control.
 
-- **Primary: −0.0373** (SE 0.0126, p = 0.0031, 95% CI [−0.062, −0.012], n = 585). Wild cluster
-  bootstrap p = 0.004.
-  *Approved thesis sentence (Orhan, 2026-09-29):* "Because only 14 provinces are treated,
-  conventional cluster-robust standard errors may overstate significance (Bertrand, Duflo &
-  Mullainathan, 2004); inference is therefore confirmed with a wild cluster bootstrap with
-  restricted residuals and Rademacher weights (Cameron, Gelbach & Miller, 2008), 999
-  replications, which yields p = 0.004."
+- **Primary: −0.0367** (SE 0.0126, p = 0.0036, 95% CI [−0.0615, −0.0120], n = 585). Wild cluster
+  bootstrap p = 0.005. *(Before the harvested-area rebuild: −0.0373, bootstrap p = 0.004.)*
+  *Approved thesis sentence (Orhan, 2026-09-29), with the p-value updated by the rebuild:*
+  "Because only 14 provinces are treated, conventional cluster-robust standard errors may
+  overstate significance (Bertrand, Duflo & Mullainathan, 2004); inference is therefore confirmed
+  with a wild cluster bootstrap with restricted residuals and Rademacher weights (Cameron,
+  Gelbach & Miller, 2008), 999 replications, which yields p = 0.005."
 - **Every specification, wild-bootstrap p (all significant):**
 
   | Spec | Coef | Bootstrap p |
   |---|---|---|
-  | primary | −0.0373 | 0.004 |
-  | size-matched control (28 clusters) | −0.0351 | 0.016 |
-  | flat weighting | −0.0267 | 0.002 |
-  | TOPSIS | −0.0249 | 0.005 |
+  | primary | −0.0367 | 0.005 |
+  | size-matched control (28 clusters) | −0.0348 | 0.016 |
+  | flat weighting | −0.0254 | 0.003 |
+  | TOPSIS | −0.0247 | 0.005 |
   | per capita | −0.0369 | 0.007 |
-  | waiver years excluded (n = 390) | −0.0342 | 0.025 |
+  | waiver years excluded (n = 390) | −0.0337 | 0.028 |
+  | outlier provinces dropped (62 clusters) | −0.0365 | 0.006 |
 
-  Monte Carlo error at 999 draws is about ±0.005 at p = 0.025, so 9,999 draws would change nothing.
-  Benefit framing flips the sign (+0.031) by construction; not new evidence.
-- ⭐ **ROBUST FINDING — the DiD is the same on both indices.** Long-panel −0.0373 and full index
-  −0.0375, built from different category sets (four vs five, with and without market and water)
+  Monte Carlo error at 999 draws is about ±0.005 at p ≈ 0.03, so 9,999 draws would change nothing.
+  Benefit framing flips the sign by construction; not new evidence.
+- ⭐ **ROBUST FINDING — the DiD is the same on both indices.** Long-panel −0.0367 and full index
+  −0.0371, built from different category sets (four vs five, with and without market and water)
   over different years (2008–2024 vs 2008–2020). Both have clean pre-trends and are significant
   under the wild bootstrap. The effect does not depend on which index definition is used.
-- **Full-index counterpart (robustness, Figure 6.1b, `table_6_1b`):** DiD −0.0375 (SE 0.0069,
+- **Full-index counterpart (robustness, Figure 6.1b, `table_6_1b`):** DiD −0.0371 (SE 0.0068,
   p < 0.001; wild bootstrap: none of 999 draws as extreme, so p < 0.001), n = 455.
-  - Event study: 2008 −0.002 and 2010 −0.002 (pre-trends clean); 2014 −0.029, 2016 −0.039,
+  - Event study: 2008 −0.003 and 2010 −0.002 (pre-trends clean); 2014 −0.029, 2016 −0.039,
     2018 −0.046, 2020 −0.040.
   - Same size as the long-panel estimate.
   - Its municipal burden includes water and waste, so the same coverage mechanism applies.
 - Figure y-axes read "DiD effect … (new-metro − non-metro gap, minus its 2012 value)".
-- **Event study** (relative to 2012; `table_6_1`): 2008 −0.009, 2010 −0.002 (pre-trends clean on a
-  two-point test); 2014 −0.041, 2016 −0.046, 2018 −0.045, 2020 −0.049, 2022 −0.038 (p = 0.015),
+- **Event study** (relative to 2012; `table_6_1`): 2008 −0.011, 2010 −0.002 (pre-trends clean on a
+  two-point test); 2014 −0.041, 2016 −0.046, 2018 −0.045, 2020 −0.049, 2022 −0.038 (p = 0.014),
   2024 −0.026 (p = 0.15).
 - **The effect is municipal burden.**
-  - Without municipal burden the estimate is +0.0085 (p = 0.224).
-  - Each category alone: municipal burden −0.175 (p < 0.0001); land use −0.023 (p = 0.003);
+  - Without municipal burden the estimate is +0.0092 (p = 0.184).
+  - Each category alone: municipal burden −0.175 (p < 0.0001); land use −0.020 (p = 0.006);
     external input +0.048 (p = 0.004); production −0.0002, 95% CI [−0.0225, +0.0220], a tight null.
   - **Not defensible:** "Law 6360 reduced food sovereignty."
 - **Mechanism: municipal coverage expansion, one-for-one.**
@@ -165,10 +174,10 @@ boundary change), cluster-robust SE by province, 14 treated / 51 control.
   - **Cause:** the municipal-burden score fades 27% while log waste fades only 3%. log1p is
     effectively linear at these units and treated waste per household fell, so the same percentage
     jump becomes a smaller absolute gap.
-- **Land use (−0.0226), by indicator:**
+- **Land use (−0.0204), by indicator** (contribution = indicator DiD / 5, summing exactly):
   - Score scale: fallow −0.0108 (about half; more fallow in treated; the only one significant
-    alone, p = 0.021), vegetables −0.0068, long-term crops −0.0039, greenhouse −0.0021, core
-    cropland +0.0009.
+    alone, p = 0.021), vegetables −0.0068, long-term crops −0.0039, greenhouse −0.0021, harvested
+    cropland +0.0031 (its own DiD +0.016, p = 0.38).
   - Raw logs: nothing significant (fallow +26% p = 0.31, vegetables −11% p = 0.24, harvested area
     −3% p = 0.67).
   - **Reading:** no farmland loss; a weak, diffuse shift toward fallow. Too weak to carry the ZMO
@@ -192,8 +201,22 @@ boundary change), cluster-robust SE by province, 14 treated / 51 control.
 - **Robustness to size:** the 14 largest non-metros (Afyonkarahisar 704k … Yozgat 453k, 2012) all
   sit below the smallest treated province (Ordu 741k). The median size gap narrows from 3.02× to
   1.76×. A truly size-overlapping control group is impossible; say so.
-- **Data-quality sensitivity:** dropping Kırıkkale (waste 2012 = 41 between 133 and 74), Kırşehir
-  (waste 2012 = 143) and Hakkari (zero fertiliser), all controls: −0.0370 vs −0.0373.
+- **Data-quality sensitivity** (cell "Data-quality checks"). **These provinces are NOT excluded from
+  the analysis.** All 81 stay in the index, the descriptive results and the primary DiD. They are
+  left out in this one robustness check only, to show the result does not hinge on suspect data.
+  - **How they were found:** a scan for one-year spikes (a value > 2× off the geometric mean of the
+    adjacent years and reversing), plus the 2012→2024 change map, where neighbours Kırıkkale and
+    Kırşehir sat at opposite extremes.
+  - **Kırıkkale:** waste collected 128, 133, **41**, 74 thousand t (2008–2014). The 2012 value is
+    the only waste spike in the whole panel, and 2012 is the DiD reference year. Its fertiliser per
+    household also rises 6.5× from 2008 to 2024.
+  - **Kırşehir:** waste 96, 87, **143**, 78 thousand t (2008–2014), an implausible 2012 jump in the
+    same reference year.
+  - **Hakkari:** no fertiliser rows in the Ministry file for 2020–2024, zero-filled by the pipeline,
+    and zero or near-zero in most reported years. This gives it the top external-input score.
+  - All three are non-metro controls; that is coincidence, not selection.
+  - **Result:** −0.0365 without them vs −0.0367 with them (bootstrap p = 0.006). Conclusion
+    unchanged; no data were altered.
 - **Per area is not a usable DiD track once normalised.** Per-area DiD −0.0003 (p = 0.949) is
   scale compression: only 0.9% of the per-area waste score's variance is within-province (34% per
   household). Within-province SD is 10.7× smaller; the municipal-burden coefficient is 10.9× smaller.
@@ -204,30 +227,42 @@ never overlap in size; old-metro contaminated as a control for municipal service
 +0.089 at the reform vs +0.226 new-metro, −0.020 non-metro).
 
 **SD units and internal structure (2026-10-18, Orhan-approved; notebook 212 cells, 0 errors):**
-- **DiD in SD units** (long-panel, Türkiye row excluded):
-  - across provinces in 2012: SD 0.0755, so −0.0373 = −0.49 SD
-  - pooled province-years: SD 0.0745, so −0.50 SD
-  - within province: SD 0.0363, so −1.03 SD
+- **DiD in SD units** (long-panel, Türkiye row excluded; values after the 2026-10-21 rebuild):
+  - across provinces in 2012: SD 0.0755, so −0.0367 = −0.49 SD
+  - pooled province-years: SD 0.0746, so −0.49 SD
+  - within province: SD 0.0363, so −1.01 SD
   - "About half an SD" refers to between-province spread.
-- **Outlier-dropped DiD** (Kırıkkale, Kırşehir, Hakkari): −0.0370, wild bootstrap p = 0.005.
+- **Outlier-dropped DiD** (Kırıkkale, Kırşehir, Hakkari): −0.0365, wild bootstrap p = 0.006.
 - **Internal structure** of the full index; per-household scores, cost-flipped; 567 province-years;
   Appendix C: `fig_C1`, `fig_C2`, `table_C1`–`C5`.
   - (a) The mean indicator correlation within categories (+0.09) barely exceeds the mean between
     categories (0.00). The strongest pairs cross category lines: greenhouse output ~ greenhouse
-    land 0.97; total production ~ core cropland 0.84; livestock ~ core cropland 0.68; fertiliser ~
-    crop value −0.60.
-  - (b) Categories: production, land use and market go together (0.38–0.60); external input
-    mirrors them (−0.44 to −0.47), since more farming means more fertiliser. Municipal burden is
+    land 0.97; total production ~ harvested cropland 0.85; livestock ~ harvested cropland 0.68;
+    fertiliser ~ crop value −0.60.
+  - (b) Categories: production, land use and market go together (0.36–0.60); external input
+    mirrors them (−0.44 to −0.45), since more farming means more fertiliser. Municipal burden is
     nearly independent of all four (|r| ≤ 0.13).
-  - (c) Cronbach's alpha: external input 0.78, municipal burden 0.57, market 0.06, land use −0.28,
+  - (c) Cronbach's alpha: external input 0.78, municipal burden 0.57, market 0.06, land use −0.26,
     production −0.40. Negative alpha means the members pull in opposite directions (greenhouse vs
     field-crop provinces). These are conceptual groupings, not reflective scales.
-  - (d) PCA: PC1 30%, PC2 20%, PC3 13%; 4 components with eigenvalue > 1.
+  - (d) PCA: PC1 29%, PC2 20%, PC3 13%; 4 components with eigenvalue > 1.
     - PC1: field-crop and livestock scale vs input intensity.
     - PC2: greenhouse and horticulture.
     - PC3: long-term crops and municipal water vs greenhouse.
     - So the index is multi-dimensional, which supports equal category weights over a single
       latent factor.
+
+**Full index per capita (2026-10-20, cell "Full index per capita", notebook 214 cells):**
+- Group orderings do NOT depend on the household denominator. In 2020, the highest and lowest group
+  is identical under per household and per capita for every category and for the FSOI:
+  - non-metro leads production, market, municipal burden and the FSOI;
+  - new-metro is lowest on production, municipal burden, external input and the FSOI;
+  - old-metro leads external input and is lowest on market;
+  - new-metro leads land use.
+- Per capita 2020 FSOI: non 0.469, old 0.398, new 0.392. Province ranks agree with per household at
+  Spearman 0.975.
+- Per-capita levels are lower (different scaling), and in municipal burden new-metro (0.416) and
+  old-metro (0.417) tie.
 
 # 4. Measurement facts the methods chapter needs
 
@@ -266,7 +301,7 @@ never overlap in size; old-metro contaminated as a control for municipal service
   by a constant (r = 1.000), per household drifts with household size. Figure 4.3.
 - **Normalisation:** log1p → winsorise 1/99 (cities only) → pooled min-max 2008–2024, Türkiye placed
   on the scale. Cost flips applied at aggregation.
-  - On the 26 index columns: mean |skew| 3.07 → 1.87. log1p is near-linear (Pearson > 0.99 with
+  - On the 26 index columns: mean |skew| 3.07 → 1.89. log1p is near-linear (Pearson > 0.99 with
     raw) for 14 of 26: every land-use column and waste per household, because their units are tiny.
   - It does real work for production, market, agricultural electricity and water per area.
     Per-column table: `table_B3`.
@@ -332,8 +367,8 @@ which `fsoi_map.ipynb` reads; re-run the main notebook first whenever the index 
 
 **Two panels.**
 - `data_official_Türkiye` (main, gap-free 2008–2024): production (total crop tonnage, greenhouse
-  output); land use (core = harvested + sown collapsed, r = 0.99; fallow; greenhouse land; long-term
-  crops; vegetables); waste; fertiliser.
+  output); land use (harvested area — sown area dropped, r = 0.99; fallow; greenhouse land;
+  long-term crops; vegetables); waste; fertiliser.
 - `data_official_Türkiye_extended`: crop, livestock and animal-product value (USD, to 2020); drawn
   water and agricultural electricity (to 2022); a non-agricultural electricity covariate (not an
   indicator). Each indicator is a `_perArea` + `_perHousehold` pair; normalised columns have
@@ -344,7 +379,7 @@ which `fsoi_map.ipynb` reads; re-run the main notebook first whenever the index 
 | Category | Full index | Long-panel index |
 |---|---|---|
 | production | greenhouse output, total crop tonnage | same |
-| land use | core, fallow (cost), greenhouse land, long-term crops, vegetables | same |
+| land use | harvested area, fallow (cost), greenhouse land, long-term crops, vegetables | same |
 | municipal burden | waste + water (cost) | waste only |
 | external input | fertiliser + agricultural electricity (cost) | fertiliser only |
 | market | crop value + livestock value | — (no main-panel member) |
@@ -360,6 +395,7 @@ which `fsoi_map.ipynb` reads; re-run the main notebook first whenever the index 
 - Per-person water series: its denominator is municipal population, which Law 6360 moved.
 - Refined water: records whether a treatment plant exists, not usage.
 - Daily waste rate: 0.999-correlated with the annual total.
+- Sown area: r = 0.99 with harvested area; harvested kept alone (2026-10-21).
 - Animal-product value: series break.
 
 **Confounds** (canonical text in CLAUDE.md → *Law 6360 confounds*):
